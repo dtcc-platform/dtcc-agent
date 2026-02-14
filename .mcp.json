@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dtcc-agent": {
+      "command": "/Users/vasnas/miniconda3/bin/conda",
+      "args": ["run", "--no-capture-output", "-n", "fenicsx-env", "python", "-m", "dtcc_agent"]
+    }
+  }
+}
