@@ -18,12 +18,17 @@ from mcp.server.fastmcp import FastMCP
 
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
+from .object_store import ObjectStore
+from .serializers import serialize
 
 mcp = FastMCP("dtcc-agent")
 
 # In-memory store for simulation results so the agent can refer back
 # to previous runs (e.g. for comparison). Keyed by run_id.
 _results: dict[str, dict[str, Any]] = {}
+
+# Shared object store for dtcc-core objects (PointCloud, Mesh, Raster, etc.)
+_object_store = ObjectStore()
 
 
 # -- Helpers -----------------------------------------------------------------
@@ -45,6 +50,8 @@ def _store_result(name: str, bounds: list[float], parameters: dict, result: Any)
         "result": result,
         "timestamp": time.time(),
     }
+    # Also store in the object store so simulation results can feed pipelines
+    _object_store.store(result, source_op=f"simulation.{name}", label=run_id)
     return run_id
 
 
@@ -341,6 +348,146 @@ def get_run_summary(run_id: str) -> str:
         "parameters": info["parameters"],
         "summary": summary,
     })
+
+
+# -- Dynamic dispatch tools --------------------------------------------------
+
+@mcp.tool()
+def list_operations(
+    category: str | None = None,
+    search: str | None = None,
+) -> str:
+    """List all available dtcc-core operations.
+
+    Browse the full catalog of operations including builder functions
+    (terrain, buildings, pointcloud, mesh), IO (load/save), datasets
+    (point_cloud, buildings, terrain), and reproject utilities.
+
+    Use describe_operation() to see the full parameter schema for any
+    operation, then run_operation() to execute it.
+
+    Args:
+        category: Filter by category. Options: "builder", "io",
+            "datasets", "reproject". Omit to list all.
+        search: Free-text search across operation names, descriptions,
+            and tags. E.g. "terrain", "pointcloud", "mesh".
+
+    Returns a JSON array of operations with name, category, and description.
+    """
+    from .registry import list_operations as _list_ops
+
+    try:
+        ops = _list_ops(category=category, search=search)
+    except Exception as exc:
+        return _fmt({"error": f"Failed to list operations: {exc}"})
+    return _fmt(ops)
+
+
+@mcp.tool()
+def describe_operation(name: str) -> str:
+    """Get the full parameter schema for a dtcc-core operation.
+
+    Shows all parameters including their types, defaults, and whether
+    they accept object references (from previous run_operation results).
+
+    Args:
+        name: Operation name as returned by list_operations()
+            (e.g. "builder.build_terrain_raster", "datasets.point_cloud").
+
+    Returns a JSON object with the operation's full schema.
+    """
+    from .registry import get_operation as _get_op
+
+    try:
+        op = _get_op(name)
+    except KeyError as exc:
+        return _fmt({"error": str(exc)})
+    return _fmt(op.to_dict())
+
+
+@mcp.tool()
+def run_operation(
+    name: str,
+    params: dict[str, Any] | None = None,
+    label: str | None = None,
+) -> str:
+    """Execute a dtcc-core operation and store the result.
+
+    Runs any registered operation (builder function, dataset download,
+    IO operation, etc.). Results are stored in the object store and can
+    be referenced by ID in subsequent operations.
+
+    For parameters that accept dtcc-core objects (marked is_object_ref
+    in describe_operation), pass the object ID string from a previous
+    run_operation result.
+
+    Args:
+        name: Operation name (e.g. "builder.build_terrain_raster",
+            "datasets.point_cloud").
+        params: Parameters as a JSON object. Object-reference params
+            should use the ID string from a previous result.
+        label: Optional human-readable label for this result.
+
+    Returns a JSON object with result_id(s), operation name, and a
+    summary of the result (statistics, counts — never raw data).
+    """
+    from .dispatcher import run_operation as _dispatch
+
+    try:
+        result = _dispatch(
+            name=name,
+            params=params,
+            store=_object_store,
+            label=label or "",
+        )
+    except Exception as exc:
+        return _fmt({"error": f"Operation failed: {exc}"})
+    return _fmt(result)
+
+
+@mcp.tool()
+def list_objects(limit: int = 20) -> str:
+    """List objects stored in memory from previous operations.
+
+    Shows all dtcc-core objects (PointCloud, Mesh, Raster, etc.) that
+    have been created by run_operation(). Use object IDs to pass
+    results between operations in multi-step pipelines.
+
+    Args:
+        limit: Maximum number of objects to return (most recent first).
+
+    Returns a JSON array of stored objects with id, type, source
+    operation, label, and memory size.
+    """
+    objects = _object_store.list(limit=limit)
+    return _fmt({
+        "num_objects": len(_object_store),
+        "total_memory_mb": round(_object_store.total_bytes / (1024 * 1024), 2),
+        "objects": objects,
+    })
+
+
+@mcp.tool()
+def inspect_object(object_id: str) -> str:
+    """Get a detailed summary of a stored object.
+
+    Returns type-specific statistics: point counts, mesh info,
+    raster dimensions, elevation stats, etc. Never returns raw
+    array data — only human-readable summaries.
+
+    Args:
+        object_id: The object ID from run_operation() or list_objects().
+
+    Returns a JSON summary of the object's contents.
+    """
+    try:
+        obj = _object_store.get(object_id)
+    except KeyError:
+        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+
+    summary = serialize(obj)
+    summary["object_id"] = object_id
+    return _fmt(summary)
 
 
 # -- Internal helpers --------------------------------------------------------
