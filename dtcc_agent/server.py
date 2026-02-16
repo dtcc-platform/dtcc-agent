@@ -490,6 +490,64 @@ def inspect_object(object_id: str) -> str:
     return _fmt(summary)
 
 
+# -- Visualization -----------------------------------------------------------
+
+@mcp.tool()
+def render_object(
+    object_id: str,
+    width: int = 1200,
+    height: int = 800,
+) -> str:
+    """Render a stored object as a PNG screenshot.
+
+    Creates an offscreen 3D visualization of any dtcc-core geometry object
+    (Mesh, PointCloud, City, Building, Raster, etc.) and saves it as a PNG.
+
+    Supported types: Mesh, PointCloud, City, Raster, Building, Surface,
+    MultiSurface, VolumeMesh, RoadNetwork, Bounds, LineString,
+    MultiLineString, and lists of Buildings.
+
+    Args:
+        object_id: The object ID from run_operation() or list_objects().
+        width: Image width in pixels (default 1200).
+        height: Image height in pixels (default 800).
+
+    Returns a JSON object with the image file path, or an error message.
+    """
+    from .renderer import render_to_file, SUPPORTED_TYPES
+
+    try:
+        obj = _object_store.get(object_id)
+    except KeyError:
+        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+
+    type_name = type(obj).__name__
+    if type_name not in SUPPORTED_TYPES and not isinstance(obj, list):
+        return _fmt({
+            "error": f"Unsupported type for rendering: {type_name}. "
+                     f"Supported: {', '.join(sorted(SUPPORTED_TYPES - {'list'}))}",
+        })
+
+    image_path = render_to_file(
+        obj=obj,
+        type_name=type_name,
+        label=object_id,
+        width=width,
+        height=height,
+    )
+
+    if image_path is None:
+        return _fmt({"error": "Rendering failed. Check that dtcc-viewer is installed and the object has geometry."})
+
+    return _fmt({
+        "object_id": object_id,
+        "type": type_name,
+        "image_path": image_path,
+        "width": width,
+        "height": height,
+    })
+
+
 # -- Internal helpers --------------------------------------------------------
 
 def _infer_field_name(simulation_name: str) -> str:

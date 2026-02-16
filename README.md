@@ -18,7 +18,8 @@ LLM (Claude) ←→ MCP protocol ←→ dtcc-agent
                                     ├── describe_operation  │ dynamic dispatch
                                     ├── run_operation       │ (109 operations)
                                     ├── list_objects        │ with object store
-                                    └── inspect_object     ─┘
+                                    ├── inspect_object     ─┘
+                                    └── render_object       (dtcc_viewer, offscreen)
 ```
 
 Unlike dtcc-deploy (which proxies HTTP calls to a FastAPI backend),
@@ -92,6 +93,12 @@ python -m dtcc_agent
 | `run_operation` | Execute any operation and store the result |
 | `list_objects` | List objects in the in-memory store |
 | `inspect_object` | Get detailed summary of a stored object |
+
+### Visualization tools
+
+| Tool | Description |
+|------|-------------|
+| `render_object` | Render a stored object as a PNG screenshot (offscreen 3D via dtcc-viewer) |
 
 The dynamic dispatch tools expose **all** of dtcc-core:
 
@@ -218,7 +225,55 @@ Agent: "Lindholmen has 47 buildings (3–45m tall) and approximately
         128 detected trees (4–18m tall) from the LiDAR data..."
 ```
 
-### Example 4: Discovering operations
+### Example 4: Visualizing buildings in 3D
+
+Download buildings for an area and render a 3D screenshot:
+
+```
+User: "Show me the buildings in Lindholmen"
+
+Agent calls: geocode("Lindholmen")
+  → bounds [318866, 6399800, 319366, 6400300]
+
+Agent calls: run_operation("datasets.buildings",
+               {"bounds": [318866, 6399800, 319366, 6400300]})
+  → result_id: "b1c2d3e4", 47 buildings, heights 3–45m
+
+Agent calls: render_object("b1c2d3e4")
+  → {"image_path": "/tmp/dtcc_screenshots_xxx/b1c2d3e4.png",
+     "type": "City", "width": 1200, "height": 800}
+
+Agent: "Here's a 3D rendering of the 47 buildings in Lindholmen.
+        The tallest building reaches 45m..."
+```
+
+### Example 5: Terrain visualization pipeline
+
+Build a terrain raster and render it:
+
+```
+User: "Visualize the terrain around Chalmers"
+
+Agent calls: geocode("Chalmers")
+  → bounds [319700, 6399500, 320200, 6400000]
+
+Agent calls: run_operation("datasets.point_cloud",
+               {"bounds": [319700, 6399500, 320200, 6400000]})
+  → result_id: "a1b2c3d4", 1.2M points
+
+Agent calls: run_operation("builder.build_terrain_raster",
+               {"pc": "a1b2c3d4", "cell_size": 2.0})
+  → result_id: "e5f6g7h8", 250×250 raster, elevation 5–48m
+
+Agent calls: render_object("e5f6g7h8")
+  → {"image_path": "/tmp/dtcc_screenshots_xxx/e5f6g7h8.png",
+     "type": "Raster", "width": 1200, "height": 800}
+
+Agent: "Here's the terrain raster for the Chalmers area. Elevation
+        ranges from 5m near the waterfront to 48m on the hillside..."
+```
+
+### Example 6: Discovering operations
 
 ```
 Agent calls: list_operations(category="builder")
