@@ -548,6 +548,449 @@ def render_object(
     })
 
 
+# -- Object management -------------------------------------------------------
+
+@mcp.tool()
+def delete_object(object_id: str) -> str:
+    """Delete a stored object from memory.
+
+    Frees the memory used by the object. Use list_objects() to see what's
+    stored before deleting.
+
+    Args:
+        object_id: The object ID to delete.
+
+    Returns confirmation with the deleted object's type and label,
+    or an error if not found.
+    """
+    if object_id not in _object_store:
+        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+
+    entry = _object_store._objects[object_id]
+    type_name = entry["type"]
+    label = entry["label"]
+    _object_store.delete(object_id)
+
+    return _fmt({
+        "deleted": object_id,
+        "type": type_name,
+        "label": label,
+    })
+
+
+@mcp.tool()
+def get_field_names(object_id: str) -> str:
+    """Get available field/data names from a stored object.
+
+    Useful for discovering what data is attached to an object before
+    running spatial queries or exports.
+
+    Args:
+        object_id: The object ID from run_operation() or list_objects().
+
+    Returns a JSON object with field names, units, and counts.
+    """
+    try:
+        obj = _object_store.get(object_id)
+    except KeyError:
+        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+
+    type_name = type(obj).__name__
+    fields: list[dict[str, Any]] = []
+
+    if type_name == "SensorCollection":
+        seen: dict[tuple[str, str], int] = {}
+        for station in obj.stations():
+            for geom in station.geometry.values():
+                for f in getattr(geom, "fields", []):
+                    key = (f.name, f.unit)
+                    seen[key] = seen.get(key, 0) + 1
+        fields = [{"name": k[0], "unit": k[1], "count": v} for k, v in seen.items()]
+
+    elif type_name in ("Mesh", "PointCloud", "Surface", "VolumeMesh"):
+        for f in getattr(obj, "fields", []):
+            fields.append({
+                "name": f.name,
+                "unit": f.unit,
+                "count": len(f.values) if hasattr(f.values, "__len__") else 0,
+            })
+
+    elif type_name == "Raster":
+        data = getattr(obj, "data", None)
+        shape = list(data.shape) if data is not None else []
+        fields = [{
+            "name": "data",
+            "unit": "",
+            "count": int(data.size) if data is not None else 0,
+            "shape": shape,
+        }]
+
+    elif type_name == "City":
+        if getattr(obj, "buildings", []):
+            fields.append({"name": "buildings", "unit": "", "count": len(obj.buildings)})
+        if hasattr(obj, "has_terrain") and obj.has_terrain():
+            fields.append({"name": "terrain", "unit": "", "count": 1})
+        if getattr(obj, "trees", []):
+            fields.append({"name": "trees", "unit": "", "count": len(obj.trees)})
+
+    else:
+        for f in getattr(obj, "fields", []):
+            fields.append({
+                "name": f.name,
+                "unit": f.unit,
+                "count": len(f.values) if hasattr(f.values, "__len__") else 0,
+            })
+
+    return _fmt({"object_id": object_id, "type": type_name, "fields": fields})
+
+
+# -- Export ------------------------------------------------------------------
+
+# Type → (save_function_name, allowed_formats)
+_EXPORT_DISPATCH = {
+    "PointCloud":  ("save_pointcloud",   {"csv", "las", "laz", "json"}),
+    "Mesh":        ("save_mesh",         {"obj", "ply", "stl", "vtk", "vtu", "gltf"}),
+    "VolumeMesh":  ("save_volume_mesh",  {"obj", "ply", "stl", "vtk", "vtu"}),
+    "Raster":      ("save_raster",       {"csv", "tif", "png", "jpg"}),
+    "City":        ("save_city",         {"json"}),
+}
+
+
+@mcp.tool()
+def export_object(
+    object_id: str,
+    format: str,
+    filepath: str | None = None,
+) -> str:
+    """Export a stored object to a file.
+
+    Supported types and formats:
+    - PointCloud: csv, las, laz, json
+    - Mesh: obj, ply, stl, vtk, vtu, gltf
+    - VolumeMesh: obj, ply, stl, vtk, vtu
+    - Raster: csv, tif, png, jpg
+    - City: json
+    - SensorCollection: csv
+
+    Args:
+        object_id: The object ID from run_operation() or list_objects().
+        format: Output format (e.g. "csv", "obj", "ply", "json").
+        filepath: Optional output file path. If omitted, saves to
+            /tmp/dtcc_exports/<object_id>.<format>.
+
+    Returns a JSON object with the exported file path, or an error.
+    """
+    import os
+
+    try:
+        obj = _object_store.get(object_id)
+    except KeyError:
+        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+
+    type_name = type(obj).__name__
+    fmt = format.lower().lstrip(".")
+
+    # SensorCollection: manual CSV export
+    if type_name == "SensorCollection":
+        if fmt != "csv":
+            return _fmt({"error": f"SensorCollection only supports csv format, got '{fmt}'."})
+
+        import csv as csv_mod
+
+        if filepath is None:
+            os.makedirs("/tmp/dtcc_exports", exist_ok=True)
+            filepath = f"/tmp/dtcc_exports/{object_id}.csv"
+
+        with open(filepath, "w", newline="") as fh:
+            writer = csv_mod.writer(fh)
+            writer.writerow(["station", "x", "y", "z", "field", "value", "unit"])
+            for i, station in enumerate(obj.stations()):
+                for geom in station.geometry.values():
+                    if not hasattr(geom, "x"):
+                        continue
+                    for field in getattr(geom, "fields", []):
+                        val = field.values[0] if len(field.values) > 0 else ""
+                        writer.writerow([
+                            station.attributes.get("station_name", f"station_{i}"),
+                            round(geom.x, 2), round(geom.y, 2), round(geom.z, 2),
+                            field.name, val, field.unit,
+                        ])
+
+        return _fmt({"object_id": object_id, "type": type_name, "format": fmt, "filepath": filepath})
+
+    # Standard dtcc-core types
+    if type_name not in _EXPORT_DISPATCH:
+        return _fmt({"error": f"Export not supported for type '{type_name}'."})
+
+    save_func_name, allowed_formats = _EXPORT_DISPATCH[type_name]
+
+    if fmt not in allowed_formats:
+        return _fmt({
+            "error": f"Format '{fmt}' not supported for {type_name}. "
+                     f"Allowed: {', '.join(sorted(allowed_formats))}."
+        })
+
+    if filepath is None:
+        os.makedirs("/tmp/dtcc_exports", exist_ok=True)
+        filepath = f"/tmp/dtcc_exports/{object_id}.{fmt}"
+
+    from dtcc_core import io as dtcc_io
+
+    save_func = getattr(dtcc_io, save_func_name)
+
+    try:
+        save_func(obj, filepath)
+    except Exception as exc:
+        return _fmt({"error": f"Export failed: {exc}"})
+
+    return _fmt({"object_id": object_id, "type": type_name, "format": fmt, "filepath": filepath})
+
+
+# -- Rich text output --------------------------------------------------------
+
+@mcp.tool()
+def object_to_text(object_id: str, format: str = "markdown") -> str:
+    """Get a rich text representation of a stored object.
+
+    Returns formatted markdown with tables and statistics, suitable
+    for direct display. Unlike inspect_object() which returns JSON,
+    this produces human-readable formatted text.
+
+    Args:
+        object_id: The object ID from run_operation() or list_objects().
+        format: Output format — currently only "markdown" is supported.
+
+    Returns a markdown-formatted string (not JSON-wrapped).
+    """
+    if format != "markdown":
+        return _fmt({"error": f"Unsupported format '{format}'. Only 'markdown' is supported."})
+
+    try:
+        obj = _object_store.get(object_id)
+    except KeyError:
+        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+
+    from .serializers import to_markdown
+
+    return to_markdown(obj)
+
+
+# -- Spatial queries ---------------------------------------------------------
+
+@mcp.tool()
+def spatial_query(
+    object_id: str,
+    query_type: str,
+    params: dict[str, Any],
+) -> str:
+    """Perform spatial queries on stored objects.
+
+    Supported queries:
+    - filter_by_bounds: Keep points/stations within a bounding box.
+      Params: {bounds: [xmin, ymin, xmax, ymax]}
+      Applies to: SensorCollection, PointCloud
+    - filter_by_value: Keep stations matching a field condition.
+      Params: {field: str, op: ">"|"<"|">="|"<="|"==", value: float}
+      Applies to: SensorCollection
+    - nearest: Find the nearest station to a point.
+      Params: {x: float, y: float}
+      Applies to: SensorCollection
+    - buildings_by_height: Filter buildings by height range.
+      Params: {min_height?: float, max_height?: float}
+      Applies to: City
+
+    Args:
+        object_id: The object ID from run_operation() or list_objects().
+        query_type: Type of spatial query (see above).
+        params: Query-specific parameters.
+
+    Returns filtered results. For filter queries, a new object is stored
+    and its ID returned. For nearest, station info is returned directly.
+    """
+    import numpy as np
+
+    try:
+        obj = _object_store.get(object_id)
+    except KeyError:
+        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+
+    type_name = type(obj).__name__
+
+    # -- filter_by_bounds ---------------------------------------------------
+    if query_type == "filter_by_bounds":
+        bounds = params.get("bounds")
+        if not bounds or len(bounds) != 4:
+            return _fmt({"error": "filter_by_bounds requires 'bounds': [xmin, ymin, xmax, ymax]."})
+        xmin, ymin, xmax, ymax = bounds
+
+        if type_name == "SensorCollection":
+            from dtcc_core.model.object.sensor_collection import SensorCollection as SC
+
+            filtered = SC()
+            count = 0
+            for station in obj.stations():
+                for geom in station.geometry.values():
+                    if hasattr(geom, "x"):
+                        if xmin <= geom.x <= xmax and ymin <= geom.y <= ymax:
+                            filtered.add_station(station)
+                            count += 1
+                        break
+            new_id = _object_store.store(
+                filtered, source_op="spatial_query.filter_by_bounds",
+                label=f"filtered from {object_id}",
+            )
+            return _fmt({
+                "new_object_id": new_id, "type": "SensorCollection",
+                "count": count, "query": "filter_by_bounds", "bounds": bounds,
+            })
+
+        if type_name == "PointCloud":
+            from dtcc_core.model.geometry.pointcloud import PointCloud as PC
+
+            pts = obj.points
+            mask = (
+                (pts[:, 0] >= xmin) & (pts[:, 0] <= xmax)
+                & (pts[:, 1] >= ymin) & (pts[:, 1] <= ymax)
+            )
+            filtered = PC()
+            filtered.points = pts[mask]
+            for attr in ("classification", "intensity", "return_number", "num_returns"):
+                arr = getattr(obj, attr, None)
+                if isinstance(arr, np.ndarray) and len(arr) == len(pts):
+                    setattr(filtered, attr, arr[mask])
+            new_id = _object_store.store(
+                filtered, source_op="spatial_query.filter_by_bounds",
+                label=f"filtered from {object_id}",
+            )
+            return _fmt({
+                "new_object_id": new_id, "type": "PointCloud",
+                "count": int(mask.sum()), "original_count": len(pts),
+                "query": "filter_by_bounds", "bounds": bounds,
+            })
+
+        return _fmt({
+            "error": f"filter_by_bounds not supported for type '{type_name}'. "
+                     "Use SensorCollection or PointCloud."
+        })
+
+    # -- filter_by_value ----------------------------------------------------
+    if query_type == "filter_by_value":
+        if type_name != "SensorCollection":
+            return _fmt({"error": "filter_by_value only supported for SensorCollection."})
+
+        import operator
+
+        field_name = params.get("field")
+        op = params.get("op")
+        value = params.get("value")
+        if not all([field_name, op, value is not None]):
+            return _fmt({"error": "filter_by_value requires 'field', 'op', and 'value'."})
+        if op not in (">", "<", ">=", "<=", "=="):
+            return _fmt({"error": f"Invalid operator '{op}'. Use >, <, >=, <=, or ==."})
+
+        ops = {">": operator.gt, "<": operator.lt, ">=": operator.ge,
+               "<=": operator.le, "==": operator.eq}
+        cmp = ops[op]
+
+        from dtcc_core.model.object.sensor_collection import SensorCollection as SC
+
+        filtered = SC()
+        count = 0
+        for station in obj.stations():
+            matched = False
+            for geom in station.geometry.values():
+                for f in getattr(geom, "fields", []):
+                    if f.name == field_name and len(f.values) > 0:
+                        if cmp(float(f.values[0]), float(value)):
+                            matched = True
+                        break
+                break
+            if matched:
+                filtered.add_station(station)
+                count += 1
+
+        new_id = _object_store.store(
+            filtered, source_op="spatial_query.filter_by_value",
+            label=f"filtered from {object_id}",
+        )
+        return _fmt({
+            "new_object_id": new_id, "type": "SensorCollection",
+            "count": count, "query": "filter_by_value",
+            "field": field_name, "op": op, "value": value,
+        })
+
+    # -- nearest ------------------------------------------------------------
+    if query_type == "nearest":
+        if type_name != "SensorCollection":
+            return _fmt({"error": "nearest only supported for SensorCollection."})
+
+        x = params.get("x")
+        y = params.get("y")
+        if x is None or y is None:
+            return _fmt({"error": "nearest requires 'x' and 'y'."})
+
+        best_dist = float("inf")
+        best_info = None
+        for i, station in enumerate(obj.stations()):
+            for geom in station.geometry.values():
+                if hasattr(geom, "x"):
+                    d = (geom.x - x) ** 2 + (geom.y - y) ** 2
+                    if d < best_dist:
+                        best_dist = d
+                        fields_info = [
+                            {
+                                "name": f.name,
+                                "value": float(f.values[0]) if len(f.values) > 0 else None,
+                                "unit": f.unit,
+                            }
+                            for f in getattr(geom, "fields", [])
+                        ]
+                        best_info = {
+                            "station": station.attributes.get("station_name", f"station_{i}"),
+                            "x": round(geom.x, 2),
+                            "y": round(geom.y, 2),
+                            "z": round(geom.z, 2),
+                            "distance": round(d ** 0.5, 2),
+                            "fields": fields_info,
+                        }
+                    break
+
+        if best_info is None:
+            return _fmt({"error": "No stations found in SensorCollection."})
+        return _fmt({"query": "nearest", "result": best_info})
+
+    # -- buildings_by_height ------------------------------------------------
+    if query_type == "buildings_by_height":
+        if type_name != "City":
+            return _fmt({"error": "buildings_by_height only supported for City."})
+
+        min_h = params.get("min_height", 0)
+        max_h = params.get("max_height", float("inf"))
+
+        buildings = getattr(obj, "buildings", [])
+        filtered = [
+            b for b in buildings
+            if min_h <= (b.height if getattr(b, "height", None) else 0) <= max_h
+        ]
+
+        new_id = _object_store.store(
+            filtered, source_op="spatial_query.buildings_by_height",
+            label=f"filtered from {object_id}",
+        )
+        return _fmt({
+            "new_object_id": new_id, "type": "list[Building]",
+            "count": len(filtered), "original_count": len(buildings),
+            "query": "buildings_by_height",
+            "min_height": min_h,
+            "max_height": max_h if max_h != float("inf") else None,
+        })
+
+    return _fmt({
+        "error": f"Unknown query_type '{query_type}'. "
+                 "Supported: filter_by_bounds, filter_by_value, nearest, buildings_by_height."
+    })
+
+
 # -- Internal helpers --------------------------------------------------------
 
 def _infer_field_name(simulation_name: str) -> str:

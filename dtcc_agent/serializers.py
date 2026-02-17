@@ -6,6 +6,7 @@ Never dumps raw arrays — only statistics and metadata.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import numpy as np
@@ -294,3 +295,144 @@ def serialize(obj: Any) -> dict[str, Any]:
 
     # Fallback
     return {"type": type(obj).__name__, "repr": str(obj)[:200]}
+
+
+# ── Markdown formatters ────────────────────────────────────────────────
+
+def _to_markdown_sensor_collection(obj: Any) -> str:
+    lines = ["| Station | Location (x, y) | Value | Unit |", "|---|---|---|---|"]
+    for i, station in enumerate(obj.stations()):
+        for geom in station.geometry.values():
+            if not hasattr(geom, "x"):
+                continue
+            name = station.attributes.get("station_name", f"station_{i}")
+            for f in getattr(geom, "fields", []):
+                val = f"{f.values[0]:.2f}" if len(f.values) > 0 else "—"
+                lines.append(
+                    f"| {name} | ({geom.x:.1f}, {geom.y:.1f}) | {val} | {f.unit} |"
+                )
+    if len(lines) == 2:
+        return "No sensor data available."
+    return "\n".join(lines)
+
+
+def _to_markdown_city(obj: Any) -> str:
+    buildings = getattr(obj, "buildings", [])
+    if not buildings:
+        return "City has no buildings."
+    lines = ["| # | Height (m) | Footprint area |", "|---|---|---|"]
+    for i, b in enumerate(buildings[:50]):
+        h = f"{b.height:.1f}" if getattr(b, "height", None) else "—"
+        area = b.attributes.get("footprint_area", "—")
+        if isinstance(area, (int, float)):
+            area = f"{area:.1f} m²"
+        lines.append(f"| {i + 1} | {h} | {area} |")
+    if len(buildings) > 50:
+        lines.append(f"\n*... and {len(buildings) - 50} more buildings.*")
+    return "\n".join(lines)
+
+
+def _to_markdown_pointcloud(obj: Any) -> str:
+    num = len(obj.points) if hasattr(obj, "points") else 0
+    parts = [f"**PointCloud** — {num:,} points\n"]
+
+    cls = getattr(obj, "classification", np.empty(0))
+    if isinstance(cls, np.ndarray) and len(cls) > 0:
+        parts.append("| Classification | Count |")
+        parts.append("|---|---|")
+        unique, counts = np.unique(cls, return_counts=True)
+        for k, v in zip(unique, counts):
+            parts.append(f"| {int(k)} | {int(v):,} |")
+        parts.append("")
+
+    if hasattr(obj, "points") and len(obj.points) > 0:
+        z = obj.points[:, 2]
+        parts.append(
+            f"**Elevation**: min={z.min():.2f}, max={z.max():.2f}, "
+            f"mean={z.mean():.2f}, std={z.std():.2f}"
+        )
+    return "\n".join(parts)
+
+
+def _to_markdown_mesh(obj: Any) -> str:
+    nv = getattr(obj, "num_vertices", 0)
+    nf = getattr(obj, "num_faces", 0)
+    parts = [f"**Mesh** — {nv:,} vertices, {nf:,} faces\n"]
+    markers = getattr(obj, "markers", np.empty(0))
+    if isinstance(markers, np.ndarray) and len(markers) > 0:
+        parts.append("| Marker | Count |")
+        parts.append("|---|---|")
+        unique_vals, counts = np.unique(markers, return_counts=True)
+        for m, c in zip(unique_vals[:20], counts[:20]):
+            parts.append(f"| {int(m)} | {int(c):,} |")
+    return "\n".join(parts)
+
+
+def _to_markdown_raster(obj: Any) -> str:
+    data = getattr(obj, "data", None)
+    shape = list(data.shape) if data is not None else []
+    parts = [f"**Raster** — shape {shape}\n"]
+    if data is not None and data.size > 0:
+        flat = data.ravel()
+        parts.append(
+            f"**Values**: min={flat.min():.4f}, max={flat.max():.4f}, "
+            f"mean={flat.mean():.4f}, std={flat.std():.4f}"
+        )
+    return "\n".join(parts)
+
+
+def _to_markdown_road_network(obj: Any) -> str:
+    edges = getattr(obj, "edges", [])
+    n_edges = len(edges) if hasattr(edges, "__len__") else 0
+    b = _bounds_dict(obj)
+    parts = [f"**RoadNetwork** — {n_edges:,} edges"]
+    if b:
+        parts.append(
+            f"\nBounds: ({b['xmin']}, {b['ymin']}) to ({b['xmax']}, {b['ymax']})"
+        )
+    return "\n".join(parts)
+
+
+_MD_DISPATCH: dict[str, Any] = {
+    "SensorCollection": _to_markdown_sensor_collection,
+    "PointCloud": _to_markdown_pointcloud,
+    "Mesh": _to_markdown_mesh,
+    "VolumeMesh": _to_markdown_mesh,
+    "Raster": _to_markdown_raster,
+    "City": _to_markdown_city,
+    "RoadNetwork": _to_markdown_road_network,
+}
+
+
+def to_markdown(obj: Any) -> str:
+    """Convert a dtcc-core object to a markdown-formatted string.
+
+    Parameters
+    ----------
+    obj : Any
+        A dtcc-core object.
+
+    Returns
+    -------
+    str
+        Markdown-formatted summary.
+    """
+    type_name = type(obj).__name__
+
+    formatter = _MD_DISPATCH.get(type_name)
+    if formatter:
+        return formatter(obj)
+
+    # Building list
+    if isinstance(obj, list) and len(obj) > 0 and type(obj[0]).__name__ == "Building":
+        lines = ["| # | Height (m) |", "|---|---|"]
+        for i, b in enumerate(obj[:50]):
+            h = f"{b.height:.1f}" if getattr(b, "height", None) else "—"
+            lines.append(f"| {i + 1} | {h} |")
+        if len(obj) > 50:
+            lines.append(f"\n*... and {len(obj) - 50} more buildings.*")
+        return "\n".join(lines)
+
+    # Fallback: JSON summary
+    summary = serialize(obj)
+    return f"```json\n{json.dumps(summary, indent=2, default=str)}\n```"

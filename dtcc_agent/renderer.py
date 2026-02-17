@@ -27,6 +27,7 @@ _DISPATCH_TABLE: dict[str, tuple[str, dict[str, Any]]] = {
     "Bounds": ("add_bounds", {}),
     "LineString": ("add_linestring", {}),
     "MultiLineString": ("add_multilinestring", {}),
+    "SensorCollection": ("add_sensor_collection", {}),
 }
 
 SUPPORTED_TYPES = set(_DISPATCH_TABLE.keys()) | {"list"}
