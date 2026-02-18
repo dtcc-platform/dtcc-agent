@@ -26,6 +26,12 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest"]
+chatbot = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "claude-agent-sdk>=0.1.0",
+    "websockets>=13.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/dtcc-platform/dtcc-agent"
@@ -33,7 +39,7 @@ Source = "https://github.com/dtcc-platform/dtcc-agent"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["dtcc_agent*"]
+include = ["dtcc_agent*", "chatbot*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
