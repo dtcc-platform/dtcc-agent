@@ -289,6 +289,30 @@ Agent calls: describe_operation("builder.pc_filter.remove_vegetation")
   → returns: PointCloud
 ```
 
+## Web Chatbot
+
+The chatbot provides a browser-based chat interface powered by Claude Agent SDK.
+
+### Install
+
+```bash
+pip install -e ".[chatbot]"
+```
+
+### Run
+
+```bash
+python -m chatbot
+```
+
+Then open http://localhost:8000 in your browser.
+
+### How it works
+
+The chatbot uses the Claude Agent SDK to connect to dtcc-agent as an MCP server.
+User messages are sent via WebSocket, and Claude's responses (including tool calls
+and 3D renders) stream back in real-time.
+
 ## License
 
 MIT License. This project is part of the
