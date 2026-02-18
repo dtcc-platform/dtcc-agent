@@ -5,7 +5,12 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path
+
+# Prevent "cannot launch inside another Claude Code session" error
+# when the chatbot is started from within a Claude Code terminal.
+os.environ.pop("CLAUDECODE", None)
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse

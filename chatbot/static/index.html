@@ -3,152 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTCC Assistant</title>
+    <title>DTCC Lurkie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        :root {
+            --dark-navy: #27252A;
+            --dark-bg: #0f0f14;
+            --dark-surface: #1b1b22;
+            --gold: #FADA36;
+            --orange: #E35A1D;
+            --teal: #78C8BE;
+            --off-white: #FAFAFA;
+            --white: #FFFFFF;
+            --muted: #54545A;
+            --header-bg: rgba(8,8,12,0.86);
+            --radius: 14px;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f5f5f5;
+            font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            background: var(--dark-bg);
+            color: var(--off-white);
             height: 100vh;
             display: flex;
             flex-direction: column;
+            letter-spacing: -0.2px;
         }
 
         header {
-            background: #1a1a2e;
-            color: white;
-            padding: 1rem;
-            text-align: center;
+            background: linear-gradient(180deg, var(--header-bg) 0%, rgba(10,10,14,0.83) 100%);
+            backdrop-filter: saturate(140%) blur(6px);
+            -webkit-backdrop-filter: saturate(140%) blur(6px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: var(--white);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        header h1 { font-size: 1.2rem; font-weight: 600; }
-        header p { font-size: 0.8rem; opacity: 0.7; margin-top: 0.25rem; }
+        header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        header h1 span {
+            color: var(--gold);
+        }
+
+        header p {
+            font-size: 0.8rem;
+            font-weight: 300;
+            color: var(--teal);
+            margin-left: auto;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
         #messages {
             flex: 1;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 1rem;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, #101016 100%);
         }
+
+        #messages::-webkit-scrollbar { width: 6px; }
+        #messages::-webkit-scrollbar-track { background: transparent; }
+        #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 
         .msg {
             max-width: 80%;
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            line-height: 1.5;
-            font-size: 0.95rem;
+            padding: 0.875rem 1.125rem;
+            border-radius: var(--radius);
+            line-height: 1.6;
+            font-size: 0.9rem;
+            font-weight: 300;
         }
 
         .msg.user {
             align-self: flex-end;
-            background: #1a1a2e;
-            color: white;
+            background: var(--orange);
+            color: var(--white);
+            font-weight: 500;
+            border-bottom-right-radius: 4px;
         }
 
         .msg.assistant {
             align-self: flex-start;
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: var(--dark-surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: var(--off-white);
+            border-bottom-left-radius: 4px;
         }
 
         .msg.assistant table {
             border-collapse: collapse;
             margin: 0.5rem 0;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            width: 100%;
         }
 
-        .msg.assistant th, .msg.assistant td {
-            border: 1px solid #ddd;
-            padding: 0.3rem 0.6rem;
+        .msg.assistant th {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0.4rem 0.6rem;
+            text-align: left;
+            background: rgba(255,255,255,0.04);
+            color: var(--gold);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+        }
+
+        .msg.assistant td {
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 0.35rem 0.6rem;
             text-align: left;
         }
 
         .msg.assistant img {
             max-width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             margin: 0.5rem 0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
         }
 
         .msg.assistant code {
-            background: #f0f0f0;
-            padding: 0.15rem 0.3rem;
-            border-radius: 3px;
-            font-size: 0.85em;
+            background: rgba(255,255,255,0.08);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.82em;
+            color: var(--teal);
         }
 
         .msg.assistant pre {
-            background: #f0f0f0;
-            padding: 0.5rem;
-            border-radius: 6px;
+            background: rgba(0,0,0,0.3);
+            padding: 0.75rem;
+            border-radius: 8px;
             overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .msg.assistant pre code {
+            background: none;
+            padding: 0;
+            color: var(--off-white);
+        }
+
+        .msg.assistant a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .msg.assistant a:hover {
+            text-decoration: underline;
+        }
+
+        .msg.assistant strong {
+            color: var(--white);
+            font-weight: 600;
         }
 
         .tool-pill {
             display: inline-block;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            background: #e8f4fd;
-            color: #1976d2;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: rgba(120,200,190,0.12);
+            color: var(--teal);
+            border: 1px solid rgba(120,200,190,0.2);
             margin: 0.15rem 0;
+            letter-spacing: 0.2px;
         }
 
-        .tool-pill.done { background: #e8f5e9; color: #388e3c; }
+        .tool-pill.done {
+            background: rgba(250,218,54,0.1);
+            color: var(--gold);
+            border-color: rgba(250,218,54,0.2);
+        }
 
         #status {
             text-align: center;
-            padding: 0.25rem;
-            font-size: 0.8rem;
-            color: #888;
+            padding: 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--teal);
             min-height: 1.5rem;
+            letter-spacing: 0.3px;
         }
 
         #input-area {
             display: flex;
-            gap: 0.5rem;
-            padding: 1rem;
-            background: white;
-            border-top: 1px solid #e0e0e0;
+            gap: 0.625rem;
+            padding: 1rem 1.5rem;
+            background: var(--dark-surface);
+            border-top: 1px solid rgba(255,255,255,0.06);
         }
 
         #input-area textarea {
             flex: 1;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
             font-family: inherit;
+            font-weight: 300;
             resize: none;
+            background: rgba(255,255,255,0.04);
+            color: var(--off-white);
+            letter-spacing: -0.2px;
+            transition: border-color 0.2s;
+        }
+
+        #input-area textarea::placeholder {
+            color: var(--muted);
+        }
+
+        #input-area textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: rgba(255,255,255,0.06);
         }
 
         #input-area button {
             padding: 0.75rem 1.5rem;
-            background: #1a1a2e;
-            color: white;
+            background: var(--orange);
+            color: var(--white);
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            transition: background 0.2s, transform 0.1s;
         }
 
-        #input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #input-area button:hover:not(:disabled) {
+            background: #c94e18;
+            transform: translateY(-1px);
+        }
+
+        #input-area button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        #input-area button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Welcome message */
+        .welcome {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--muted);
+        }
+
+        .welcome h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.3px;
+        }
+
+        .welcome h2 span { color: var(--gold); }
+
+        .welcome p {
+            font-weight: 300;
+            font-size: 0.9rem;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .welcome .hints {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1.25rem;
+        }
+
+        .welcome .hint {
+            padding: 0.4rem 0.85rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            color: var(--teal);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            font-weight: 500;
+        }
+
+        .welcome .hint:hover {
+            background: rgba(120,200,190,0.1);
+            border-color: rgba(120,200,190,0.25);
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>DTCC Assistant</h1>
-        <p>Urban digital twin chatbot for Sweden</p>
+        <h1>DTCC <span>Lurkie</span></h1>
+        <p>Digital Twin Cities Centre</p>
     </header>
 
-    <div id="messages"></div>
+    <div id="messages">
+        <div class="welcome">
+            <h2>Hello, I'm <span>Lurkie</span></h2>
+            <p>Your urban digital twin assistant for Sweden. Ask me about buildings, terrain, simulations, or city data.</p>
+            <div class="hints">
+                <div class="hint" onclick="useHint(this)">Show buildings in Lindholmen</div>
+                <div class="hint" onclick="useHint(this)">Heatwave impact on Haga</div>
+                <div class="hint" onclick="useHint(this)">Terrain slope at Chalmers</div>
+            </div>
+        </div>
+    </div>
     <div id="status"></div>
 
     <div id="input-area">
-        <textarea id="input" placeholder="Ask about buildings, terrain, heat simulations..."
+        <textarea id="input" placeholder="Ask Lurkie about urban data, simulations, buildings..."
                   rows="1"></textarea>
         <button id="send" onclick="sendMessage()">Send</button>
     </div>
@@ -193,10 +379,13 @@
 
                 case "status":
                     statusEl.textContent = data.content === "thinking"
-                        ? "Thinking..." : data.content;
+                        ? "Lurkie is thinking..." : data.content;
                     break;
 
                 case "text":
+                    // Remove welcome on first real content
+                    const w = document.querySelector('.welcome');
+                    if (w) w.remove();
                     if (!currentAssistantEl) {
                         currentAssistantEl = addMessage("", "assistant");
                         currentAssistantText = "";
@@ -254,11 +443,20 @@
             const text = inputEl.value.trim();
             if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
 
+            // Remove welcome on first send
+            const welcome = document.querySelector('.welcome');
+            if (welcome) welcome.remove();
+
             addMessage(text, "user");
             ws.send(JSON.stringify({ content: text }));
             inputEl.value = "";
             sendBtn.disabled = true;
             inputEl.disabled = true;
+        }
+
+        function useHint(el) {
+            inputEl.value = el.textContent;
+            sendMessage();
         }
 
         inputEl.addEventListener("keydown", (e) => {
