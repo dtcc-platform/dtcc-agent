@@ -182,6 +182,42 @@ class DiskCache:
         logger.debug("Disk cache miss: %s (no matching hash)", operation)
         return None
 
+    def cleanup(self) -> int:
+        """Remove expired entries and enforce disk budget. Returns count removed."""
+        now = datetime.now()
+        removed = 0
+
+        with self._lock:
+            surviving = []
+            for entry in self._index:
+                cached_time = datetime.fromisoformat(entry["timestamp"])
+                age_hours = (now - cached_time).total_seconds() / 3600
+                if age_hours > CACHE_TTL_HOURS:
+                    # Delete pickle file
+                    pkl_path = self._objects_dir / f"{entry['cache_id']}.pkl"
+                    pkl_path.unlink(missing_ok=True)
+                    removed += 1
+                else:
+                    surviving.append(entry)
+
+            # Enforce disk budget: evict oldest first
+            total_bytes = sum(e.get("size_bytes", 0) for e in surviving)
+            max_bytes = CACHE_MAX_SIZE_GB * 1024**3
+            surviving.sort(key=lambda e: e["timestamp"])
+            while total_bytes > max_bytes and surviving:
+                oldest = surviving.pop(0)
+                pkl_path = self._objects_dir / f"{oldest['cache_id']}.pkl"
+                pkl_path.unlink(missing_ok=True)
+                total_bytes -= oldest.get("size_bytes", 0)
+                removed += 1
+
+            self._index = surviving
+            self._save_index()
+
+        if removed:
+            logger.info("Disk cache cleanup: removed %d entries", removed)
+        return removed
+
     def load(self, cache_id: str) -> Any:
         """Load a pickled object by cache_id."""
         pkl_path = self._objects_dir / f"{cache_id}.pkl"

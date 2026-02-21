@@ -2,7 +2,9 @@
 
 import pickle
 import tempfile
+from datetime import datetime, timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 from dtcc_agent.disk_cache import DiskCache
 
@@ -155,3 +157,52 @@ def test_builder_lookup_miss_on_different_hash():
             params_hash="hash-xyz",
         )
         assert result is None
+
+
+def test_dataset_lookup_miss_when_expired():
+    with tempfile.TemporaryDirectory() as td:
+        cache = DiskCache(cache_dir=Path(td))
+        cache.store(
+            obj="fake",
+            operation="datasets.point_cloud",
+            category="datasets",
+            params_hash="src-LM",
+            bounds=[319700, 6399500, 320200, 6400000],
+            source="LM",
+            object_type="PointCloud",
+        )
+        future = datetime.now() + timedelta(hours=169)
+        with patch("dtcc_agent.disk_cache.datetime") as mock_dt:
+            mock_dt.now.return_value = future
+            mock_dt.fromisoformat = datetime.fromisoformat
+            result = cache.dataset_lookup(
+                operation="datasets.point_cloud",
+                source="LM",
+                params_hash="src-LM",
+                requested_bounds=[319700, 6399500, 320200, 6400000],
+            )
+        assert result is None
+
+
+def test_cleanup_removes_expired_entries():
+    with tempfile.TemporaryDirectory() as td:
+        cache = DiskCache(cache_dir=Path(td))
+        cache.store(
+            obj="old_data",
+            operation="datasets.point_cloud",
+            category="datasets",
+            params_hash="src-LM",
+            bounds=[319700, 6399500, 320200, 6400000],
+            source="LM",
+            object_type="PointCloud",
+        )
+        assert len(cache._index) == 1
+
+        future = datetime.now() + timedelta(hours=169)
+        with patch("dtcc_agent.disk_cache.datetime") as mock_dt:
+            mock_dt.now.return_value = future
+            mock_dt.fromisoformat = datetime.fromisoformat
+            removed = cache.cleanup()
+
+        assert removed == 1
+        assert len(cache._index) == 0
