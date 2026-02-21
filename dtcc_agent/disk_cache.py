@@ -100,6 +100,60 @@ class DiskCache:
                      operation, cache_id, size_bytes / 1e6)
         return cache_id
 
+    @staticmethod
+    def _bounds_contain(outer: list[float], inner: list[float]) -> bool:
+        """Check if outer bounds fully contain inner bounds (EPSG:3006)."""
+        return (outer[0] <= inner[0] and outer[1] <= inner[1] and
+                outer[2] >= inner[2] and outer[3] >= inner[3])
+
+    def dataset_lookup(
+        self,
+        operation: str,
+        source: str,
+        params_hash: str,
+        requested_bounds: list[float],
+    ) -> tuple[str, list[float]] | None:
+        """Find a cached dataset whose bounds contain the requested bounds.
+
+        Returns (cache_id, cached_bounds) or None.
+        Prefers the smallest containing entry to minimize cropping.
+        """
+        now = datetime.now()
+        candidates = []
+
+        with self._lock:
+            for entry in self._index:
+                if entry["operation"] != operation:
+                    continue
+                if entry.get("source") != source:
+                    continue
+                if entry["params_hash"] != params_hash:
+                    continue
+                if entry.get("bounds") is None:
+                    continue
+                # TTL check
+                cached_time = datetime.fromisoformat(entry["timestamp"])
+                age_hours = (now - cached_time).total_seconds() / 3600
+                if age_hours > CACHE_TTL_HOURS:
+                    continue
+                # Containment check
+                if self._bounds_contain(entry["bounds"], requested_bounds):
+                    # Score by area (smaller is better — less cropping)
+                    area = ((entry["bounds"][2] - entry["bounds"][0]) *
+                            (entry["bounds"][3] - entry["bounds"][1]))
+                    candidates.append((area, entry["cache_id"], entry["bounds"]))
+
+        if not candidates:
+            logger.debug("Disk cache miss: %s (no containing bounds)", operation)
+            return None
+
+        # Pick smallest containing area
+        candidates.sort()
+        best = candidates[0]
+        logger.info("Disk cache hit: %s, cache_id=%s, cached_bounds=%s",
+                    operation, best[1], best[2])
+        return best[1], best[2]
+
     def load(self, cache_id: str) -> Any:
         """Load a pickled object by cache_id."""
         pkl_path = self._objects_dir / f"{cache_id}.pkl"
