@@ -121,3 +121,37 @@ def test_dataset_lookup_miss_on_different_source():
             requested_bounds=[319700, 6399500, 320200, 6400000],
         )
         assert result is None
+
+
+def test_builder_lookup_hit_on_matching_hash():
+    with tempfile.TemporaryDirectory() as td:
+        cache = DiskCache(cache_dir=Path(td))
+        cache.store(
+            obj="fake_raster",
+            operation="builder.build_terrain_raster",
+            category="builder",
+            params_hash="hash-abc",
+            object_type="Raster",
+        )
+        result = cache.builder_lookup(
+            operation="builder.build_terrain_raster",
+            params_hash="hash-abc",
+        )
+        assert result is not None
+
+
+def test_builder_lookup_miss_on_different_hash():
+    with tempfile.TemporaryDirectory() as td:
+        cache = DiskCache(cache_dir=Path(td))
+        cache.store(
+            obj="fake_raster",
+            operation="builder.build_terrain_raster",
+            category="builder",
+            params_hash="hash-abc",
+            object_type="Raster",
+        )
+        result = cache.builder_lookup(
+            operation="builder.build_terrain_raster",
+            params_hash="hash-xyz",
+        )
+        assert result is None

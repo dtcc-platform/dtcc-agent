@@ -154,6 +154,34 @@ class DiskCache:
                     operation, best[1], best[2])
         return best[1], best[2]
 
+    def builder_lookup(
+        self,
+        operation: str,
+        params_hash: str,
+    ) -> str | None:
+        """Find a cached builder result by exact operation + params hash.
+
+        Returns cache_id or None.
+        """
+        now = datetime.now()
+        with self._lock:
+            for entry in self._index:
+                if entry["operation"] != operation:
+                    continue
+                if entry["params_hash"] != params_hash:
+                    continue
+                # TTL check
+                cached_time = datetime.fromisoformat(entry["timestamp"])
+                age_hours = (now - cached_time).total_seconds() / 3600
+                if age_hours > CACHE_TTL_HOURS:
+                    continue
+
+                logger.info("Disk cache hit: %s, cache_id=%s", operation, entry["cache_id"])
+                return entry["cache_id"]
+
+        logger.debug("Disk cache miss: %s (no matching hash)", operation)
+        return None
+
     def load(self, cache_id: str) -> Any:
         """Load a pickled object by cache_id."""
         pkl_path = self._objects_dir / f"{cache_id}.pkl"
