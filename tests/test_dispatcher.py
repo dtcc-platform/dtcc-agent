@@ -1,10 +1,15 @@
 """Tests for the dispatcher module."""
 
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pytest
 
 from dtcc_agent.object_store import ObjectStore
 from dtcc_agent.dispatcher import run_operation, _resolve_bounds
+from dtcc_agent.disk_cache import DiskCache, canonical_params_hash
 
 try:
     from dtcc_core.model.geometry.bounds import Bounds
@@ -51,3 +56,54 @@ class TestRunOperation:
         obj_id = store.store(arr, source_op="test")
         retrieved = store.get(obj_id)
         np.testing.assert_array_equal(retrieved, arr)
+
+
+class _FakePointCloud:
+    """Picklable stand-in for a dtcc-core PointCloud."""
+    def __init__(self, points):
+        self.points = points
+
+
+class TestCacheIntegration:
+    def test_dataset_cache_hit_skips_download(self):
+        """Cached dataset result is loaded from disk instead of re-downloading."""
+        with tempfile.TemporaryDirectory() as td:
+            cache = DiskCache(cache_dir=Path(td))
+            store = ObjectStore()
+
+            # Pre-populate cache with a fake point cloud
+            fake_pc = _FakePointCloud(
+                points=np.array([[319800.0, 6399600.0, 5.0]])
+            )
+
+            non_bounds = {"source": "LM"}
+            ph = canonical_params_hash("datasets.point_cloud", non_bounds)
+
+            cache.store(
+                obj=fake_pc,
+                operation="datasets.point_cloud",
+                category="datasets",
+                params_hash=ph,
+                bounds=[319700, 6399500, 320200, 6400000],
+                source="LM",
+                object_type="PointCloud",
+            )
+
+            # Mock the registry lookup so it returns a datasets-category op
+            mock_op = MagicMock()
+            mock_op.category = "datasets"
+            mock_op.name = "datasets.point_cloud"
+
+            with patch("dtcc_agent.dispatcher.get_operation", return_value=mock_op):
+                result = run_operation(
+                    "datasets.point_cloud",
+                    {"bounds": [319700, 6399500, 320200, 6400000], "source": "LM"},
+                    store,
+                    cache=cache,
+                )
+
+            assert "error" not in result
+            assert result.get("cache_hit") is True
+            assert "result_id" in result
+            # The dataset callable should NOT have been called
+            mock_op._callable.assert_not_called()

@@ -19,6 +19,11 @@ from typing import Any
 from .object_store import ObjectStore
 from .registry import get_operation, OperationInfo
 from .serializers import serialize
+from .disk_cache import (
+    DiskCache, CACHE_ALLOWLIST,
+    content_fingerprint, canonical_params_hash,
+)
+from .crop import crop_to_bounds
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +70,7 @@ def run_operation(
     params: dict[str, Any] | None,
     store: ObjectStore,
     label: str = "",
+    cache: DiskCache | None = None,
 ) -> dict[str, Any]:
     """Execute a registered operation and store the result.
 
@@ -79,6 +85,10 @@ def run_operation(
         The object store for resolving inputs and storing outputs.
     label : str
         Optional human-readable label for the stored result.
+    cache : DiskCache | None
+        Optional persistent disk cache. When provided, the dispatcher
+        checks the cache before running the operation and populates it
+        after a successful run.
 
     Returns
     -------
@@ -91,11 +101,24 @@ def run_operation(
     except KeyError as exc:
         return {"error": str(exc)}
 
+    # --- Disk cache check ---
+    if cache and name in CACHE_ALLOWLIST:
+        hit = _check_cache(name, op.category, params, store, cache)
+        if hit is not None:
+            hit["cache_hit"] = True
+            return hit
+
     # Datasets are special: called as ds(bounds=..., **params)
     if op.category == "datasets":
-        return _run_dataset(op, params, store, label)
+        result = _run_dataset(op, params, store, label)
+    else:
+        result = _run_function(op, params, store, label)
 
-    return _run_function(op, params, store, label)
+    # --- Store in disk cache on success ---
+    if cache and name in CACHE_ALLOWLIST and "error" not in result:
+        _populate_cache(name, op.category, params, result, store, cache)
+
+    return result
 
 
 def _run_function(
@@ -231,3 +254,137 @@ def _store_and_summarize(
         "label": label,
         "summary": summary,
     }
+
+
+# -- Disk cache helpers ------------------------------------------------------
+
+def _check_cache(
+    name: str,
+    category: str,
+    params: dict[str, Any],
+    store: ObjectStore,
+    cache: DiskCache,
+) -> dict[str, Any] | None:
+    """Check disk cache. Returns dispatcher-format response or None."""
+    try:
+        if category == "datasets":
+            return _check_cache_dataset(name, params, store, cache)
+        else:
+            return _check_cache_builder(name, params, store, cache)
+    except Exception:
+        logger.warning("Disk cache lookup failed for %s", name, exc_info=True)
+        return None
+
+
+def _check_cache_dataset(
+    name: str,
+    params: dict[str, Any],
+    store: ObjectStore,
+    cache: DiskCache,
+) -> dict[str, Any] | None:
+    """Check disk cache for a dataset operation."""
+    bounds = params.get("bounds")
+    if not bounds:
+        return None
+    source = params.get("source", "LM")
+    non_bounds = {k: v for k, v in params.items() if k != "bounds"}
+    ph = canonical_params_hash(name, non_bounds)
+    result = cache.dataset_lookup(name, source, ph, bounds)
+    if result is None:
+        return None
+    cache_id, cached_bounds = result
+    obj = cache.load(cache_id)
+    # Crop if cached bounds are larger than requested
+    if cached_bounds != list(bounds):
+        obj = crop_to_bounds(obj, list(bounds))
+    obj_id = store.store(obj, source_op=name, label="(cached)")
+    return {
+        "operation": name,
+        "result_id": obj_id,
+        "label": "(cached)",
+        "summary": serialize(obj),
+    }
+
+
+def _check_cache_builder(
+    name: str,
+    params: dict[str, Any],
+    store: ObjectStore,
+    cache: DiskCache,
+) -> dict[str, Any] | None:
+    """Check disk cache for a builder operation."""
+    fingerprints = _compute_fingerprints(params, store)
+    ph = canonical_params_hash(name, params, fingerprints)
+    cache_id = cache.builder_lookup(name, ph)
+    if cache_id is None:
+        return None
+    obj = cache.load(cache_id)
+    obj_id = store.store(obj, source_op=name, label="(cached)")
+    return {
+        "operation": name,
+        "result_id": obj_id,
+        "label": "(cached)",
+        "summary": serialize(obj),
+    }
+
+
+def _compute_fingerprints(
+    params: dict[str, Any],
+    store: ObjectStore,
+) -> dict[str, str]:
+    """Compute content fingerprints for object-ref params."""
+    fingerprints = {}
+    for key, value in params.items():
+        if isinstance(value, str) and value in store:
+            meta = None
+            for entry in store.list(limit=500):
+                if entry["id"] == value:
+                    meta = entry
+                    break
+            if meta:
+                fingerprints[key] = content_fingerprint(meta)
+    return fingerprints
+
+
+def _populate_cache(
+    name: str,
+    category: str,
+    params: dict[str, Any],
+    result: dict[str, Any],
+    store: ObjectStore,
+    cache: DiskCache,
+) -> None:
+    """Store a successful operation result in the disk cache."""
+    result_id = result.get("result_id")
+    if not result_id:
+        return  # tuple/primitive results — skip for v1
+    try:
+        obj = store.get(result_id)
+    except KeyError:
+        return
+
+    if category == "datasets":
+        bounds = params.get("bounds")
+        source = params.get("source", "LM")
+        non_bounds = {k: v for k, v in params.items() if k != "bounds"}
+        ph = canonical_params_hash(name, non_bounds)
+        bounds_list = list(bounds) if bounds else None
+    else:
+        fingerprints = _compute_fingerprints(params, store)
+        ph = canonical_params_hash(name, params, fingerprints)
+        bounds_list = None
+        source = None
+
+    try:
+        cache.store(
+            obj=obj,
+            operation=name,
+            category=category,
+            params_hash=ph,
+            bounds=bounds_list,
+            source=source,
+            object_type=type(obj).__name__,
+        )
+    except Exception:
+        logger.warning("Failed to store %s result in disk cache", name,
+                        exc_info=True)

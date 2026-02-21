@@ -20,6 +20,7 @@ from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
 from .object_store import ObjectStore
 from .serializers import serialize
+from .disk_cache import DiskCache
 
 mcp = FastMCP("dtcc-agent")
 
@@ -29,6 +30,9 @@ _results: dict[str, dict[str, Any]] = {}
 
 # Shared object store for dtcc-core objects (PointCloud, Mesh, Raster, etc.)
 _object_store = ObjectStore()
+
+# Persistent disk cache for expensive operations (datasets, builders)
+_disk_cache = DiskCache()
 
 
 # -- Helpers -----------------------------------------------------------------
@@ -439,6 +443,7 @@ def run_operation(
             params=params,
             store=_object_store,
             label=label or "",
+            cache=_disk_cache,
         )
     except Exception as exc:
         return _fmt({"error": f"Operation failed: {exc}"})
