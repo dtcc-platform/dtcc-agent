@@ -36,6 +36,49 @@ CACHE_ALLOWLIST = frozenset({
 })
 
 
+def content_fingerprint(obj_metadata: dict) -> str:
+    """Compute a stable fingerprint from ObjectStore metadata.
+
+    Used to generate cache keys for builder operations where
+    input objects are referenced by transient IDs.
+    """
+    key_parts = {
+        "type": obj_metadata.get("type", ""),
+        "source_op": obj_metadata.get("source_op", ""),
+        "nbytes": obj_metadata.get("nbytes", 0),
+        "label": obj_metadata.get("label", ""),
+    }
+    canonical = json.dumps(key_parts, sort_keys=True)
+    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
+
+
+def canonical_params_hash(
+    operation: str,
+    params: dict,
+    object_fingerprints: dict = None,
+) -> str:
+    """Compute a stable hash for operation parameters.
+
+    For builder operations, object-ref params are replaced with
+    their content fingerprints. Bounds are excluded (handled
+    separately for datasets via containment).
+    """
+    canonical = dict(sorted(params.items()))
+
+    # Replace object-ref param values with fingerprints
+    if object_fingerprints:
+        for key, fingerprint in object_fingerprints.items():
+            if key in canonical:
+                canonical[key] = f"__fp:{fingerprint}"
+
+    # Remove bounds (handled by containment for datasets)
+    canonical.pop("bounds", None)
+
+    payload = json.dumps({"op": operation, "params": canonical},
+                         sort_keys=True, default=str)
+    return hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+
 class DiskCache:
     """Persistent disk cache with JSON index and pickle storage."""
 

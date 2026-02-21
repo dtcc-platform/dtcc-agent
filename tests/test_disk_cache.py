@@ -206,3 +206,43 @@ def test_cleanup_removes_expired_entries():
 
         assert removed == 1
         assert len(cache._index) == 0
+
+
+# --- Content fingerprinting helpers ---
+
+from dtcc_agent.disk_cache import content_fingerprint, canonical_params_hash
+
+
+def test_content_fingerprint_stable_for_same_metadata():
+    meta_a = {"type": "PointCloud", "source_op": "datasets.point_cloud",
+              "nbytes": 1000, "label": "test"}
+    meta_b = {"type": "PointCloud", "source_op": "datasets.point_cloud",
+              "nbytes": 1000, "label": "test"}
+    assert content_fingerprint(meta_a) == content_fingerprint(meta_b)
+
+
+def test_content_fingerprint_differs_for_different_metadata():
+    meta_a = {"type": "PointCloud", "source_op": "datasets.point_cloud",
+              "nbytes": 1000, "label": "area_a"}
+    meta_b = {"type": "PointCloud", "source_op": "datasets.point_cloud",
+              "nbytes": 2000, "label": "area_b"}
+    assert content_fingerprint(meta_a) != content_fingerprint(meta_b)
+
+
+def test_canonical_params_hash_stable():
+    h1 = canonical_params_hash("builder.build_terrain_raster",
+                                {"cell_size": 2.0, "ground_only": True})
+    h2 = canonical_params_hash("builder.build_terrain_raster",
+                                {"ground_only": True, "cell_size": 2.0})
+    assert h1 == h2
+
+
+def test_canonical_params_hash_replaces_fingerprints():
+    h1 = canonical_params_hash("builder.build_terrain_raster",
+                                {"pc": "obj-id-1", "cell_size": 2.0},
+                                {"pc": "fp-abc"})
+    h2 = canonical_params_hash("builder.build_terrain_raster",
+                                {"pc": "obj-id-2", "cell_size": 2.0},
+                                {"pc": "fp-abc"})
+    # Same fingerprint, different obj IDs — should produce same hash
+    assert h1 == h2
