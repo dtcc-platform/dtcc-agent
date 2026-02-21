@@ -1,0 +1,107 @@
+"""Persistent disk cache for dtcc-core objects.
+
+Stores pickled objects on disk with a JSON metadata index.
+Supports spatial containment lookup for datasets and exact
+hash lookup for builders. Thread-safe via a lock.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import logging
+import os
+import pickle
+import threading
+import time
+import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+CACHE_DIR = Path("/tmp/dtcc_cache")
+CACHE_TTL_HOURS = 168        # 7 days
+CACHE_MAX_SIZE_GB = 10
+
+CACHE_ALLOWLIST = frozenset({
+    "datasets.point_cloud",
+    "datasets.buildings",
+    "builder.build_terrain_raster",
+    "builder.build_terrain_surface_mesh",
+    "builder.build_city_surface_mesh",
+    "builder.raster.slope_aspect",
+    "builder.pc_filter.classification_filter",
+})
+
+
+class DiskCache:
+    """Persistent disk cache with JSON index and pickle storage."""
+
+    def __init__(self, cache_dir: Path = CACHE_DIR) -> None:
+        self._lock = threading.Lock()
+        self._cache_dir = cache_dir
+        self._objects_dir = cache_dir / "objects"
+        self._index_path = cache_dir / "index.json"
+        self._objects_dir.mkdir(parents=True, exist_ok=True)
+
+        # Load or create index
+        if self._index_path.exists():
+            with open(self._index_path) as f:
+                self._index: list[dict[str, Any]] = json.load(f)
+            logger.info("Disk cache loaded: %d entries from %s",
+                        len(self._index), cache_dir)
+        else:
+            self._index = []
+            logger.info("Disk cache initialized (empty) at %s", cache_dir)
+
+    def _save_index(self) -> None:
+        """Write index to disk. Must be called with lock held."""
+        with open(self._index_path, "w") as f:
+            json.dump(self._index, f, indent=2)
+
+    def store(
+        self,
+        obj: Any,
+        operation: str,
+        category: str,
+        params_hash: str,
+        bounds: list[float] | None = None,
+        source: str | None = None,
+        object_type: str = "",
+    ) -> str:
+        """Pickle an object to disk and add an index entry."""
+        cache_id = uuid.uuid4().hex[:8]
+        pkl_path = self._objects_dir / f"{cache_id}.pkl"
+
+        with open(pkl_path, "wb") as f:
+            pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+        size_bytes = pkl_path.stat().st_size
+
+        entry = {
+            "cache_id": cache_id,
+            "operation": operation,
+            "category": category,
+            "params_hash": params_hash,
+            "bounds": bounds,
+            "source": source,
+            "timestamp": datetime.now().isoformat(),
+            "size_bytes": size_bytes,
+            "object_type": object_type,
+        }
+
+        with self._lock:
+            self._index.append(entry)
+            self._save_index()
+
+        logger.info("Cached %s result %s (%.1f MB)",
+                     operation, cache_id, size_bytes / 1e6)
+        return cache_id
+
+    def load(self, cache_id: str) -> Any:
+        """Load a pickled object by cache_id."""
+        pkl_path = self._objects_dir / f"{cache_id}.pkl"
+        with open(pkl_path, "rb") as f:
+            return pickle.load(f)
