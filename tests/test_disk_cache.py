@@ -246,3 +246,31 @@ def test_canonical_params_hash_replaces_fingerprints():
                                 {"pc": "fp-abc"})
     # Same fingerprint, different obj IDs — should produce same hash
     assert h1 == h2
+
+
+def test_cache_survives_restart():
+    with tempfile.TemporaryDirectory() as td:
+        # First instance stores data
+        cache1 = DiskCache(cache_dir=Path(td))
+        cache1.store(
+            obj="persistent_data",
+            operation="datasets.point_cloud",
+            category="datasets",
+            params_hash="src-LM",
+            bounds=[319700, 6399500, 320200, 6400000],
+            source="LM",
+            object_type="PointCloud",
+        )
+
+        # Second instance (simulating restart) loads index
+        cache2 = DiskCache(cache_dir=Path(td))
+        assert len(cache2._index) == 1
+        result = cache2.dataset_lookup(
+            operation="datasets.point_cloud",
+            source="LM",
+            params_hash="src-LM",
+            requested_bounds=[319700, 6399500, 320200, 6400000],
+        )
+        assert result is not None
+        obj = cache2.load(result[0])
+        assert obj == "persistent_data"

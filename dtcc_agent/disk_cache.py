@@ -99,6 +99,9 @@ class DiskCache:
             self._index = []
             logger.info("Disk cache initialized (empty) at %s", cache_dir)
 
+        # Clean up expired entries on startup
+        self.cleanup()
+
     def _save_index(self) -> None:
         """Write index to disk. Must be called with lock held."""
         with open(self._index_path, "w") as f:
