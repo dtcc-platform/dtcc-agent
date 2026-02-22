@@ -99,10 +99,11 @@ def _extract_params(func: Any) -> list[ParamInfo]:
         if pname in ("self", "cls"):
             continue
 
-        # Get type string
+        # Get type string — use str(hint) to preserve Union inner types
+        # (getattr(hint, "__name__") returns "Union" which loses PointCloud/Raster/etc.)
         if pname in hints:
             hint = hints[pname]
-            type_str = getattr(hint, "__name__", str(hint))
+            type_str = str(hint)
         elif p.annotation is not inspect.Parameter.empty:
             type_str = str(p.annotation)
         else:

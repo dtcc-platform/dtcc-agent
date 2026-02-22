@@ -5,7 +5,9 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, Optional
+
+
+MAX_AGE_SECONDS = 3600  # 1 hour
 
 
 @dataclass
@@ -21,6 +23,7 @@ class SessionManager:
     """Manages chatbot sessions in memory.
 
     For prototype: no persistence. Sessions are lost on restart.
+    Expired sessions are cleaned up on each create() call.
     """
 
     def __init__(self) -> None:
@@ -28,6 +31,7 @@ class SessionManager:
 
     def create(self) -> str:
         """Create a new session, return its ID."""
+        self._cleanup()
         sid = uuid.uuid4().hex[:12]
         self._sessions[sid] = Session(id=sid)
         return sid
@@ -41,7 +45,7 @@ class SessionManager:
         session = self._sessions.get(session_id)
         return session.sdk_session_id if session else None
 
-    def set_sdk_session(self, session_id: str, sdk_session_id: str) -> None:
+    def set_sdk_session(self, session_id: str, sdk_session_id: str | None) -> None:
         """Store the Agent SDK session ID for a session."""
         session = self._sessions.get(session_id)
         if session:
@@ -50,3 +54,15 @@ class SessionManager:
     def remove(self, session_id: str) -> None:
         """Remove a session."""
         self._sessions.pop(session_id, None)
+
+    def _cleanup(self) -> int:
+        """Remove sessions older than MAX_AGE_SECONDS. Returns count removed."""
+        now = datetime.now()
+        expired = [
+            sid
+            for sid, s in self._sessions.items()
+            if (now - s.created_at).total_seconds() > MAX_AGE_SECONDS
+        ]
+        for sid in expired:
+            del self._sessions[sid]
+        return len(expired)

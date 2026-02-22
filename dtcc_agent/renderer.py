@@ -75,6 +75,14 @@ def render_to_file(
         tmp_dir = tempfile.mkdtemp(prefix="dtcc_screenshots_")
         filepath = os.path.join(tmp_dir, f"{label}.png")
 
+    try:
+        # Window must be created FIRST — it initializes the GLFW/OpenGL
+        # context that Scene.__init__() needs (calls glGetIntegerv).
+        window = Window(width, height, visible=False)
+    except Exception as exc:
+        logger.warning(f"Failed to create OpenGL window: {exc}")
+        return None
+
     scene = Scene()
 
     # Handle list of Buildings
@@ -97,7 +105,6 @@ def render_to_file(
         return None
 
     try:
-        window = Window(width, height, visible=False)
         success = window.screenshot(scene, filepath, width, height)
         if success:
             return filepath
