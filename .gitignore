@@ -11,3 +11,5 @@ build/
 dtcc-tetgen-wrapper/
 dtcc/
 temp/
+/*.png
+.playwright-mcp/
