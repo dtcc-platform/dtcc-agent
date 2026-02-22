@@ -110,7 +110,22 @@ def get_buildings(
     Returns a JSON object with building list and height statistics.
     """
     from .runner import get_buildings as _get_buildings
+    from .disk_cache import canonical_params_hash
 
+    # Check disk cache
+    non_bounds = {"source": source, "max_buildings": max_buildings}
+    ph = canonical_params_hash("get_buildings", non_bounds)
+    try:
+        hit = _disk_cache.dataset_lookup("get_buildings", source, ph, bounds)
+        if hit is not None:
+            cache_id, cached_bounds = hit
+            result = _disk_cache.load(cache_id)
+            result = dict(result, bounds=bounds)
+            return _fmt(result)
+    except Exception:
+        pass  # fall through to fresh fetch
+
+    # Cache miss — fetch and cache
     try:
         result = _get_buildings(
             bounds=bounds,
@@ -119,6 +134,20 @@ def get_buildings(
         )
     except Exception as exc:
         return _fmt({"error": f"Failed to fetch buildings: {exc}"})
+
+    try:
+        _disk_cache.store(
+            obj=result,
+            operation="get_buildings",
+            category="datasets",
+            params_hash=ph,
+            bounds=list(bounds),
+            source=source,
+            object_type="dict",
+        )
+    except Exception:
+        pass  # cache write failure is non-fatal
+
     return _fmt(result)
 
 

@@ -274,3 +274,45 @@ def test_cache_survives_restart():
         assert result is not None
         obj = cache2.load(result[0])
         assert obj == "persistent_data"
+
+
+# --- get_buildings cache path ---
+
+
+def test_get_buildings_cache_hit():
+    """get_buildings results are cached and returned on matching bounds."""
+    with tempfile.TemporaryDirectory() as td:
+        cache = DiskCache(cache_dir=Path(td))
+        buildings_result = {
+            "num_buildings": 42,
+            "bounds": [319700, 6399500, 320200, 6400000],
+            "buildings": [{"id": 1, "height": 12.5}],
+            "height_stats": {"mean": 12.5},
+        }
+        ph = canonical_params_hash("get_buildings", {"source": "LM", "max_buildings": 100})
+
+        cache.store(
+            obj=buildings_result,
+            operation="get_buildings",
+            category="datasets",
+            params_hash=ph,
+            bounds=[319700, 6399500, 320200, 6400000],
+            source="LM",
+            object_type="dict",
+        )
+
+        # Exact same bounds → hit
+        hit = cache.dataset_lookup("get_buildings", "LM", ph, [319700, 6399500, 320200, 6400000])
+        assert hit is not None
+        cache_id, cached_bounds = hit
+        loaded = cache.load(cache_id)
+        assert loaded["num_buildings"] == 42
+
+        # Smaller bounds within cached area → also hit
+        hit2 = cache.dataset_lookup("get_buildings", "LM", ph, [319800, 6399600, 320100, 6399900])
+        assert hit2 is not None
+
+        # Different source → miss
+        ph_osm = canonical_params_hash("get_buildings", {"source": "OSM", "max_buildings": 100})
+        miss = cache.dataset_lookup("get_buildings", "OSM", ph_osm, [319700, 6399500, 320200, 6400000])
+        assert miss is None

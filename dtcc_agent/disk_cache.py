@@ -28,6 +28,7 @@ CACHE_MAX_SIZE_GB = 10
 CACHE_ALLOWLIST = frozenset({
     "datasets.point_cloud",
     "datasets.buildings",
+    "get_buildings",
     "builder.build_terrain_raster",
     "builder.build_terrain_surface_mesh",
     "builder.build_city_surface_mesh",
