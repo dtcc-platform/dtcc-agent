@@ -10,16 +10,22 @@ language.
 
 ```
 LLM (Claude) ←→ MCP protocol ←→ dtcc-agent
-                                    ├── geocode           (pyproj + Nominatim)
-                                    ├── get_buildings      (dtcc_core.datasets)
-                                    ├── run_simulation     (dtcc_sim)
-                                    ├── compare_scenarios  (composes the above)
+                                    ├── geocode            (pyproj + Nominatim)
+                                    ├── get_buildings       (dtcc_core.datasets)
+                                    ├── run_simulation      (dtcc_sim)
+                                    ├── compare_scenarios   (composes the above)
                                     ├── list_operations    ─┐
                                     ├── describe_operation  │ dynamic dispatch
                                     ├── run_operation       │ (109 operations)
                                     ├── list_objects        │ with object store
-                                    ├── inspect_object     ─┘
-                                    └── render_object       (dtcc_viewer, offscreen)
+                                    ├── inspect_object      │
+                                    ├── delete_object       │
+                                    ├── get_field_names     │
+                                    ├── export_object       │
+                                    ├── object_to_text      │
+                                    ├── spatial_query      ─┘
+                                    ├── render_object       (dtcc_viewer, offscreen)
+                                    └── disk_cache          (spatial containment, TTL eviction)
 ```
 
 Unlike dtcc-deploy (which proxies HTTP calls to a FastAPI backend),
@@ -93,6 +99,11 @@ python -m dtcc_agent
 | `run_operation` | Execute any operation and store the result |
 | `list_objects` | List objects in the in-memory store |
 | `inspect_object` | Get detailed summary of a stored object |
+| `delete_object` | Delete a stored object and free memory |
+| `get_field_names` | Discover fields/data attached to a stored object |
+| `export_object` | Export an object to file (CSV, OBJ, PLY, STL, VTK, glTF, etc.) |
+| `object_to_text` | Get a rich markdown representation of a stored object |
+| `spatial_query` | Spatial filtering, nearest-station lookup, height-based queries |
 
 ### Visualization tools
 
@@ -143,6 +154,22 @@ type-specific summaries:
 - **Tuples**: each element stored separately with linked IDs
 
 Use `inspect_object(id)` to get a detailed summary of any stored object.
+
+### Disk cache
+
+Expensive operations (dataset downloads, builder computations) are
+automatically cached to disk at `/tmp/dtcc_cache/`. The cache uses:
+
+- **Spatial containment** for datasets: if a cached result covers a
+  larger area than requested, the cached data is reused and cropped.
+- **Content fingerprinting** for builders: input objects are hashed by
+  their metadata (type, size, source), so the same pipeline step with
+  equivalent inputs hits the cache even across sessions.
+- **TTL eviction** (7 days) and a **disk budget** (10 GB) with
+  oldest-first eviction.
+
+Both `run_operation` (via the dispatcher) and `get_buildings` (direct
+MCP tool) check the disk cache before fetching from external sources.
 
 ## Examples
 
@@ -289,7 +316,7 @@ Agent calls: describe_operation("builder.pc_filter.remove_vegetation")
   → returns: PointCloud
 ```
 
-## Web Chatbot
+## Web Chatbot (Lurkie)
 
 The chatbot provides a browser-based chat interface powered by Claude Agent SDK.
 
@@ -305,13 +332,25 @@ pip install -e ".[chatbot]"
 python -m chatbot
 ```
 
-Then open http://localhost:8000 in your browser.
+Then open http://localhost:8000 in your browser. Logs are written to
+`/tmp/dtcc_lurkie_logs/`.
 
 ### How it works
 
 The chatbot uses the Claude Agent SDK to connect to dtcc-agent as an MCP server.
 User messages are sent via WebSocket, and Claude's responses (including tool calls
 and 3D renders) stream back in real-time.
+
+Features:
+
+- **Conversation memory**: Past exchanges are stored in ChromaDB and
+  retrieved via RAG to provide cross-session context.
+- **Error recovery**: If a resumed SDK session fails (e.g. context
+  limit), the chatbot automatically retries with a fresh session.
+- **Session management**: Sessions expire after 1 hour. A "New Chat"
+  button lets users start fresh without reloading.
+- **Security**: Rendered markdown is sanitized with DOMPurify to
+  prevent XSS.
 
 ## License
 
