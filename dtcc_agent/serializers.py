@@ -179,6 +179,37 @@ def _serialize_dolfinx_function(obj: Any) -> dict:
 
 # ── Dispatch table ────────────────────────────────────────────────────
 
+def _serialize_geojson_fc(obj: dict) -> dict:
+    """Serialize a GeoJSON FeatureCollection for inspect_object."""
+    features = obj.get("features", [])
+    geom_types: dict[str, int] = {}
+    for feat in features:
+        gt = feat.get("geometry", {}).get("type", "unknown")
+        geom_types[gt] = geom_types.get(gt, 0) + 1
+
+    props_schema: dict[str, str] = {}
+    if features:
+        sample = features[0].get("properties") or {}
+        for k, v in sample.items():
+            props_schema[k] = type(v).__name__
+
+    layer_types: dict[str, int] = {}
+    for feat in features:
+        lt = (feat.get("properties") or {}).get("layer_type")
+        if lt:
+            layer_types[str(lt)] = layer_types.get(str(lt), 0) + 1
+
+    result: dict[str, Any] = {
+        "type": "GeoJSON FeatureCollection",
+        "feature_count": len(features),
+        "geometry_types": geom_types,
+        "property_schema": props_schema,
+    }
+    if layer_types:
+        result["layer_types"] = layer_types
+    return result
+
+
 def _get_type_name(obj: Any) -> str:
     """Return the qualified type name for dispatch."""
     return type(obj).__qualname__
@@ -291,6 +322,8 @@ def serialize(obj: Any) -> dict[str, Any]:
         return {"type": type(obj).__name__, "value": obj}
 
     if isinstance(obj, dict):
+        if obj.get("type") == "FeatureCollection" and isinstance(obj.get("features"), list):
+            return _serialize_geojson_fc(obj)
         return {"type": "dict", "keys": list(obj.keys())[:20], "num_keys": len(obj)}
 
     # Fallback

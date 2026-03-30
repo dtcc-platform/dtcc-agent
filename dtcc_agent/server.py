@@ -21,6 +21,11 @@ from .analysis import summarize_field, compare_fields
 from .object_store import ObjectStore
 from .serializers import serialize
 from .disk_cache import DiskCache
+from .geojson_store import (
+    load_geojson as _load_geojson,
+    query_geojson as _query_geojson,
+    summarize_geojson_property as _summarize_geojson_property,
+)
 
 mcp = FastMCP("dtcc-agent")
 
@@ -1023,6 +1028,90 @@ def spatial_query(
         "error": f"Unknown query_type '{query_type}'. "
                  "Supported: filter_by_bounds, filter_by_value, nearest, buildings_by_height."
     })
+
+
+# -- GeoJSON tools -----------------------------------------------------------
+
+@mcp.tool()
+def load_geojson(file_path: str) -> str:
+    """Load a GeoJSON file from disk and store it for querying.
+
+    Reads a GeoJSON FeatureCollection, stores it in the object store,
+    and returns a summary with feature count, geometry types, property
+    schema, bounds, and layer_type breakdown. For datasets with 500 or
+    fewer features, the full features are included in the response.
+
+    Args:
+        file_path: Absolute path to the .geojson file on disk.
+
+    Returns a JSON string with summary and an object_id for use with
+    query_geojson and summarize_geojson_property.
+    """
+    result = _load_geojson(file_path)
+    if "error" in result:
+        return _fmt(result)
+
+    geojson = result["geojson"]
+    obj_id = _object_store.store(
+        geojson, source_op="geojson.load", label=result["summary"]["file"],
+    )
+    return _fmt({"object_id": obj_id, **result["summary"]})
+
+
+@mcp.tool()
+def query_geojson(
+    object_id: str,
+    property_name: str,
+    operator: str,
+    value: str | int | float,
+) -> str:
+    """Filter features in a stored GeoJSON by property value.
+
+    The filtered result is stored as a new object for further chaining.
+
+    Args:
+        object_id: ID from a previous load_geojson call.
+        property_name: The feature property to filter on.
+        operator: Comparison operator (==, !=, >, <, >=, <=, contains).
+        value: The value to compare against.
+
+    Returns matching features and a new object_id for the filtered set.
+    """
+    geojson = _object_store.get(object_id)
+    if geojson is None:
+        return _fmt({"error": f"Object '{object_id}' not found in store"})
+    if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
+        return _fmt({"error": f"Object '{object_id}' is not a GeoJSON FeatureCollection"})
+
+    result = _query_geojson(geojson, property_name, operator, value)
+    if "error" in result:
+        return _fmt(result)
+
+    new_id = _object_store.store(
+        result["geojson"], source_op="geojson.query",
+        label=f"{property_name} {operator} {value}",
+    )
+    return _fmt({"new_object_id": new_id, **result["result"]})
+
+
+@mcp.tool()
+def summarize_geojson_property(object_id: str, property_name: str) -> str:
+    """Compute statistics for a property across all features in a stored GeoJSON.
+
+    For numeric properties: min, max, mean, std, median, count.
+    For categorical properties: unique value counts sorted by frequency.
+
+    Args:
+        object_id: ID from a previous load_geojson or query_geojson call.
+        property_name: The feature property to summarize.
+    """
+    geojson = _object_store.get(object_id)
+    if geojson is None:
+        return _fmt({"error": f"Object '{object_id}' not found in store"})
+    if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
+        return _fmt({"error": f"Object '{object_id}' is not a GeoJSON FeatureCollection"})
+
+    return _fmt(_summarize_geojson_property(geojson, property_name))
 
 
 # -- Internal helpers --------------------------------------------------------
