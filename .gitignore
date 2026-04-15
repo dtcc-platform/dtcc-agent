@@ -13,3 +13,5 @@ dtcc/
 temp/
 /*.png
 .playwright-mcp/
+.env
+token

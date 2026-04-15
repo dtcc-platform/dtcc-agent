@@ -110,7 +110,23 @@ Claude Code stores the OAuth credential in Keychain. Generate a container token
 on the host and pass it through the environment:
 
 ```bash
-export CLAUDE_CODE_OAUTH_TOKEN="$(claude setup-token)"
+claude setup-token
+export CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-PASTE-TOKEN-HERE"
+```
+
+Do not wrap `claude setup-token` in command substitution. It is interactive and
+can capture the whole login screen into `CLAUDE_CODE_OAUTH_TOKEN`, which makes
+Claude send an invalid `Authorization: Bearer ...` header. Verify without
+printing the token:
+
+```bash
+python verify_auth.py --require-oauth
+```
+
+After starting Docker, verify the token reached the container:
+
+```bash
+docker compose exec -T dtcc-agent python verify_auth.py --require-oauth
 ```
 
 `ANTHROPIC_API_KEY` is also supported if you prefer API-key auth.
