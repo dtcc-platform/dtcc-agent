@@ -42,7 +42,7 @@ For the Docker mini-service, you need:
 
 - Docker
 - A running `dtcc-sim` mini-service
-- Claude auth, usually `ANTHROPIC_API_KEY` in the environment
+- Claude auth, either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`
 
 For direct in-process usage, dtcc-agent runs in the same environment as
 dtcc-sim. You need:
@@ -101,9 +101,19 @@ docker compose up -d
 cd ../dtcc-agent
 mkdir -p data/agent
 export DTCC_REMOTE_SERVICES=http://host.docker.internal:8001
-export ANTHROPIC_API_KEY=...
+export CLAUDE_CODE_OAUTH_TOKEN=...
 docker compose up --build
 ```
+
+On macOS, mounting `~/.claude` into Docker is not enough for local Claude auth:
+Claude Code stores the OAuth credential in Keychain. Generate a container token
+on the host and pass it through the environment:
+
+```bash
+export CLAUDE_CODE_OAUTH_TOKEN="$(claude setup-token)"
+```
+
+`ANTHROPIC_API_KEY` is also supported if you prefer API-key auth.
 
 The service listens on http://localhost:8050 and exposes a health endpoint at
 http://localhost:8050/health.

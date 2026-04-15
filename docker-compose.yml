@@ -18,6 +18,7 @@ services:
       - DTCC_REMOTE_SERVICES=${DTCC_REMOTE_SERVICES:-http://host.docker.internal:8001}
       - DTCC_SIM_SERVICE_URL=${DTCC_SIM_SERVICE_URL:-}
       - SHARED_RESULTS_DIR=/shared/results
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
