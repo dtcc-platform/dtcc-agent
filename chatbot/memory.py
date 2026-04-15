@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -12,7 +13,7 @@ import chromadb
 logger = logging.getLogger("lurkie.memory")
 
 # Persist conversation memory across server restarts
-_PERSIST_DIR = Path("/tmp/dtcc_lurkie_memory")
+_PERSIST_DIR = Path(os.getenv("DTCC_AGENT_MEMORY_DIR", "/tmp/dtcc_lurkie_memory"))
 
 # How many past exchanges to retrieve per query
 TOP_K = 5

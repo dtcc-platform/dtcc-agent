@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-import shutil
+import os
+import sys
 
 SYSTEM_PROMPT = """\
 You are DTCC Lurkie, an urban digital twin chatbot for Sweden, built by the \
@@ -51,34 +52,21 @@ builder.pc_filter.classification_filter — Filter point cloud by classification
 """
 
 # Default port for the chatbot web server
-DEFAULT_PORT = 8050
-DEFAULT_HOST = "0.0.0.0"
+DEFAULT_PORT = int(os.getenv("DTCC_AGENT_PORT", "8050"))
+DEFAULT_HOST = os.getenv("DTCC_AGENT_HOST", "0.0.0.0")
 
 
 def get_mcp_server_config() -> dict:
     """Return MCP server configuration for dtcc-agent.
 
-    Detects whether conda is available and builds the appropriate
-    command to launch dtcc-agent in the fenicsx-env environment.
+    The agent mini-service is intentionally plain Python. By default the
+    MCP server is launched with the current interpreter; override
+    DTCC_AGENT_PYTHON only when the MCP package is installed elsewhere.
     """
-    conda = shutil.which("conda")
-    if conda is None:
-        # Fallback: assume dtcc_agent is importable in current env
-        return {
-            "dtcc-agent": {
-                "type": "stdio",
-                "command": "python",
-                "args": ["-m", "dtcc_agent"],
-            }
-        }
-
     return {
         "dtcc-agent": {
             "type": "stdio",
-            "command": conda,
-            "args": [
-                "run", "--no-capture-output", "-n", "fenicsx-env",
-                "python", "-m", "dtcc_agent",
-            ],
+            "command": os.getenv("DTCC_AGENT_PYTHON", sys.executable),
+            "args": ["-m", "dtcc_agent"],
         }
     }

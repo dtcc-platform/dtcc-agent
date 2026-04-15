@@ -35,7 +35,7 @@ from chatbot.memory import ConversationMemory
 from chatbot.sessions import SessionManager
 
 # --- Logging setup: file + console ---
-_log_dir = Path("/tmp/dtcc_lurkie_logs")
+_log_dir = Path(os.getenv("DTCC_AGENT_LOG_DIR", "/tmp/dtcc_lurkie_logs"))
 _log_dir.mkdir(exist_ok=True)
 _log_file = _log_dir / f"lurkie-{datetime.now():%Y%m%d-%H%M%S}.log"
 
@@ -57,7 +57,7 @@ sessions = SessionManager()
 memory = ConversationMemory()
 
 # Serve rendered images from dtcc-agent
-_renders_dir = Path("/tmp/dtcc_screenshots")
+_renders_dir = Path(os.getenv("DTCC_AGENT_RENDERS_DIR", "/tmp/dtcc_screenshots"))
 _renders_dir.mkdir(exist_ok=True)
 app.mount("/renders", StaticFiles(directory=str(_renders_dir)), name="renders")
 
@@ -78,6 +78,12 @@ async def index():
             status_code=200,
         )
     return HTMLResponse(html_path.read_text())
+
+
+@app.get("/health")
+async def health():
+    """Health endpoint for Docker Compose and local checks."""
+    return {"status": "ok", "service": "dtcc-agent", "component": "lurkie"}
 
 
 def _build_options(

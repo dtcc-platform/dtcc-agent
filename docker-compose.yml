@@ -1,0 +1,35 @@
+services:
+  dtcc-agent:
+    image: ${DTCC_AGENT_IMAGE:-dtcc-agent}:${DTCC_AGENT_TAG:-local}
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DTCC_CORE_REF: ${DTCC_CORE_REF:-develop}
+    ports:
+      - "8050:8050"
+    environment:
+      - DTCC_AGENT_HOST=0.0.0.0
+      - DTCC_AGENT_PORT=8050
+      - DTCC_AGENT_LOG_DIR=/data/logs
+      - DTCC_AGENT_MEMORY_DIR=/data/memory
+      - DTCC_AGENT_CACHE_DIR=/data/cache
+      - DTCC_REMOTE_SERVICES=${DTCC_REMOTE_SERVICES:-http://host.docker.internal:8001}
+      - DTCC_SIM_SERVICE_URL=${DTCC_SIM_SERVICE_URL:-}
+      - SHARED_RESULTS_DIR=/shared/results
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ${DTCC_AGENT_DATA:-./data/agent}:/data
+      - ${DTCC_SHARED_RESULTS:-../dtcc-sim/data/shared-results}:/shared/results
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8050/health')",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3

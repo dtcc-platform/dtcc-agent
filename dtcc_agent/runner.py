@@ -1,8 +1,9 @@
-"""Simulation runner: direct in-process access to dtcc-sim simulations.
+"""Simulation runner for local or remote dtcc-sim simulations.
 
-Wraps the dtcc_core dataset registry to discover, configure, and run
-simulations. Results stay in memory as dolfinx Function objects — no
-file I/O needed for the agent to read them.
+In mini-service mode, configured with DTCC_REMOTE_SERVICES or
+DTCC_SIM_SERVICE_URL, simulations are delegated through dtcc-core's remote
+dataset protocol. Without a remote service configured, this module falls back
+to direct in-process dtcc-sim access.
 
 Usage:
     from dtcc_agent.runner import list_simulations, run
@@ -14,15 +15,9 @@ Usage:
 
 from __future__ import annotations
 
-import json
+import os
+from dataclasses import asdict, dataclass
 from typing import Any
-
-# Import dtcc_sim.datasets to trigger auto-registration of simulation
-# datasets into the dtcc_core registry. This must happen before we
-# query the registry.
-import dtcc_sim.datasets  # noqa: F401
-
-from dtcc_core.datasets.registry import list_datasets as _list_all, get_dataset
 
 # Names of datasets that are simulations (as opposed to data fetchers
 # like "buildings", "point_cloud", etc.). We tag them explicitly so
@@ -33,6 +28,100 @@ _SIMULATION_NAMES = {
 }
 
 
+@dataclass
+class RemoteSimulationResult:
+    """Metadata returned when a simulation runs in the dtcc-sim mini-service."""
+
+    simulation: str
+    bounds: list[float]
+    parameters: dict[str, Any]
+    base_url: str
+    task_id: str | None
+    result_file: str | None
+    size_bytes: int | None
+    output_format: str | None
+    content_type: str | None = None
+    status: str = "completed"
+    remote: bool = True
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+_REGISTERED_REMOTE_SERVICES: set[str] = set()
+
+
+def _remote_services() -> list[str]:
+    """Return configured remote service URLs."""
+    explicit = os.getenv("DTCC_SIM_SERVICE_URL", "").strip()
+    if explicit:
+        return [explicit.rstrip("/")]
+
+    return [
+        url.strip().rstrip("/")
+        for url in os.getenv("DTCC_REMOTE_SERVICES", "").split(",")
+        if url.strip()
+    ]
+
+
+def _remote_base_url() -> str | None:
+    """Return the primary configured dtcc-sim service URL, if any."""
+    services = _remote_services()
+    return services[0] if services else None
+
+
+def _ensure_remote_services_registered() -> None:
+    """Register configured remote services using dtcc-core's shared protocol."""
+    from dtcc_core.datasets import register_remote_service
+
+    for url in _remote_services():
+        if url in _REGISTERED_REMOTE_SERVICES:
+            continue
+        registered = register_remote_service(url)
+        if registered:
+            _REGISTERED_REMOTE_SERVICES.add(url)
+
+
+def _list_all_remote():
+    _ensure_remote_services_registered()
+    from dtcc_core.datasets.registry import list_datasets as _list_all
+
+    return _list_all()
+
+
+def _get_remote_dataset(name: str):
+    _ensure_remote_services_registered()
+    from dtcc_core.datasets.registry import get_dataset
+
+    ds = get_dataset(name)
+    if not getattr(ds, "base_url", None):
+        raise KeyError(name)
+    return ds
+
+
+def _list_all_local():
+    # Import dtcc_sim.datasets lazily so the plain Python mini-service can start
+    # without FEniCSx/dtcc-sim installed. Direct mode still works when those
+    # packages are available in the current environment.
+    import dtcc_sim.datasets  # noqa: F401
+    from dtcc_core.datasets.registry import list_datasets as _list_all
+
+    return _list_all()
+
+
+def _get_local_dataset(name: str):
+    import dtcc_sim.datasets  # noqa: F401
+    from dtcc_core.datasets.registry import get_dataset
+
+    return get_dataset(name)
+
+
+def _get_core_dataset(name: str):
+    from dtcc_core.datasets.registry import get_dataset
+
+    return get_dataset(name)
+
+
 def list_simulations() -> list[dict[str, str]]:
     """Return metadata for all registered simulation datasets.
 
@@ -40,7 +129,19 @@ def list_simulations() -> list[dict[str, str]]:
     -------
     list of dicts, each with keys: name, description
     """
-    all_datasets = _list_all()
+    base_url = _remote_base_url()
+    if base_url:
+        all_datasets = _list_all_remote()
+        return [
+            {
+                "name": name,
+                "description": getattr(ds, "description", ""),
+            }
+            for name, ds in all_datasets.items()
+            if name in _SIMULATION_NAMES and getattr(ds, "base_url", None)
+        ]
+
+    all_datasets = _list_all_local()
     result = []
     for name, ds in all_datasets.items():
         if name in _SIMULATION_NAMES:
@@ -63,7 +164,12 @@ def get_schema(name: str) -> dict[str, Any]:
     -------
     dict — the JSON Schema from the Pydantic ArgsModel.
     """
-    ds = get_dataset(name)
+    base_url = _remote_base_url()
+    if base_url:
+        ds = _get_remote_dataset(name)
+        return ds.show_options()
+
+    ds = _get_local_dataset(name)
     return ds.show_options()
 
 
@@ -97,12 +203,42 @@ def run(
     Exception
         Propagated from the underlying simulation.
     """
-    ds = get_dataset(name)
-
     kwargs: dict[str, Any] = {"bounds": bounds}
     if parameters:
         kwargs.update(parameters)
 
+    base_url = _remote_base_url()
+    if base_url:
+        ds = _get_remote_dataset(name)
+        formats = getattr(ds, "supported_formats", None) or ["bin"]
+        requested_format = kwargs.setdefault("format", formats[0])
+        remote_info: dict[str, Any] = {}
+
+        # Use dtcc-core's RemoteDatasetDescriptor implementation instead of
+        # carrying a second copy of the submit/status/result protocol here.
+        validated = ds.validate(dict(kwargs)) if hasattr(ds, "validate") else kwargs
+        result = ds.build(validated, remote_info_callback=remote_info.update)
+        if isinstance(result, tuple) and len(result) >= 3:
+            data, output_format, content_type = result[:3]
+            size_bytes = len(data) if isinstance(data, bytes) else None
+        else:
+            output_format = requested_format
+            content_type = None
+            size_bytes = None
+
+        return RemoteSimulationResult(
+            simulation=name,
+            bounds=bounds,
+            parameters=kwargs,
+            base_url=getattr(ds, "base_url", base_url),
+            task_id=remote_info.get("remote_task_id"),
+            result_file=None,
+            size_bytes=size_bytes,
+            output_format=output_format,
+            content_type=content_type,
+        )
+
+    ds = _get_local_dataset(name)
     return ds(**kwargs)
 
 
@@ -132,7 +268,7 @@ def get_buildings(
     """
     import numpy as np
 
-    ds = get_dataset("buildings")
+    ds = _get_core_dataset("buildings")
     buildings = ds(
         bounds=bounds,
         source=source,

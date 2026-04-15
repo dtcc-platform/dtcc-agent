@@ -12,7 +12,7 @@ language.
 LLM (Claude) ←→ MCP protocol ←→ dtcc-agent
                                     ├── geocode            (pyproj + Nominatim)
                                     ├── get_buildings       (dtcc_core.datasets)
-                                    ├── run_simulation      (dtcc_sim)
+                                    ├── run_simulation      (dtcc-sim remote or in-process)
                                     ├── compare_scenarios   (composes the above)
                                     ├── list_operations    ─┐
                                     ├── describe_operation  │ dynamic dispatch
@@ -28,14 +28,24 @@ LLM (Claude) ←→ MCP protocol ←→ dtcc-agent
                                     └── disk_cache          (spatial containment, TTL eviction)
 ```
 
-Unlike dtcc-deploy (which proxies HTTP calls to a FastAPI backend),
-dtcc-agent calls `dtcc_core` and `dtcc_sim` **directly in-process**.
-Simulation results stay in memory as numpy arrays — no file I/O
-needed for the agent to reason about results.
+dtcc-agent can run in two modes:
+
+- **Mini-service mode**: Lurkie and the MCP server run in a lightweight
+  Python container. Simulation tools call the `dtcc-sim` mini-service through
+  the same `dtcc-core` remote dataset protocol used by Atlas.
+- **Direct mode**: the MCP server imports `dtcc_core` and `dtcc_sim` directly
+  in-process. This requires the full scientific environment.
 
 ## Prerequisites
 
-dtcc-agent runs in the same conda environment as dtcc-sim. You need:
+For the Docker mini-service, you need:
+
+- Docker
+- A running `dtcc-sim` mini-service
+- Claude auth, usually `ANTHROPIC_API_KEY` in the environment
+
+For direct in-process usage, dtcc-agent runs in the same environment as
+dtcc-sim. You need:
 
 - FEniCSx (dolfinx) via conda
 - dtcc-core and dtcc (pip)
@@ -48,8 +58,13 @@ for environment setup instructions.
 ## Installation
 
 ```bash
-conda activate fenicsx-env   # or your dtcc environment
 pip install -e .
+```
+
+For the web chatbot extras:
+
+```bash
+pip install -e ".[chatbot]"
 ```
 
 ## Usage
@@ -62,8 +77,8 @@ Add to your MCP configuration (`.mcp.json` or Claude Desktop settings):
 {
   "mcpServers": {
     "dtcc-agent": {
-      "command": "conda",
-      "args": ["run", "-n", "fenicsx-env", "python", "-m", "dtcc_agent"]
+      "command": "python",
+      "args": ["-m", "dtcc_agent"]
     }
   }
 }
@@ -74,6 +89,30 @@ Add to your MCP configuration (`.mcp.json` or Claude Desktop settings):
 ```bash
 python -m dtcc_agent
 ```
+
+### Docker Mini-Service
+
+Start `dtcc-sim` first, then build and run the agent service:
+
+```bash
+cd ../dtcc-sim
+docker compose up -d
+
+cd ../dtcc-agent
+mkdir -p data/agent
+export DTCC_REMOTE_SERVICES=http://host.docker.internal:8001
+export ANTHROPIC_API_KEY=...
+docker compose up --build
+```
+
+The service listens on http://localhost:8050 and exposes a health endpoint at
+http://localhost:8050/health.
+
+The Docker layout mirrors `dtcc-sim`:
+
+- `Dockerfile`
+- `docker-compose.yml`
+- `build_docker.sh`
 
 ## Available Tools
 
@@ -332,7 +371,7 @@ pip install -e ".[chatbot]"
 python -m chatbot
 ```
 
-Then open http://localhost:8000 in your browser. Logs are written to
+Then open http://localhost:8050 in your browser. Logs are written to
 `/tmp/dtcc_lurkie_logs/`.
 
 ### How it works

@@ -229,6 +229,26 @@ def run_simulation(
     except Exception as exc:
         return _fmt({"error": f"Simulation failed: {exc}"})
 
+    if getattr(result, "remote", False):
+        run_id = _store_result(simulation_name, bounds, params, result)
+        remote_result = result.as_dict()
+        return _fmt({
+            "run_id": run_id,
+            "label": label or run_id,
+            "simulation": simulation_name,
+            "bounds": bounds,
+            "parameters_used": params,
+            "summary": {
+                "status": remote_result["status"],
+                "message": (
+                    "Simulation completed in the dtcc-sim mini-service. "
+                    "The lightweight dtcc-agent service does not deserialize "
+                    "FEniCSx output for field statistics."
+                ),
+            },
+            "remote_result": remote_result,
+        })
+
     # Extract values — dolfinx Function has .x.array
     if hasattr(result, "x") and hasattr(result.x, "array"):
         values = result.x.array
@@ -296,6 +316,32 @@ def compare_scenarios(
     except Exception as exc:
         return _fmt({"error": f"Scenario B ({label_b}) failed: {exc}"})
 
+    if getattr(result_a, "remote", False) or getattr(result_b, "remote", False):
+        run_id_a = _store_result(simulation_name, bounds, scenario_a_parameters, result_a)
+        run_id_b = _store_result(simulation_name, bounds, scenario_b_parameters, result_b)
+        return _fmt({
+            "simulation": simulation_name,
+            "bounds": bounds,
+            "run_id_a": run_id_a,
+            "run_id_b": run_id_b,
+            "parameters_a": scenario_a_parameters,
+            "parameters_b": scenario_b_parameters,
+            "summary": {
+                "status": "completed",
+                "message": (
+                    "Both scenarios completed in the dtcc-sim mini-service. "
+                    "Numeric difference statistics require direct in-process "
+                    "FEniCSx results and are not computed in lightweight mode."
+                ),
+            },
+            "remote_result_a": (
+                result_a.as_dict() if getattr(result_a, "remote", False) else None
+            ),
+            "remote_result_b": (
+                result_b.as_dict() if getattr(result_b, "remote", False) else None
+            ),
+        })
+
     # Extract values
     if not (hasattr(result_a, "x") and hasattr(result_b, "x")):
         return _fmt({
@@ -354,6 +400,8 @@ def list_past_runs(limit: int = 10) -> str:
         if hasattr(result, "x") and hasattr(result.x, "array"):
             field_name = _infer_field_name(info["simulation"])
             entry["summary"] = summarize_field(result.x.array, field_name)
+        elif getattr(result, "remote", False):
+            entry["remote_result"] = result.as_dict()
         output.append(entry)
     return _fmt(output)
 
@@ -372,6 +420,15 @@ def get_run_summary(run_id: str) -> str:
 
     info = _results[run_id]
     result = info["result"]
+
+    if getattr(result, "remote", False):
+        return _fmt({
+            "run_id": run_id,
+            "simulation": info["simulation"],
+            "bounds": info["bounds"],
+            "parameters": info["parameters"],
+            "remote_result": result.as_dict(),
+        })
 
     if not (hasattr(result, "x") and hasattr(result.x, "array")):
         return _fmt({"error": "Result does not have extractable field values."})

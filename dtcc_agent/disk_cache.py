@@ -21,7 +21,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-CACHE_DIR = Path("/tmp/dtcc_cache")
+CACHE_DIR = Path(os.getenv("DTCC_AGENT_CACHE_DIR", "/tmp/dtcc_cache"))
 CACHE_TTL_HOURS = 168        # 7 days
 CACHE_MAX_SIZE_GB = 10
 

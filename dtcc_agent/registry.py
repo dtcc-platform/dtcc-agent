@@ -341,6 +341,16 @@ def _build_registry() -> dict[str, OperationInfo]:
 
     # 7. Datasets
     try:
+        # In mini-service mode, register remote datasets through dtcc-core's
+        # shared remote protocol before exposing dataset operations.
+        try:
+            from .runner import _ensure_remote_services_registered, _remote_base_url
+
+            if _remote_base_url():
+                _ensure_remote_services_registered()
+        except Exception as e:
+            logger.warning(f"Failed to register remote datasets: {e}")
+
         # Import dtcc_sim datasets to trigger registration first
         try:
             import dtcc_sim.datasets  # noqa: F401
