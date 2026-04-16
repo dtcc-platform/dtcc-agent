@@ -3,16 +3,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE_NAME="${DTCC_AGENT_IMAGE:-dtcc-agent}"
-IMAGE_TAG="${DTCC_AGENT_TAG:-local}"
-PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
-DTCC_CORE_REF="${DTCC_CORE_REF:-develop}"
+export DTCC_AGENT_IMAGE="${DTCC_AGENT_IMAGE:-dtcc-agent}"
+export DTCC_AGENT_TAG="${DTCC_AGENT_TAG:-local}"
+export DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
+export DTCC_CORE_REF="${DTCC_CORE_REF:-develop}"
+export APP_UID="${APP_UID:-1000}"
+export APP_GID="${APP_GID:-1000}"
 
-echo "Building ${IMAGE_NAME}:${IMAGE_TAG} from ${SCRIPT_DIR}/Dockerfile"
+echo "Building ${DTCC_AGENT_IMAGE}:${DTCC_AGENT_TAG} via docker compose"
 
-docker build \
-  --platform "${PLATFORM}" \
-  --build-arg "DTCC_CORE_REF=${DTCC_CORE_REF}" \
-  -t "${IMAGE_NAME}:${IMAGE_TAG}" \
-  -f "${SCRIPT_DIR}/Dockerfile" \
-  "${SCRIPT_DIR}"
+cd "${SCRIPT_DIR}"
+docker compose build dtcc-agent

@@ -1,12 +1,14 @@
 services:
   dtcc-agent:
     image: ${DTCC_AGENT_IMAGE:-dtcc-agent}:${DTCC_AGENT_TAG:-local}
-    platform: linux/amd64
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: Dockerfile
       args:
         DTCC_CORE_REF: ${DTCC_CORE_REF:-develop}
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
     ports:
       - "8050:8050"
     environment:
