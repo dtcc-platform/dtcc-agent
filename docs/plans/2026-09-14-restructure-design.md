@@ -64,7 +64,15 @@ Two changes to this plan's assumptions:
   onward sits behind it. §6 of the questionnaire is promoted accordingly.
 
 **And the biggest change: this is a fresh repository, not a migration in place.** Confirmed
-2026-09-17. Phase 0 inverts — pinning `mcp<2` and declaring `dtcc-core` stop being fixes and
+2026-09-17.
+
+> **REVERSED 2026-09-18 by Spiros: it is a clean branch off `develop`, not a fresh
+> repository.** Everything in this paragraph and the rest of this section that depends on
+> starting from an empty tree is void. Phase 0 does not invert: `mcp<2` and the `dtcc-core`
+> declaration shipped as real fixes in PR #2, against the existing `pyproject.toml`. See
+> §5a-bis of the questionnaire for the reasoning and for what the reversal voids.
+> The paragraph is left standing rather than deleted so the reversal is visible.
+ Phase 0 inverts — pinning `mcp<2` and declaring `dtcc-core` stop being fixes and
 become the first `pyproject.toml`, the import smoke test is written before there is anything to
 break, and Napoleon's lint/TDD/harness conventions get adopted from commit one instead of
 retrofitted. What survives from Phase 0 as actual work: the Session isolation unit and the memory
