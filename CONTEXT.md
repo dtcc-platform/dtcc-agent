@@ -48,6 +48,15 @@ One continuous conversation with one person. **The Session is the isolation unit
 conversation memory and budgets all belong to exactly one Session and are never visible from
 another. See ADR-0004.
 
+> **Not true in code, recorded rather than hidden.** This is the intended definition, not a
+> description of today. `dtcc_agent/` contains no notion of a session, user or tenant: the stores
+> are module-level singletons (`server.py:32-38`), `ObjectStore.get` does no authorization,
+> `list_objects` enumerates every object in the process, LRU eviction is cross-user, and
+> `DiskCache` keys carry no identity. `chatbot/sessions.py` scopes only the model's conversation
+> transcript and does not reach the stores; `chatbot/memory.py` stamps `session_id` on write but
+> `retrieve()` queries with no filter on it. Making the Session real is new work in the rebuild,
+> not a refactor — there is no seam to thread an identifier through.
+
 **Scenario**
 A question with a known-good answer, written by someone with domain expertise, used to judge
 whether the assistant behaves correctly. A Scenario asserts the *sequence and parameters* the
