@@ -70,14 +70,23 @@ sequencing above is a starting position, not a contract.
 ### M1 — transport, state, tests
 
 Scope: HTTP transport; per-session stores injected rather than global, with the hybrid split from
-ADR-0004; tests for the tool surface; Lurkie changed minimally to speak HTTP instead of spawning
-a subprocess.
+ADR-0004; **typed references and the Run-to-Object link** (ADR-0010); tests for the tool surface;
+Lurkie changed minimally to speak HTTP instead of spawning a subprocess.
 
 Acceptance: the 122 existing tests stay green; `server.py`'s replacement has direct coverage; two
 concurrent sessions cannot see each other's objects, runs or conversation memory; the public
-bounds-derived cache still hits across sessions; Lurkie works with no `claude` CLI on the machine.
+bounds-derived cache still hits across sessions; Lurkie works with no `claude` CLI on the machine;
+a Run reference passed where an Object reference is expected is refused rather than missed; and
+`get_run_summary` returns the Object reference of the Object its Run yielded.
 
-Not in scope: changing which tools exist, or what they return.
+Not in scope: changing which tools exist, or what they return. Renaming a parameter is not adding
+or removing a tool — ADR-0010's rename is in scope precisely because the surface is being rewritten
+anyway, and the same rename after M1 would be a change to a published surface.
+
+**Why the rename belongs here and not later.** `object_id` appears 62 times, all of them in tool
+signatures the model reads. It is free during the rewrite and expensive after. It is also a
+precondition for the session boundary in the same milestone: a reference that cannot be classified
+cannot be authorized.
 
 ### M2 — auth and provenance
 
