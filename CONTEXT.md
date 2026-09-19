@@ -27,26 +27,50 @@ A value produced by an Operation and held for later reference — a point cloud,
 a building collection. Objects are referred to by an **Object reference**, never passed by value.
 
 **Object reference**
-The short identifier that names a stored Object.
-
-> **Vocabulary conflict, unresolved in code.** Three names are in use for two concepts:
-> `object_id` and `result_id` are the *same* namespace (an Operation returns `result_id`;
-> the same value is accepted anywhere `object_id` is expected), while `run_id` names an entry
-> in a *different* store. Canonical terms going forward: **Object reference** for the first,
-> **Run reference** for the second. The code has not been changed.
+The identifier that names a stored Object. Carries its kind, so a reference can be classified
+without consulting a store.
+_Avoid_: object_id, result_id, obj_id.
 
 **Run**
 One execution of a simulation, together with the parameters it was given. Distinct from an
-Object: a Run is an event, an Object is a value. A Run may yield Objects.
+Object: a Run is an event, an Object is a value. **A Run yields exactly one Object and records
+its Object reference** — the two are separate entities with an explicit link, not one entity
+under two names.
+
+**Run reference**
+The identifier that names a Run. A Run reference and an Object reference are never
+interchangeable.
+_Avoid_: run_id.
+
+> **Conflict with the code, not yet resolved there.** Four names are in use across three
+> concepts, and the three are indistinguishable by format — `object_store.py:63` and
+> `disk_cache.py:122` both mint `uuid4().hex[:8]`, `server.py:54` mints `str(uuid4())[:8]`, and
+> all three are eight hexadecimal characters. So nothing in a reference says which store it
+> belongs to. The Run/Object link is worse: `server.py:52-65` stores one result twice, under a
+> Run reference and a separate Object reference, linked only by a human-readable `label` that
+> nothing ever queries, and `get_run_summary` returns no Object reference at all. Both are
+> resolved in the rebuild's first milestone, while the surface is being replaced anyway.
 
 **Field**
-Values attached to every point of a geometry — a temperature, a wind speed. A Field is what makes
-a simulation result meaningful, and is the thing most easily lost in conversion.
+Named values defined on a geometry — a temperature, a wind speed. A Field is what makes a
+simulation result meaningful, and is the thing most easily lost in conversion.
+_Avoid_: attribute, property, data layer.
+
+**Association**
+Where on a geometry a Field's values sit: `vertex`, `edge`, `face`, `cell`, `sample`, or
+`geometry` — the last meaning one value for the whole thing, such as an area statistic. A Field
+without an Association cannot be serialized, and two Fields with different Associations are not
+interchangeable even when their value counts match.
 
 **Session**
-One continuous conversation with one person. **The Session is the isolation unit**: Objects, Runs,
-conversation memory and budgets all belong to exactly one Session and are never visible from
-another. See ADR-0004.
+One continuous conversation. **The Session is the isolation unit**: Objects, Runs, conversation
+memory and budgets all belong to exactly one Session and are never visible from another. See
+ADR-0004.
+
+A Session is identified anonymously and scoped to a browser, so **Session lifetime is not person
+lifetime** — the same person returning tomorrow is a different Session and does not reach
+yesterday's Objects. When authentication arrives, what changes is who a Session belongs to, not
+what a Session is.
 
 > **Not true in code, recorded rather than hidden.** This is the intended definition, not a
 > description of today. `dtcc_agent/` contains no notion of a session, user or tenant: the stores
