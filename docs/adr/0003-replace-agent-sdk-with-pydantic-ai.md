@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Replace the Claude Agent SDK with pydantic-ai
@@ -39,3 +39,19 @@ pydantic-ai moves quickly; pin it.
 own, after the dtcc-core#85 migration. Core, the chatbot extras and pydantic-ai's requirements
 co-resolve cleanly on pydantic 2.13.5, verified in a clean venv. This change got slightly cheaper,
 not more expensive: pydantic is no longer something we introduce to the platform.
+
+**Accepted 2026-09-19.** "Standalone application" was settled as covering all four of process,
+model independence, UI and deployment — and model independence is this ADR. It is therefore no
+longer optional or deferred; it is the substance of rebuild milestone 3.
+
+**Sequenced third, deliberately.** Milestone 1 is transport, session-scoped state and tests;
+milestone 2 is auth and provenance; this lands in milestone 3. The reason is measurement: this is
+the change most likely to produce a long debugging tail, and the evaluation harness (ADR-0008)
+should be reading a stable system before the model runtime is swapped underneath it. Sequencing it
+third is what gives the migration a genuine before-and-after number on latency and cost, which is
+the comparison the platform asked for.
+
+**A latency finding that belongs here.** `chatbot/app.py:228` constructs a new `ClaudeSDKClient`
+per user message — process spawn plus MCP handshake, every turn. That is almost certainly the
+largest single latency item in the system today, and it disappears by construction when the
+subprocess does. This ADR is a performance change as much as a portability one.

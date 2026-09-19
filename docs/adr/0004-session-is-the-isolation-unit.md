@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # The Session is the isolation unit
@@ -41,3 +41,40 @@ strongest subject it can honestly record.
 
 The same call asked for per-tool-call audit records and per-session budgets explicitly, which is
 this ADR plus Phase 5, unchanged in shape.
+
+**Accepted 2026-09-19, with two refinements and one question closed.**
+
+**Refinement 1 — the boundary is hybrid, not total.** Taken literally, "never visible from
+another" would destroy the disk cache. `dataset_lookup` (`disk_cache.py:156`) finds any cached
+entry whose bounds *contain* the request, prefers the smallest such entry, and crops — so one
+download of Gothenburg serves every neighbourhood inside it, for everyone. Per-session caches
+would reduce that to near zero hit rate.
+
+The split: **public upstream data stays shared; everything derived from user input is
+session-keyed.** This is nearly free, because `CACHE_ALLOWLIST` (`disk_cache.py:28-37`) already
+happens to be exactly the public set — all eight entries are bounds-derived downloads and
+builders, deterministic in their inputs and carrying nothing of the person who asked.
+
+So the isolation unit is the Session for *state*, and the bounds-and-parameters tuple for *public
+derived data*. Both are properties of the object, which preserves this ADR's original reason for
+rejecting session-scoped views over a shared store.
+
+**Refinement 2 — no login, and the identifier is designed for substitution.** Sessions are
+anonymous browser-scoped tokens. That closes the cross-session memory leak without requiring a
+user directory or an identity-provider decision. What matters is that the session identifier is
+carried end to end — browser, service, MCP server, stores — so replacing an anonymous token with
+an authenticated subject is a substitution rather than a re-plumb.
+
+**Question closed: there is no pointer to central authentication, because there is no
+specification.** The outstanding ask above can be retired. The Engine design defers "per-consumer
+tokens, roles, permissions, and quotas" from v1 (`docs/dtcc-engine-backend-design-v1.md:74`) and
+states "all Engine HTTP services use the shared token; there are no per-consumer roles"
+(`:344-347`). Nothing upstream will hand the agent a user subject in the timeframe of this
+rebuild. The instruction not to fabricate a user identity therefore stands, and per-Session
+budgets come first, as written.
+
+**Scope note: this is new work, not a refactor.** `dtcc_agent/` contains zero occurrences of
+`session`, `user_id` or `tenant`. The stores are module-level singletons (`server.py:32-38`)
+referenced directly from fifteen tool bodies. There is no seam to thread an identifier through;
+`dispatcher.py` is the only module already written to take `store` and `cache` as parameters, and
+it is therefore where the rebuild starts.

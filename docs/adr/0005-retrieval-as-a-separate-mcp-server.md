@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Retrieval lives in a separate dtcc-docs MCP server, not as a tool in dtcc-agent
@@ -46,3 +46,15 @@ machine-readable output with no third-party terms, they directly answer "what ca
 about this neighbourhood" without the asker naming an Operation, and they let the whole pipeline
 be built before anyone has to read a licence. Citations are mandatory from the first commit;
 retrofitting them is expensive and they are what makes an answer checkable.
+
+**Accepted 2026-09-19, and the split is now precise.** `CONTEXT.md` already distinguishes the two:
+**Corpus** is a body of material that retrieval searches; conversation memory is what was said
+before. "It cannot look things up" and "it does not remember me" are different complaints.
+
+`chatbot/memory.py` conflates them today — one ChromaDB collection serving both, and the file with
+the missing `session_id` filter. The rebuild separates them along the line this ADR draws:
+**conversation memory stays with the chat service and becomes session-scoped** (ADR-0004);
+**corpus retrieval moves to the separate `dtcc-docs` server.**
+
+That makes the separation a correctness fix as well as an architectural one, which is a stronger
+reason than the original separation-of-concerns argument.

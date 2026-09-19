@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Converge on dtcc-twin's contracts even though dtcc-twin has no implementation
@@ -27,3 +27,21 @@ explicitly does *not* decode or render arbitrary native models. That is a real c
 converge on rather than a specification to guess at. It does not settle the vocabulary question
 this ADR is about, because Tangible Twin is a catalogue and preview surface, not the Capability
 Catalog. Read it as narrowing the gap, not closing it.
+
+**Accepted 2026-09-19, with the gap measured rather than assumed.** The DTCC Engine — the piece
+of Twin that would make the Capability Catalog real — **does not exist as code**. `dtcc-twin` at
+`develop` is `DESIGN.md` (643 lines), `docs/dtcc-engine-backend-design-v1.md` (501 lines), two
+`AGENTS.md`, a README, and an empty `dtcc-engine/` directory. No `.py`, no PRs ever opened, last
+push 2026-09-06. The spec says so itself at `:466`: "No Engine implementation or runtime
+validation was performed as part of writing it."
+
+That strengthens this ADR rather than weakening it. Converging on a vocabulary costs nothing and
+is reversible; the thing it protects against — two competing registries with different words for
+the same concept — gets more expensive every month. So we adopt Twin's terms (`CONTEXT.md` already
+does, marking them **(Twin)**) while keeping our own implementation (ADR-0007).
+
+**The measured gap: nine fields against three.** `DESIGN.md:344-346` specifies that each descriptor
+supplies identity, title, explanation, parameter schema, semantic result type, coverage, required
+inputs, execution requirements and output semantics. `registry.py` yields name, category and
+description. Closing that gap is real convergence work and belongs in the rebuild, sequenced with
+catalogue-as-artifact (redesign item 9).
