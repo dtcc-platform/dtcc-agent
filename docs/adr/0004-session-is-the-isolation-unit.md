@@ -51,9 +51,25 @@ download of Gothenburg serves every neighbourhood inside it, for everyone. Per-s
 would reduce that to near zero hit rate.
 
 The split: **public upstream data stays shared; everything derived from user input is
-session-keyed.** This is nearly free, because `CACHE_ALLOWLIST` (`disk_cache.py:28-37`) already
-happens to be exactly the public set — all eight entries are bounds-derived downloads and
-builders, deterministic in their inputs and carrying nothing of the person who asked.
+session-keyed.**
+
+> **Corrected 2026-09-20 after an outside review. The claim that followed here was wrong.**
+> This ADR originally said the split was nearly free because `CACHE_ALLOWLIST`
+> (`disk_cache.py:28-37`) already happened to be exactly the public set. **It is not.** Four of
+> its eight entries — `builder.build_terrain_surface_mesh`, `builder.build_city_surface_mesh`,
+> `builder.raster.slope_aspect`, `builder.pc_filter.classification_filter` — are builders over
+> Objects the user supplied, not downloads derived from bounds. Worse, their cache key comes from
+> `content_fingerprint` (`disk_cache.py:40-53`), which despite the name hashes only `type`,
+> `source_op`, `nbytes` and `label` and **never reads the contents**. Two sessions whose inputs
+> share those four attributes collide and can be served each other's derived results.
+>
+> **Sharing that cache across sessions would reintroduce the exact leak this ADR exists to
+> close**, through the optimisation the ADR used to justify itself.
+>
+> **The corrected split:** only `datasets.point_cloud`, `datasets.buildings` and `get_buildings`
+> stay shared — those are keyed on bounds and source alone. The other five are session-local.
+> Restoring cross-session reuse of derived geometry requires a fingerprint that hashes contents,
+> tracked as `TODOS.md` T-001.
 
 So the isolation unit is the Session for *state*, and the bounds-and-parameters tuple for *public
 derived data*. Both are properties of the object, which preserves this ADR's original reason for
@@ -62,8 +78,22 @@ rejecting session-scoped views over a shared store.
 **Refinement 2 — no login, and the identifier is designed for substitution.** Sessions are
 anonymous browser-scoped tokens. That closes the cross-session memory leak without requiring a
 user directory or an identity-provider decision. What matters is that the session identifier is
-carried end to end — browser, service, MCP server, stores — so replacing an anonymous token with
-an authenticated subject is a substitution rather than a re-plumb.
+carried end to end — browser, service, MCP server, stores — so adding an authenticated subject
+later is an addition rather than a re-plumb.
+
+> **Two corrections, 2026-09-20.**
+>
+> **A subject is not a substitute for a session.** Saying an authenticated user id "replaces" the
+> anonymous token is wrong: one person has many conversations, and collapsing them onto one
+> subject identifier would merge conversations this ADR isolates. **The session identifier and the
+> subject identifier are separate fields from the start.** A subject owns many sessions; the
+> isolation unit stays the session.
+>
+> **Anonymous tokens are not an admission boundary.** If anyone reachable can mint a session,
+> refusing tokenless requests gates nothing — and a session costs model credit. Minting therefore
+> requires a deployment-level shared secret. That secret cannot revoke or attribute an individual
+> and is explicitly a placeholder for real authentication, but it makes the boundary real enough to
+> gate a deployment.
 
 **Question closed: there is no pointer to central authentication, because there is no
 specification.** The outstanding ask above can be retired. The Engine design defers "per-consumer
