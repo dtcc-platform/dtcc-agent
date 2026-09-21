@@ -17,6 +17,15 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
+  # Pinned to a commit, as dtcc-sim does. dtcc_core exposes no __version__, so
+  # the SHA is the only version handle there is. Do not move this pin by hand:
+  # .github/workflows/dtcc-core-contract.yml tests a candidate Core against
+  # this package first.
+  #
+  # 18eb176 is the revision this package's suite is green against (133
+  # operations, zero registration warnings). dtcc-sim pins an older Core;
+  # the two repos are deliberately not required to match.
+  "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@18eb1767a89e214d18a4696205345ceb25749967",
   # Upper bound is load-bearing: mcp 2.x removed mcp.server.fastmcp, which
   # server.py imports. Without it a fresh install resolves 2.x and the package
   # cannot start. See the import smoke test in tests/test_server_import.py.
