@@ -6,6 +6,7 @@ build/
 .eggs/
 *.egg
 .pytest_cache/
+.venv/
 .mypy_cache/
 .ruff_cache/
 dtcc-tetgen-wrapper/

@@ -1,0 +1,90 @@
+name: dtcc-core contract
+
+run-name: dtcc-core contract at ${{ github.event.client_payload.core_sha || inputs.core_sha }}
+
+# Tests a candidate dtcc-core revision against this package BEFORE the pin in
+# pyproject.toml moves. dtcc_core exposes no __version__, so a SHA is the only
+# thing that identifies what we ran against.
+#
+# Adapted from dtcc-sim's workflow of the same name, with its `bump-core-pin`
+# job omitted: that job needs a DTCC_CORE_BUMP_TOKEN secret, which this repo
+# does not have. Until it does, a green run here is the signal to move the pin
+# by hand. Re-add the job when the secret exists.
+
+on:
+  workflow_dispatch:
+    inputs:
+      core_sha:
+        description: Full dtcc-core commit SHA to test
+        required: true
+        type: string
+  repository_dispatch:
+    types: [dtcc-core-contract]
+
+concurrency:
+  group: dtcc-core-contract-${{ github.event_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    env:
+      CORE_SHA: ${{ github.event.client_payload.core_sha || inputs.core_sha }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Validate dtcc-core SHA
+        run: |
+          if [[ ! "${CORE_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "core_sha must be a full lowercase 40-character commit SHA"
+            exit 1
+          fi
+
+      - name: Install with the candidate dtcc-core
+        run: |
+          uv sync --locked --no-install-package dtcc-core
+          # Test the requested Core revision without restoring the project's pin.
+          uv pip install \
+            "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@${CORE_SHA}"
+
+      - name: Verify installed dtcc-core SHA
+        run: |
+          uv run --no-sync python - <<'PY'
+          import json
+          import os
+          from importlib.metadata import distribution
+
+          direct_url = distribution("dtcc-core").read_text("direct_url.json")
+          metadata = json.loads(direct_url)
+          installed_sha = metadata["vcs_info"]["commit_id"]
+          expected_sha = os.environ["CORE_SHA"]
+          assert installed_sha == expected_sha, (installed_sha, expected_sha)
+          PY
+
+      - name: Run the suite against the candidate Core
+        # dtcc-sim names specific contract test files here. This package has no
+        # separate contract suite yet, so the whole suite is the contract: it is
+        # what tells us whether a Core revision is safe to pin.
+        run: uv run --no-sync pytest -q
+
+      - name: Report the catalogue this Core produces
+        # Not an assertion. A Core revision that silently changes the operation
+        # count is the exact failure that went unnoticed between 135 and 133;
+        # printing it puts the number in the run log where a human can see it.
+        run: |
+          uv run --no-sync python - <<'PY'
+          from dtcc_agent.registry import get_registry
+
+          registry = get_registry()
+          print(f"catalogue: {len(registry)} operations")
+          PY
