@@ -1,0 +1,57 @@
+name: build-tests
+
+# Adapted from dtcc-sim's workflow of the same name. Two deviations, both
+# forced by this package:
+#
+#   * the test and chatbot extras are installed explicitly. `chatbot/app.py`
+#     imports fastapi at module level, so without the chatbot extra
+#     tests/test_chatbot_app.py fails during collection and pytest aborts the
+#     entire run rather than skipping one file.
+#
+#   * Python is pinned to 3.12. fiona ships no wheels for 3.14, so a newer
+#     interpreter falls back to building it from source and fails on a missing
+#     system GDAL.
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install package and development dependencies
+        run: uv sync --locked --extra test --extra chatbot
+
+      - name: Run tests
+        run: uv run --no-sync pytest -q
+
+      - name: Report catalogue size
+        # Not an assertion. The operation count tracks the pinned dtcc-core
+        # revision, and it silently moved from 135 to 133 once already. Putting
+        # the number in every run log makes the next drift visible.
+        run: |
+          uv run --no-sync python - <<'PY'
+          from dtcc_agent.registry import get_registry
+
+          print(f"catalogue: {len(get_registry())} operations")
+          PY
+
+      - name: Build distributions
+        run: uv build
