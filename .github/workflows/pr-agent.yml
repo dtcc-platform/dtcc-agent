@@ -1,0 +1,59 @@
+# PR-Agent (https://docs.pr-agent.ai): an automated first-pass review on every PR.
+#
+# It is an independent pass, not a gate. It comments and suggests; it never
+# approves, and it does not replace the human and agentic reviews.
+#
+#   * Runs on PR open, and on /review, /improve, /ask ... comments from people
+#     with write access. This repo is public, so without that check anyone
+#     could spend the model key.
+#   * Uses `pull_request`, not `pull_request_target`, so fork PRs never reach
+#     the secret. PRs here come from branches in this repository.
+#   * auto_describe is off: it would rewrite the PR title and description.
+#   * Installed from PyPI at a pinned version and run with the same module
+#     the upstream action's entrypoint runs. The dtcc-platform Actions policy
+#     allows only org-owned, GitHub-made or Marketplace-verified actions, and
+#     the PR-Agent action is none of those.
+#
+# Needs the repository secret GEMINI_API_KEY (Google AI Studio).
+name: PR-Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  pr-agent:
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (github.event_name == 'pull_request' ||
+       (github.event.issue.pull_request &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'),
+                 github.event.comment.author_association)))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PR-Agent
+        run: pip install pr-agent==0.46.0
+
+      - name: PR-Agent
+        run: python -m pr_agent.servers.github_action_runner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          config.model: gemini/gemini-3.8-flash
+          config.fallback_models: '["gemini/gemini-3.8-flash"]'
+          github_action_config.auto_review: "true"
+          github_action_config.auto_improve: "true"
+          github_action_config.auto_describe: "false"
