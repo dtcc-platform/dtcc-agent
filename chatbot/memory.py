@@ -60,8 +60,10 @@ class ConversationMemory:
         )
         logger.debug("Stored exchange %s (%d chars)", doc_id, len(doc))
 
-    def retrieve(self, query: str, top_k: int = TOP_K) -> str:
-        """Retrieve relevant past exchanges for a query.
+    def retrieve(self, query: str, session_id: str, top_k: int = TOP_K) -> str:
+        """Retrieve relevant past exchanges from this Session for a query.
+
+        Never searches another Session's exchanges (ADR-0004).
 
         Returns a formatted string to inject into the system prompt,
         or empty string if no relevant history found.
@@ -72,6 +74,7 @@ class ConversationMemory:
         results = self._collection.query(
             query_texts=[query],
             n_results=min(top_k, self._collection.count()),
+            where={"session_id": session_id},
             include=["documents", "distances"],
         )
 
@@ -91,7 +94,7 @@ class ConversationMemory:
         context = "\n\n---\n\n".join(filtered)
         logger.info("Retrieved %d relevant past exchanges for query", len(filtered))
         return (
-            "Here are relevant excerpts from past conversations with this user. "
+            "Here are relevant excerpts from earlier in this session. "
             "Use them for context but don't repeat information unless asked:\n\n"
             f"{context}"
         )

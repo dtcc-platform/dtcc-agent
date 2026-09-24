@@ -26,25 +26,13 @@ import dtcc_agent.server as server
 # -- Fixtures ----------------------------------------------------------------
 
 @pytest.fixture
-def clean_stores():
-    """Snapshot and restore the module-level stores.
+def clean_stores(monkeypatch):
+    """Give the test a fresh Session.
 
-    `_results` and `_object_store` are module globals, so a test that plants
-    entries would otherwise leak into every later test. That global state is
-    itself something M1 removes (per-session stores injected via `lifespan`);
-    until then, tests have to work around it.
+    In-process calls (like these) use the process-local Session, so a test
+    that plants entries would otherwise leak into every later test.
     """
-    saved_results = dict(server._results)
-    saved_objects = dict(server._object_store._objects)
-    server._results.clear()
-    server._object_store._objects.clear()
-    try:
-        yield
-    finally:
-        server._results.clear()
-        server._results.update(saved_results)
-        server._object_store._objects.clear()
-        server._object_store._objects.update(saved_objects)
+    monkeypatch.setattr(server, "_local_session", server._Session())
 
 
 def _parse(payload: str) -> dict:
@@ -186,8 +174,8 @@ def test_store_result_creates_two_entries_with_unrelated_ids(clean_stores):
     """
     run_id = _plant_run()
 
-    assert run_id in server._results
-    entries = server._object_store.list()
+    assert run_id in server._session().results
+    entries = server._session().objects.list()
     assert len(entries) == 1
     # The ObjectStore keys its listing on "id"; the run lives under "run_id"
     # elsewhere. Same concept, two spellings, no shared vocabulary.
@@ -203,7 +191,7 @@ def test_run_and_object_ids_are_shape_indistinguishable(clean_stores):
     `uuid4().hex[:8]`. Different derivations, identical shape.
     """
     run_id = _plant_run()
-    object_id = server._object_store.list()[0]["id"]
+    object_id = server._session().objects.list()[0]["id"]
 
     assert len(run_id) == len(object_id) == 8
     assert all(c in "0123456789abcdef" for c in run_id)
@@ -229,7 +217,7 @@ def test_run_id_passed_to_an_object_tool_is_missed_not_refused(clean_stores):
 def test_object_id_passed_to_a_run_tool_is_missed_not_refused(clean_stores):
     """The mirror case, with the same weakness."""
     _plant_run()
-    object_id = server._object_store.list()[0]["id"]
+    object_id = server._session().objects.list()[0]["id"]
 
     payload = _parse(server.get_run_summary(object_id))
 
@@ -273,7 +261,7 @@ def test_listing_tools_disagree_about_their_envelope(clean_stores):
 
 
 def test_list_objects_reflects_a_stored_object(clean_stores):
-    server._object_store.store([1, 2, 3], source_op="probe", label="planted")
+    server._session().objects.store([1, 2, 3], source_op="probe", label="planted")
     payload = _parse(server.list_objects())
     blob = json.dumps(payload)
     assert "planted" in blob

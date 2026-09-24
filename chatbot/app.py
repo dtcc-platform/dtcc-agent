@@ -87,6 +87,7 @@ async def health():
 
 
 def _build_options(
+    session_id: str,
     sdk_session_id: str | None = None,
     memory_context: str = "",
 ) -> ClaudeAgentOptions:
@@ -96,7 +97,7 @@ def _build_options(
         prompt += f"\n\n{memory_context}"
     opts = ClaudeAgentOptions(
         system_prompt=prompt,
-        mcp_servers=get_mcp_server_config(),
+        mcp_servers=get_mcp_server_config(session_id),
         # SECURITY: bypassPermissions is used for the prototype since the
         # agent only has access to dtcc-agent MCP tools (no shell/filesystem).
         # For production, switch to an explicit allowlist.
@@ -233,8 +234,8 @@ async def chat(ws: WebSocket):
 
             # Only inject RAG context on fresh sessions — resumed sessions
             # already have conversation history in their context window.
-            memory_context = "" if sdk_session_id else memory.retrieve(user_text)
-            options = _build_options(sdk_session_id, memory_context)
+            memory_context = "" if sdk_session_id else memory.retrieve(user_text, session_id)
+            options = _build_options(session_id, sdk_session_id, memory_context)
 
             assistant_text = ""
             try:
@@ -255,7 +256,7 @@ async def chat(ws: WebSocket):
                     logger.info("[%s] Retrying with fresh session (previous may have hit context limit)", session_id)
                     sessions.set_sdk_session(session_id, None)
                     try:
-                        fresh_options = _build_options(None, memory_context)
+                        fresh_options = _build_options(session_id, None, memory_context)
                         async with ClaudeSDKClient(options=fresh_options) as client:
                             await client.query(user_text)
                             new_sdk_session, assistant_text = await _stream_response(

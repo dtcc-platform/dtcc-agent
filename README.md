@@ -90,6 +90,17 @@ Add to your MCP configuration (`.mcp.json` or Claude Desktop settings):
 python -m dtcc_agent
 ```
 
+This serves over stdio. To serve over streamable-http instead:
+
+```bash
+DTCC_MCP_TRANSPORT=http DTCC_MCP_HOST=127.0.0.1 DTCC_MCP_PORT=8051 python -m dtcc_agent
+```
+
+Over HTTP every tool call must carry an `X-DTCC-Session` header. Objects and runs belong
+to that Session and are never visible from another (ADR-0004). To point the chatbot at the
+HTTP server, set `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`; it then sends its own session id
+in that header. Without `DTCC_MCP_URL` the chatbot falls back to spawning the server over stdio.
+
 ### Docker Mini-Service
 
 Start `dtcc-sim` first, then build and run the agent service:
