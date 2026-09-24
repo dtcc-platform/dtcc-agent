@@ -9,9 +9,10 @@
 #   * Uses `pull_request`, not `pull_request_target`, so fork PRs never reach
 #     the secret. PRs here come from branches in this repository.
 #   * auto_describe is off: it would rewrite the PR title and description.
-#   * The image is pinned by digest. The action's own Dockerfile pulls the
-#     floating `github_action` tag, so pinning the action ref alone would not
-#     pin what runs. Digest is 0.46.0-github_action.
+#   * Installed from PyPI at a pinned version and run with the same module
+#     the upstream action's entrypoint runs. The dtcc-platform Actions policy
+#     allows only org-owned, GitHub-made or Marketplace-verified actions, and
+#     the PR-Agent action is none of those.
 #
 # Needs the repository secret GEMINI_API_KEY (Google AI Studio).
 name: PR-Agent
@@ -39,8 +40,15 @@ jobs:
       pull-requests: write
       issues: write
     steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PR-Agent
+        run: pip install pr-agent==0.46.0
+
       - name: PR-Agent
-        uses: docker://pragent/pr-agent@sha256:65e5b196e38cecd7df8a71fe29942052e081a0c6645132c2ac874df60b1760c7
+        run: python -m pr_agent.servers.github_action_runner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
