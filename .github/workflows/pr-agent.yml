@@ -1,0 +1,51 @@
+# PR-Agent (https://docs.pr-agent.ai): an automated first-pass review on every PR.
+#
+# It is an independent pass, not a gate. It comments and suggests; it never
+# approves, and it does not replace the human and agentic reviews.
+#
+#   * Runs on PR open, and on /review, /improve, /ask ... comments from people
+#     with write access. This repo is public, so without that check anyone
+#     could spend the model key.
+#   * Uses `pull_request`, not `pull_request_target`, so fork PRs never reach
+#     the secret. PRs here come from branches in this repository.
+#   * auto_describe is off: it would rewrite the PR title and description.
+#   * The image is pinned by digest. The action's own Dockerfile pulls the
+#     floating `github_action` tag, so pinning the action ref alone would not
+#     pin what runs. Digest is 0.46.0-github_action.
+#
+# Needs the repository secret GEMINI_API_KEY (Google AI Studio).
+name: PR-Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  pr-agent:
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (github.event_name == 'pull_request' ||
+       (github.event.issue.pull_request &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'),
+                 github.event.comment.author_association)))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: PR-Agent
+        uses: docker://pragent/pr-agent@sha256:65e5b196e38cecd7df8a71fe29942052e081a0c6645132c2ac874df60b1760c7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          config.model: gemini/gemini-3.5-pro
+          config.fallback_models: '["gemini/gemini-3.8-flash"]'
+          github_action_config.auto_review: "true"
+          github_action_config.auto_improve: "true"
+          github_action_config.auto_describe: "false"
