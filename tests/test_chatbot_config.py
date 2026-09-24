@@ -7,7 +7,8 @@ def test_system_prompt_mentions_sweden():
     assert "Sweden" in SYSTEM_PROMPT
 
 
-def test_mcp_server_config_has_command():
+def test_mcp_server_config_has_command(monkeypatch):
+    monkeypatch.delenv("DTCC_MCP_URL", raising=False)
     config = get_mcp_server_config("s1")
     assert "dtcc-agent" in config
     dtcc = config["dtcc-agent"]
@@ -18,6 +19,7 @@ def test_mcp_server_config_has_command():
 
 
 def test_mcp_server_config_honors_python_override(monkeypatch):
+    monkeypatch.delenv("DTCC_MCP_URL", raising=False)
     monkeypatch.setenv("DTCC_AGENT_PYTHON", "/custom/python")
     config = get_mcp_server_config("s1")
     assert config["dtcc-agent"]["command"] == "/custom/python"

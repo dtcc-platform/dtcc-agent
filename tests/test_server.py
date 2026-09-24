@@ -165,7 +165,7 @@ def _plant_run() -> str:
 def test_store_result_creates_two_entries_with_unrelated_ids(clean_stores):
     """One simulation result is stored twice, under two different ids.
 
-    `_store_result` writes to `_results` under a run_id and separately to the
+    `_store_result` writes to the Session's `results` under a run_id and separately to the
     ObjectStore under its own obj_id. The only link is the ObjectStore's
     `label` field, which is written and displayed but never queried.
 

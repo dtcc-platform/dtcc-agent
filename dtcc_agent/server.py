@@ -15,6 +15,7 @@ import os
 import threading
 import time
 import uuid
+from collections import OrderedDict
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, Callable
@@ -35,10 +36,25 @@ from .geojson_store import (
     summarize_geojson_property as _summarize_geojson_property,
 )
 
-mcp = FastMCP("dtcc-agent")
+# Stateless: the chatbot opens a connection per message, and a stateful
+# transport keeps a server task per connection that nothing ever frees. The
+# Session travels in SESSION_HEADER instead, so no transport state is needed.
+mcp = FastMCP("dtcc-agent", stateless_http=True)
 
 
 SESSION_HEADER = "X-DTCC-Session"
+
+
+# What every Session's objects may hold in total: the budget one shared store
+# had before stores were per-Session. A global budget with per-Session caps
+# and Session expiry is T11/U7 (#23); until then, capping how many Sessions
+# are live, each with an equal share, keeps the process-wide bound.
+OBJECT_BUDGET_BYTES = 2 * 1024**3
+MAX_SESSIONS = 8
+
+
+def _new_session_objects() -> ObjectStore:
+    return ObjectStore(max_bytes=OBJECT_BUDGET_BYTES // MAX_SESSIONS)
 
 
 @dataclass
@@ -46,19 +62,25 @@ class _Session:
     """Everything one Session owns (ADR-0004): never visible from another."""
 
     # dtcc-core objects (PointCloud, Mesh, Raster, etc.)
-    objects: ObjectStore = field(default_factory=ObjectStore)
+    objects: ObjectStore = field(default_factory=_new_session_objects)
     # Simulation results, keyed by run_id, so the agent can refer back to them.
     results: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # Tool calls running in this Session; it is never evicted while nonzero.
+    in_flight: int = 0
 
 
-# Every Session served over HTTP, keyed by the id the chatbot sends in
-# SESSION_HEADER. Keyed by that id rather than by MCP transport session,
-# because the chatbot opens a new MCP connection for every message.
-_sessions: dict[str, _Session] = {}
+# Every Session served over HTTP, least recently used first, keyed by the id
+# the chatbot sends in SESSION_HEADER. Keyed by that id rather than by MCP
+# transport session, because the chatbot opens a new connection per message.
+_sessions: OrderedDict[str, _Session] = OrderedDict()
 _sessions_lock = threading.Lock()
 
 # stdio has exactly one client per process, and in-process callers have none.
-_local_session = _Session()
+_local_session = _Session(objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES))
+
+# Set by main() before serving HTTP. Over HTTP a call with no request must be
+# refused: falling back to _local_session would share it between clients.
+_serving_http = False
 
 _current_session: ContextVar[_Session | None] = ContextVar("dtcc_session", default=None)
 
@@ -66,6 +88,38 @@ _current_session: ContextVar[_Session | None] = ContextVar("dtcc_session", defau
 def _session() -> _Session:
     """The Session the running tool call belongs to."""
     return _current_session.get() or _local_session
+
+
+def _session_for(session_id: str, acquire: bool = False) -> _Session:
+    """The live Session for `session_id`, dropping least recently used idle
+    Sessions while more than MAX_SESSIONS are live.
+
+    `acquire` marks a tool call in flight, in the same locked step, so the
+    Session cannot be evicted before the call releases it. If every other
+    Session is busy the cap is exceeded until one goes idle.
+    """
+    with _sessions_lock:
+        session = _sessions.pop(session_id, None) or _Session()
+        _sessions[session_id] = session
+        if acquire:
+            session.in_flight += 1
+        _evict_idle_excess()
+        return session
+
+
+def _release(session: _Session) -> None:
+    with _sessions_lock:
+        session.in_flight -= 1
+        _evict_idle_excess()
+
+
+def _evict_idle_excess() -> None:
+    """Drop least recently used idle Sessions beyond MAX_SESSIONS.
+
+    Must be called with _sessions_lock held."""
+    idle = [sid for sid, s in _sessions.items() if not s.in_flight]
+    for sid in idle[: max(0, len(_sessions) - MAX_SESSIONS)]:
+        del _sessions[sid]
 
 
 def _request_session() -> _Session | None:
@@ -76,34 +130,43 @@ def _request_session() -> _Session | None:
     context = request_ctx.get(None)
     request = context.request if context else None
     if request is None:
+        if _serving_http:
+            raise ToolError(f"Refused: HTTP tool calls must carry the {SESSION_HEADER} header.")
         return None
     session_id = request.headers.get(SESSION_HEADER)
     if not session_id:
         raise ToolError(f"Refused: HTTP tool calls must carry the {SESSION_HEADER} header.")
-    with _sessions_lock:
-        return _sessions.setdefault(session_id, _Session())
+    return _session_for(session_id, acquire=True)
 
 
-def tool(fn: Callable[..., str]) -> Callable[..., str]:
-    """Register `fn` as an MCP tool that runs in a worker thread.
+def tool(fn: Callable[..., str] | None = None, *, main_thread: bool = False):
+    """Register `fn` as an MCP tool bound to the calling Session.
 
-    FastMCP calls a sync tool directly on the event loop, where dtcc_core's
-    internal `asyncio.run()` (lidar and gpkg downloads) raises. Running the
-    body in a thread gives Core a loop-free thread of its own and keeps one
-    slow tool from stalling every other session. The calling Session is
-    bound for the thread through a context variable. Returns `fn` unchanged
-    so in-process callers keep calling it synchronously.
+    The body runs in a worker thread: FastMCP calls a sync tool directly on
+    the event loop, where dtcc_core's internal `asyncio.run()` (lidar and
+    gpkg downloads) raises, and a thread also keeps one slow tool from
+    stalling every other session. `main_thread=True` runs it on the event
+    loop instead, which is the main thread; GLFW rendering needs that. The
+    Session is bound through a context variable either way. Returns `fn`
+    unchanged so in-process callers keep calling it synchronously.
     """
+    if fn is None:
+        return functools.partial(tool, main_thread=main_thread)
 
     @functools.wraps(fn)
-    async def run_in_thread(*args: Any, **kwargs: Any) -> str:
-        token = _current_session.set(_request_session())
+    async def run_bound(*args: Any, **kwargs: Any) -> str:
+        session = _request_session()
+        token = _current_session.set(session)
         try:
+            if main_thread:
+                return fn(*args, **kwargs)
             return await anyio.to_thread.run_sync(functools.partial(fn, *args, **kwargs))
         finally:
             _current_session.reset(token)
+            if session is not None:
+                _release(session)
 
-    mcp.tool()(run_in_thread)
+    mcp.tool()(run_bound)
     return fn
 
 
@@ -659,10 +722,9 @@ def inspect_object(object_id: str) -> str:
 
 # -- Visualization -----------------------------------------------------------
 
-# Not @tool: GLFW must create its window on the main thread (on macOS anywhere
-# else aborts the process), and FastMCP runs sync tools on the event loop,
-# which is the main thread under both stdio and uvicorn.
-@mcp.tool()
+# GLFW must create its window on the main thread; on macOS anywhere else
+# aborts the process.
+@tool(main_thread=True)
 def render_object(
     object_id: str,
     width: int = 1200,
@@ -847,7 +909,6 @@ def export_object(
 
     Returns a JSON object with the exported file path, or an error.
     """
-    import os
 
     try:
         obj = _session().objects.get(object_id)
@@ -1264,6 +1325,8 @@ def main():
 
     import uvicorn
 
+    global _serving_http
+    _serving_http = True
     # Our own uvicorn entry rather than mcp.run(transport=...): process-scoped
     # startup (#12) belongs in this app's lifespan, which runs once per process.
     uvicorn.run(

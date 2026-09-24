@@ -27,7 +27,7 @@ class _BagOfLetters(EmbeddingFunction):
 
 
 @pytest.fixture
-def memory(tmp_path, monkeypatch):
+def memory(tmp_path):
     mem = ConversationMemory(persist_dir=tmp_path)
     mem._collection = mem._client.create_collection(
         "test", embedding_function=_BagOfLetters(), metadata={"hnsw:space": "cosine"}
@@ -43,3 +43,14 @@ def test_retrieve_returns_this_sessions_exchanges(memory):
 def test_retrieve_never_returns_another_sessions_exchanges(memory):
     memory.store("s1", "flood risk in Lindholmen", "Here is the flood map.")
     assert memory.retrieve("flood risk in Lindholmen", session_id="s2") == ""
+
+
+def test_retrieve_with_many_other_sessions_returns_only_this_sessions(memory):
+    for i in range(6):
+        memory.store(f"other{i}", "flood risk in Lindholmen", f"Answer {i}.")
+    memory.store("s1", "flood risk in Lindholmen", "Here is the flood map.")
+
+    context = memory.retrieve("flood risk in Lindholmen", session_id="s1", top_k=3)
+
+    assert "flood map" in context
+    assert "Answer" not in context

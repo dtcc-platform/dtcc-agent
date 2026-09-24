@@ -19,8 +19,13 @@ import time
 import anyio
 import httpx
 import pytest
-from mcp import ClientSession
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+from mcp.server.fastmcp.exceptions import ToolError
 from mcp.client.streamable_http import streamable_http_client
+
+import dtcc_agent.server as server
+from dtcc_agent.server import SESSION_HEADER
 
 FEATURES = {
     "type": "FeatureCollection",
@@ -83,7 +88,7 @@ def _call(url, session_id, tool, args=None):
     """One MCP connection, one tool call: the shape of one chatbot message."""
 
     async def run():
-        headers = {"X-DTCC-Session": session_id} if session_id else {}
+        headers = {SESSION_HEADER: session_id} if session_id is not None else {}
         async with (
             httpx.AsyncClient(headers=headers) as http,
             streamable_http_client(url, http_client=http) as (read, write, _),
@@ -123,14 +128,94 @@ def test_objects_survive_into_the_next_connection_of_the_same_session(
 def test_a_tool_call_without_a_session_is_refused(server_url):
     is_error, text = _call(server_url, None, "list_objects")
     assert is_error
-    assert "X-DTCC-Session" in text
+    assert SESSION_HEADER in text
+
+
+def test_an_empty_session_header_is_refused(server_url):
+    is_error, text = _call(server_url, "", "list_objects")
+    assert is_error
+    assert SESSION_HEADER in text
+
+
+def test_the_http_transport_keeps_no_per_connection_state(server_url):
+    # The chatbot opens a connection per message. A stateful transport keeps
+    # one server task per connection, forever; the Session header already
+    # identifies the caller, so the transport stays stateless.
+    response = httpx.post(
+        server_url,
+        headers={"Accept": "application/json, text/event-stream", SESSION_HEADER: "s"},
+        json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "t", "version": "0"},
+            },
+        },
+    )
+    assert response.status_code == 200
+    assert "mcp-session-id" not in response.headers
+
+
+def test_render_object_resolves_the_calling_session(server_url, geojson_file):
+    created = _ok(server_url, "session-r", "load_geojson", {"file_path": geojson_file})
+    args = {"object_id": created["object_id"]}
+
+    # Found (a GeoJSON dict is not renderable), not "not found".
+    own = _ok(server_url, "session-r", "render_object", args)
+    assert "Unsupported type" in own["error"]
+    other = _ok(server_url, "session-x", "render_object", args)
+    assert "not found" in other["error"]
+
+
+def test_stdio_serves_one_local_session_without_a_header(geojson_file):
+    async def run():
+        params = StdioServerParameters(command=sys.executable, args=["-m", "dtcc_agent"])
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            await session.initialize()
+            created = await session.call_tool("load_geojson", {"file_path": geojson_file})
+            listed = await session.call_tool("list_objects", {})
+            return json.loads(created.content[0].text), json.loads(listed.content[0].text)
+
+    created, listed = anyio.run(run)
+    assert [o["id"] for o in listed["objects"]] == [created["object_id"]]
+
+
+def test_an_http_call_with_no_request_is_refused_not_given_the_local_session(monkeypatch):
+    monkeypatch.setattr(server, "_serving_http", True)
+    with pytest.raises(ToolError, match=SESSION_HEADER):
+        anyio.run(server.mcp.call_tool, "list_objects", {})
+
+
+def test_an_invalid_transport_exits_with_the_allowed_values(monkeypatch):
+    monkeypatch.setenv("DTCC_MCP_TRANSPORT", "bogus")
+    with pytest.raises(SystemExit, match="'stdio' or 'http'"):
+        server.main()
+
+
+def test_sessions_are_capped_and_the_least_recently_used_is_dropped(monkeypatch):
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    ids = [f"s{i}" for i in range(server.MAX_SESSIONS)]
+    first = {sid: server._session_for(sid) for sid in ids}
+
+    server._session_for("s0")  # touch: s1 is now the least recently used
+    server._session_for("new")
+
+    assert server._session_for("s0") is first["s0"]
+    assert server._session_for("s1") is not first["s1"]
+    assert len(server._sessions) == server.MAX_SESSIONS
+
+
+def test_the_session_budgets_add_up_to_the_process_budget():
+    per_session = server._session_for("budget").objects._max_bytes
+    assert per_session * server.MAX_SESSIONS <= server.OBJECT_BUDGET_BYTES
 
 
 def test_runs_are_invisible_to_another_session():
     # No tool creates a Run without dtcc_sim and the network, so bind the
     # Session the way the tool wrapper does and use the real store path.
-    import dtcc_agent.server as server
-
     a, b = server._Session(), server._Session()
     token = server._current_session.set(a)
     try:
@@ -145,3 +230,30 @@ def test_runs_are_invisible_to_another_session():
     finally:
         server._current_session.reset(token)
     assert run_id in a.results
+
+
+def test_a_session_with_a_tool_in_flight_is_never_evicted(monkeypatch):
+    # Evicting it mid-call would drop the result the tool is about to store.
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    busy = server._session_for("busy", acquire=True)
+    try:
+        for i in range(server.MAX_SESSIONS + 2):
+            server._session_for(f"other{i}")
+        assert server._session_for("busy") is busy
+    finally:
+        server._release(busy)
+
+    for i in range(server.MAX_SESSIONS + 2):
+        server._session_for(f"later{i}")
+    assert "busy" not in server._sessions
+
+
+def test_excess_sessions_are_trimmed_when_their_calls_finish(monkeypatch):
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    burst = [server._session_for(f"b{i}", acquire=True) for i in range(server.MAX_SESSIONS * 3)]
+    assert len(server._sessions) == server.MAX_SESSIONS * 3  # all busy: cap exceeded
+
+    for session in burst:
+        server._release(session)
+
+    assert len(server._sessions) == server.MAX_SESSIONS
