@@ -609,7 +609,10 @@ def inspect_object(object_id: str) -> str:
 
 # -- Visualization -----------------------------------------------------------
 
-@tool
+# Not @tool: GLFW must create its window on the main thread (on macOS anywhere
+# else aborts the process), and FastMCP runs sync tools on the event loop,
+# which is the main thread under both stdio and uvicorn.
+@mcp.tool()
 def render_object(
     object_id: str,
     width: int = 1200,
@@ -680,18 +683,15 @@ def delete_object(object_id: str) -> str:
     Returns confirmation with the deleted object's type and label,
     or an error if not found.
     """
-    if object_id not in _object_store:
+    # One locked step: tools run concurrently, so a check-then-delete could race.
+    entry = _object_store.delete(object_id)
+    if entry is None:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
-
-    entry = _object_store._objects[object_id]
-    type_name = entry["type"]
-    label = entry["label"]
-    _object_store.delete(object_id)
 
     return _fmt({
         "deleted": object_id,
-        "type": type_name,
-        "label": label,
+        "type": entry["type"],
+        "label": entry["label"],
     })
 
 
