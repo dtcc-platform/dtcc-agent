@@ -51,7 +51,7 @@ def test_documented_tool_is_registered(name):
 
 
 def test_entry_point_module_imports():
-    """`python -m dtcc_agent` resolves — nest_asyncio patch included."""
+    """`python -m dtcc_agent` resolves."""
     import importlib.util
 
     spec = importlib.util.find_spec("dtcc_agent.__main__")

@@ -9,11 +9,13 @@ Run with: python -m dtcc_agent
 
 from __future__ import annotations
 
+import functools
 import json
 import time
 import uuid
-from typing import Any
+from typing import Any, Callable
 
+import anyio
 from mcp.server.fastmcp import FastMCP
 
 from .geocode import geocode as _geocode
@@ -28,6 +30,25 @@ from .geojson_store import (
 )
 
 mcp = FastMCP("dtcc-agent")
+
+
+def tool(fn: Callable[..., str]) -> Callable[..., str]:
+    """Register `fn` as an MCP tool that runs in a worker thread.
+
+    FastMCP calls a sync tool directly on the event loop, where dtcc_core's
+    internal `asyncio.run()` (lidar and gpkg downloads) raises. Running the
+    body in a thread gives Core a loop-free thread of its own and keeps one
+    slow tool from stalling every other session. Returns `fn` unchanged so
+    in-process callers keep calling it synchronously.
+    """
+
+    @functools.wraps(fn)
+    async def run_in_thread(*args: Any, **kwargs: Any) -> str:
+        return await anyio.to_thread.run_sync(functools.partial(fn, *args, **kwargs))
+
+    mcp.tool()(run_in_thread)
+    return fn
+
 
 # In-memory store for simulation results so the agent can refer back
 # to previous runs (e.g. for comparison). Keyed by run_id.
@@ -66,7 +87,7 @@ def _store_result(name: str, bounds: list[float], parameters: dict, result: Any)
 
 # -- Geocoding ---------------------------------------------------------------
 
-@mcp.tool()
+@tool
 def geocode(place_name: str, radius: float = 250.0) -> str:
     """Convert a place name to an EPSG:3006 bounding box.
 
@@ -92,7 +113,7 @@ def geocode(place_name: str, radius: float = 250.0) -> str:
 
 # -- Urban context -----------------------------------------------------------
 
-@mcp.tool()
+@tool
 def get_buildings(
     bounds: list[float],
     source: str = "LM",
@@ -158,7 +179,7 @@ def get_buildings(
 
 # -- Simulation discovery ----------------------------------------------------
 
-@mcp.tool()
+@tool
 def list_simulations() -> str:
     """List all available simulation types.
 
@@ -171,7 +192,7 @@ def list_simulations() -> str:
     return _fmt(_list())
 
 
-@mcp.tool()
+@tool
 def get_simulation_schema(simulation_name: str) -> str:
     """Get the parameter schema for a simulation.
 
@@ -194,7 +215,7 @@ def get_simulation_schema(simulation_name: str) -> str:
 
 # -- Run simulation ----------------------------------------------------------
 
-@mcp.tool()
+@tool
 def run_simulation(
     simulation_name: str,
     bounds: list[float],
@@ -274,7 +295,7 @@ def run_simulation(
     })
 
 
-@mcp.tool()
+@tool
 def compare_scenarios(
     simulation_name: str,
     bounds: list[float],
@@ -376,7 +397,7 @@ def compare_scenarios(
 
 # -- Utilities ---------------------------------------------------------------
 
-@mcp.tool()
+@tool
 def list_past_runs(limit: int = 10) -> str:
     """List recent simulation runs stored in memory.
 
@@ -406,7 +427,7 @@ def list_past_runs(limit: int = 10) -> str:
     return _fmt(output)
 
 
-@mcp.tool()
+@tool
 def get_run_summary(run_id: str) -> str:
     """Get summary statistics for a previous simulation run.
 
@@ -447,7 +468,7 @@ def get_run_summary(run_id: str) -> str:
 
 # -- Dynamic dispatch tools --------------------------------------------------
 
-@mcp.tool()
+@tool
 def list_operations(
     category: str | None = None,
     search: str | None = None,
@@ -478,7 +499,7 @@ def list_operations(
     return _fmt(ops)
 
 
-@mcp.tool()
+@tool
 def describe_operation(name: str) -> str:
     """Get the full parameter schema for a dtcc-core operation.
 
@@ -500,7 +521,7 @@ def describe_operation(name: str) -> str:
     return _fmt(op.to_dict())
 
 
-@mcp.tool()
+@tool
 def run_operation(
     name: str,
     params: dict[str, Any] | None = None,
@@ -541,7 +562,7 @@ def run_operation(
     return _fmt(result)
 
 
-@mcp.tool()
+@tool
 def list_objects(limit: int = 20) -> str:
     """List objects stored in memory from previous operations.
 
@@ -563,7 +584,7 @@ def list_objects(limit: int = 20) -> str:
     })
 
 
-@mcp.tool()
+@tool
 def inspect_object(object_id: str) -> str:
     """Get a detailed summary of a stored object.
 
@@ -588,7 +609,7 @@ def inspect_object(object_id: str) -> str:
 
 # -- Visualization -----------------------------------------------------------
 
-@mcp.tool()
+@tool
 def render_object(
     object_id: str,
     width: int = 1200,
@@ -646,7 +667,7 @@ def render_object(
 
 # -- Object management -------------------------------------------------------
 
-@mcp.tool()
+@tool
 def delete_object(object_id: str) -> str:
     """Delete a stored object from memory.
 
@@ -674,7 +695,7 @@ def delete_object(object_id: str) -> str:
     })
 
 
-@mcp.tool()
+@tool
 def get_field_names(object_id: str) -> str:
     """Get available field/data names from a stored object.
 
@@ -752,7 +773,7 @@ _EXPORT_DISPATCH = {
 }
 
 
-@mcp.tool()
+@tool
 def export_object(
     object_id: str,
     format: str,
@@ -844,7 +865,7 @@ def export_object(
 
 # -- Rich text output --------------------------------------------------------
 
-@mcp.tool()
+@tool
 def object_to_text(object_id: str, format: str = "markdown") -> str:
     """Get a rich text representation of a stored object.
 
@@ -873,7 +894,7 @@ def object_to_text(object_id: str, format: str = "markdown") -> str:
 
 # -- Spatial queries ---------------------------------------------------------
 
-@mcp.tool()
+@tool
 def spatial_query(
     object_id: str,
     query_type: str,
@@ -1089,7 +1110,7 @@ def spatial_query(
 
 # -- GeoJSON tools -----------------------------------------------------------
 
-@mcp.tool()
+@tool
 def load_geojson(file_path: str) -> str:
     """Load a GeoJSON file from disk and store it for querying.
 
@@ -1115,7 +1136,7 @@ def load_geojson(file_path: str) -> str:
     return _fmt({"object_id": obj_id, **result["summary"]})
 
 
-@mcp.tool()
+@tool
 def query_geojson(
     object_id: str,
     property_name: str,
@@ -1151,7 +1172,7 @@ def query_geojson(
     return _fmt({"new_object_id": new_id, **result["result"]})
 
 
-@mcp.tool()
+@tool
 def summarize_geojson_property(object_id: str, property_name: str) -> str:
     """Compute statistics for a property across all features in a stored GeoJSON.
 
