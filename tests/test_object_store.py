@@ -99,3 +99,14 @@ class TestObjectStore:
         assert entry["label"] == "my_label"
         assert "created" in entry
         assert "nbytes" in entry
+
+
+def test_delete_returns_the_removed_entry_and_none_when_absent():
+    store = ObjectStore()
+    obj_id = store.store([1, 2, 3], source_op="op", label="lbl")
+
+    entry = store.delete(obj_id)
+
+    assert (entry["type"], entry["label"]) == ("list", "lbl")
+    assert store.delete(obj_id) is None
+    assert store.total_bytes == 0

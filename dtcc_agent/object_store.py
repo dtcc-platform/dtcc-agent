@@ -85,12 +85,13 @@ class ObjectStore:
             self._objects[obj_id]["last_accessed"] = time.time()
             return self._objects[obj_id]["object"]
 
-    def delete(self, obj_id: str) -> None:
-        """Remove an object by ID."""
+    def delete(self, obj_id: str) -> dict[str, Any] | None:
+        """Remove an object by ID and return its entry, or None if absent."""
         with self._lock:
-            if obj_id in self._objects:
-                self._total_bytes -= self._objects[obj_id]["nbytes"]
-                del self._objects[obj_id]
+            entry = self._objects.pop(obj_id, None)
+            if entry is not None:
+                self._total_bytes -= entry["nbytes"]
+            return entry
 
     def list(self, limit: int = 50) -> list[dict[str, Any]]:
         """Return summaries of stored objects, most recent first."""
