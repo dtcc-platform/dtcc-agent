@@ -14,24 +14,49 @@ Last updated: 2026-09-25.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-25 | Session isolation over HTTP: each user's objects, runs and memory kept apart ([#33](https://github.com/dtcc-platform/dtcc-agent/pull/33)) | 🔍 |
-| 2026-09-25 | Every tool runs off the event loop, so Core downloads work under the web server ([#32](https://github.com/dtcc-platform/dtcc-agent/pull/32)) | 🔍 |
+| 2026-09-25 | dtcc-core pin moved to Core's latest `develop`, picking up the upstream fixes ([#35](https://github.com/dtcc-platform/dtcc-agent/pull/35)) | ✅ |
+| 2026-09-25 | Session isolation over HTTP: each user's objects, runs and memory kept apart ([#33](https://github.com/dtcc-platform/dtcc-agent/pull/33)) | ✅ |
+| 2026-09-25 | Every tool runs off the event loop, so Core downloads work under the web server ([#32](https://github.com/dtcc-platform/dtcc-agent/pull/32)) | ✅ |
 | 2026-09-24 | Automated first-pass review on every pull request ([#31](https://github.com/dtcc-platform/dtcc-agent/pull/31)) | ✅ |
 | 2026-09-24 | M1 reviewed a second time, split into M1a and M1b, and the whole programme put on GitHub ([#9](https://github.com/dtcc-platform/dtcc-agent/pull/9)) | ✅ |
 | 2026-09-21 | **M0 done:** dtcc-core pinned, CI running, 61 tests describing today's tool surface ([#7](https://github.com/dtcc-platform/dtcc-agent/pull/7), [#8](https://github.com/dtcc-platform/dtcc-agent/pull/8)) | ✅ |
 | 2026-09-21 | Working conventions for issues, triage and agents ([#6](https://github.com/dtcc-platform/dtcc-agent/pull/6)) | ✅ |
 | 2026-09-21 | Glossary, ten architecture decisions (ADRs) and the rebuild plan ([#3](https://github.com/dtcc-platform/dtcc-agent/pull/3)) | ✅ |
 | 2026-09-21 | The server starts on a fresh install again ([#2](https://github.com/dtcc-platform/dtcc-agent/pull/2)) | ✅ |
-| 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team | ✅ |
+| 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
-### Session isolation over HTTP (M1a/T5) · [#33](https://github.com/dtcc-platform/dtcc-agent/pull/33)
+### dtcc-core pin moved to Core's latest `develop` · 2026-09-25 · [#35](https://github.com/dtcc-platform/dtcc-agent/pull/35)
+
+**Before:** we were pinned to Core `18eb176` from 18 September. Two problems:
+- It was older than the fixes the Core team made for the defects we reported.
+- Core's `develop` history was rewritten after we pinned, so that commit is no longer on any
+  Core branch. A commit on no branch can be deleted by GitHub, and then a fresh install of this
+  repo would fail.
+
+**Now:** pinned to `9b4e9b9`, the head of Core's `develop` on 24 September. Nothing else in the
+dependency lock moved.
+
+**How we know it works:**
+- The contract workflow, which tests a candidate Core before the pin moves, passes: the
+  installed Core is the right commit, 194 tests pass, and the catalogue stays at 133
+  operations.
+- With T5 on top, all 212 tests pass on the new Core.
+- One fix checked before and after, through the agent itself: reprojecting a mesh that
+  carries a data field fails on the old pin ("Fields and semantic regions require an explicit
+  reprojection rule") and works on the new one, keeping the field.
+
+**Also fixed:** the contract workflow could never pass for any Core. It skipped installing the
+chatbot's dependencies, so the test run stopped before testing anything. It now installs the
+same things as the main CI.
+
+### Session isolation over HTTP (M1a/T5) · 2026-09-25 · [#33](https://github.com/dtcc-platform/dtcc-agent/pull/33)
 
 **Before:** every person using the chatbot shared one object store and one list of runs. One
 user could see, use or delete what another user had built. Conversation memory also searched
@@ -69,7 +94,7 @@ message. Anything tied to the connection would be forgotten after each message.
 - The 8-session cap is a stopgap. The real memory budget, with session expiry, is T11
   ([#23](https://github.com/dtcc-platform/dtcc-agent/issues/23)).
 
-### Tools run off the event loop (M1a/T4) · [#32](https://github.com/dtcc-platform/dtcc-agent/pull/32)
+### Tools run off the event loop (M1a/T4) · 2026-09-25 · [#32](https://github.com/dtcc-platform/dtcc-agent/pull/32)
 
 **Before:** dtcc-core starts its own event loop inside every lidar and GeoPackage download.
 The server ran tools on its main loop and relied on a patch (`nest_asyncio`) to allow that.
@@ -93,10 +118,6 @@ and returns the point cloud, also when served by the web server over HTTP.
   is in Core's downloader, filed as [dtcc-core#126](https://github.com/dtcc-platform/dtcc-core/issues/126).
 - Up to 40 tools can now run at once. Putting a limit on that is T8
   ([#19](https://github.com/dtcc-platform/dtcc-agent/issues/19)), in the same milestone.
-
----
-
-## ✅ Merged
 
 ### Automated first-pass review · 2026-09-24 · [#31](https://github.com/dtcc-platform/dtcc-agent/pull/31)
 
@@ -181,7 +202,7 @@ imports, so `python -m dtcc_agent` crashed. The tests still passed, because none
 loaded the server. Fixed by pinning `mcp` below version 2, and by adding a test that loads the
 server, so this can't go unnoticed again.
 
-### Upstream fixes in dtcc-core and dtcc-sim · reported 2026-09-18, fixed 2026-09-22/23
+### Upstream fixes in dtcc-core and dtcc-sim · reported 2026-09-18, fixed 2026-09-22/23, in our build 2026-09-25
 
 Found while checking the agent against the current Core. All four were fixed by the Core team.
 
@@ -192,9 +213,8 @@ Found while checking the agent against the current Core. All four were fixed by 
 | [dtcc-core#112](https://github.com/dtcc-platform/dtcc-core/issues/112) | No rule for reprojecting geometry that carries data fields |
 | [dtcc-sim#8](https://github.com/dtcc-platform/dtcc-sim/issues/8) | Two simulations could not write the native `dtcc` output format |
 
-⏳ **Not in our build yet.** Our pinned Core (`18eb176`) is from before these fixes, so the
-agent still has the bugs until the pin moves. On #110, Anders has asked us to confirm the fix
-on Core's `develop`.
+**In our build since #35.** The Core fixes arrived with the pin move to `9b4e9b9`. The Sim fix
+lives in dtcc-sim and doesn't depend on our pin.
 
 ### Assessment of what works · 2026-09-14 · [#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)
 
@@ -220,20 +240,15 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 
 ## What's next
 
-1. **Merge #32, then #33.** #33 is built on top of #32. After #32 merges, #33 is moved onto
-   `develop`, and CI runs on it then.
-2. **The rest of M1a:** limit concurrent Core work (T8), split the cache (T6), per-session
+1. **The rest of M1a:** limit concurrent Core work (T8), split the cache (T6), per-session
    file folders (T7), build the catalogue once per process (T10), the memory budget (T11),
    and the two-service container (T13).
-3. **Move the Core pin** to pick up the four upstream fixes, through the contract workflow.
-4. **M1b:** typed references, where a run and its object stay linked (T9), and cache
+2. **M1b:** typed references, where a run and its object stay linked (T9), and cache
    versioning (T12).
 
 ## For discussion with the team
 
 - **Who may reach the MCP server** (U11, #15). This decides whether the session id alone is
   enough, and what host names the deployment allows.
-- **When to move the Core pin.** It brings the four upstream fixes. Anders is waiting for our
-  confirmation on #110.
 - **PR-Agent.** It runs on every PR on one Gemini API key. Who owns that key, and is an
   extra automated read worth it for the team?
