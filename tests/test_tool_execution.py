@@ -16,11 +16,10 @@ import dtcc_agent.dispatcher as dispatcher
 import dtcc_agent.renderer as renderer
 import dtcc_agent.server as server
 
-# uvloop comes only with the chatbot extra (uvicorn[standard]).
-uvloop = pytest.importorskip("uvloop")
-
-
 def _run_on_uvloop(coro):
+    # uvloop comes only with the chatbot extra (uvicorn[standard]); without
+    # it only the test that needs it skips, not the whole module.
+    uvloop = pytest.importorskip("uvloop")
     with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
         return runner.run(coro)
 
@@ -44,7 +43,7 @@ def test_render_object_runs_on_the_main_thread(monkeypatch):
     monkeypatch.setattr(server, "_object_store", server.ObjectStore())
     object_id = server._object_store.store([], source_op="test")
 
-    content, _ = _run_on_uvloop(
+    content, _ = asyncio.run(
         server.mcp.call_tool("render_object", {"object_id": object_id})
     )
 
