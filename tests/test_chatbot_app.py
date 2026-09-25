@@ -25,6 +25,7 @@ if _need_mock:
     _mock_sdk.ToolResultBlock = MagicMock()
     sys.modules["claude_agent_sdk"] = _mock_sdk
 
+_mock_chromadb = None
 if "chromadb" not in sys.modules:
     _mock_chromadb = types.ModuleType("chromadb")
 
@@ -50,6 +51,12 @@ if "chromadb" not in sys.modules:
 
 from fastapi.testclient import TestClient
 from chatbot.app import app
+
+# The chromadb stub exists only for importing chatbot.app. Drop it, and the
+# chatbot.memory built on it, so later test modules get the real library.
+if _mock_chromadb is not None and sys.modules.get("chromadb") is _mock_chromadb:
+    del sys.modules["chromadb"]
+    sys.modules.pop("chatbot.memory", None)
 
 
 def test_index_returns_html():

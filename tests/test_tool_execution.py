@@ -24,10 +24,10 @@ def _run_on_uvloop(coro):
         return runner.run(coro)
 
 
-def test_every_tool_except_render_is_registered_async():
+def test_every_tool_is_registered_async():
     tools = server.mcp._tool_manager.list_tools()
     assert tools
-    assert [t.name for t in tools if not t.is_async] == ["render_object"]
+    assert [t.name for t in tools if not t.is_async] == []
 
 
 def test_render_object_runs_on_the_main_thread(monkeypatch):
@@ -40,8 +40,8 @@ def test_render_object_runs_on_the_main_thread(monkeypatch):
         return "/tmp/render.png"
 
     monkeypatch.setattr(renderer, "render_to_file", fake_render_to_file)
-    monkeypatch.setattr(server, "_object_store", server.ObjectStore())
-    object_id = server._object_store.store([], source_op="test")
+    monkeypatch.setattr(server, "_local_session", server._Session())
+    object_id = server._session().objects.store([], source_op="test")
 
     content, _ = asyncio.run(
         server.mcp.call_tool("render_object", {"object_id": object_id})

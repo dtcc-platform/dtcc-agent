@@ -17,12 +17,12 @@ and `docs/adr/` for the decisions that govern it.
 Python >= 3.12; 3.11 fails to resolve. Set up with:
 
 ```sh
-uv venv --python 3.12
-uv pip install -e ../dtcc-core -e . pytest pytest-asyncio fastapi httpx
+uv venv --python 3.12 && uv sync --locked --extra test --extra chatbot
 ```
 
-Without `fastapi` and `httpx`, `tests/test_chatbot_app.py` fails at collection and pytest
-aborts the whole run.
+Without the `chatbot` extra, `tests/test_chatbot_app.py` fails at collection (no
+`fastapi`) and pytest aborts the whole run.
 
-`dtcc-core` is not yet a declared dependency and `registry.py` swallows the `ImportError`,
-so a fresh install starts cleanly and serves an empty catalogue. M0 fixes this.
+`dtcc-core` is a declared dependency, pinned to a commit in `pyproject.toml`; do not move
+the pin by hand (`.github/workflows/dtcc-core-contract.yml` tests a candidate Core first).
+A missing Core fails loudly at `import dtcc_agent` rather than serving an empty catalogue.

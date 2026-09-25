@@ -72,14 +72,13 @@ lifetime** — the same person returning tomorrow is a different Session and doe
 yesterday's Objects. When authentication arrives, what changes is who a Session belongs to, not
 what a Session is.
 
-> **Not true in code, recorded rather than hidden.** This is the intended definition, not a
-> description of today. `dtcc_agent/` contains no notion of a session, user or tenant: the stores
-> are module-level singletons (`server.py:32-38`), `ObjectStore.get` does no authorization,
-> `list_objects` enumerates every object in the process, LRU eviction is cross-user, and
-> `DiskCache` keys carry no identity. `chatbot/sessions.py` scopes only the model's conversation
-> transcript and does not reach the stores; `chatbot/memory.py` stamps `session_id` on write but
-> `retrieve()` queries with no filter on it. Making the Session real is new work in the rebuild,
-> not a refactor — there is no seam to thread an identifier through.
+> **Only partly true in code, recorded rather than hidden.** Over HTTP, `server.py` now keeps
+> Objects and Runs per Session, keyed by the `X-DTCC-Session` header the chatbot sends, and
+> `chatbot/memory.py` `retrieve()` filters on `session_id`. What is still missing: `DiskCache`
+> keys carry no identity; the Session id is client-supplied and unauthenticated; there is no
+> Session expiry, only a cap of 8 live Sessions that drops the least recently used idle one;
+> and budgets are an equal share of one object budget rather than per-Session budgets (T11/U7,
+> #23). Over stdio and for in-process callers there is a single Session per process.
 
 **Scenario**
 A question with a known-good answer, written by someone with domain expertise, used to judge

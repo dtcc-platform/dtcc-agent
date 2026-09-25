@@ -11,12 +11,19 @@ from __future__ import annotations
 
 import functools
 import json
+import os
+import threading
 import time
 import uuid
+from collections import OrderedDict
+from contextvars import ContextVar
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 import anyio
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.lowlevel.server import request_ctx
 
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
@@ -29,33 +36,139 @@ from .geojson_store import (
     summarize_geojson_property as _summarize_geojson_property,
 )
 
-mcp = FastMCP("dtcc-agent")
+# Stateless: the chatbot opens a connection per message, and a stateful
+# transport keeps a server task per connection that nothing ever frees. The
+# Session travels in SESSION_HEADER instead, so no transport state is needed.
+mcp = FastMCP("dtcc-agent", stateless_http=True)
 
 
-def tool(fn: Callable[..., str]) -> Callable[..., str]:
-    """Register `fn` as an MCP tool that runs in a worker thread.
+SESSION_HEADER = "X-DTCC-Session"
 
-    FastMCP calls a sync tool directly on the event loop, where dtcc_core's
-    internal `asyncio.run()` (lidar and gpkg downloads) raises. Running the
-    body in a thread gives Core a loop-free thread of its own and keeps one
-    slow tool from stalling every other session. Returns `fn` unchanged so
-    in-process callers keep calling it synchronously.
+
+# What every Session's objects may hold in total: the budget one shared store
+# had before stores were per-Session. A global budget with per-Session caps
+# and Session expiry is T11/U7 (#23); until then, capping how many Sessions
+# are live, each with an equal share, keeps the process-wide bound.
+OBJECT_BUDGET_BYTES = 2 * 1024**3
+MAX_SESSIONS = 8
+
+
+def _new_session_objects() -> ObjectStore:
+    return ObjectStore(max_bytes=OBJECT_BUDGET_BYTES // MAX_SESSIONS)
+
+
+@dataclass
+class _Session:
+    """Everything one Session owns (ADR-0004): never visible from another."""
+
+    # dtcc-core objects (PointCloud, Mesh, Raster, etc.)
+    objects: ObjectStore = field(default_factory=_new_session_objects)
+    # Simulation results, keyed by run_id, so the agent can refer back to them.
+    results: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # Tool calls running in this Session; it is never evicted while nonzero.
+    in_flight: int = 0
+
+
+# Every Session served over HTTP, least recently used first, keyed by the id
+# the chatbot sends in SESSION_HEADER. Keyed by that id rather than by MCP
+# transport session, because the chatbot opens a new connection per message.
+_sessions: OrderedDict[str, _Session] = OrderedDict()
+_sessions_lock = threading.Lock()
+
+# stdio has exactly one client per process, and in-process callers have none.
+_local_session = _Session(objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES))
+
+# Set by main() before serving HTTP. Over HTTP a call with no request must be
+# refused: falling back to _local_session would share it between clients.
+_serving_http = False
+
+_current_session: ContextVar[_Session | None] = ContextVar("dtcc_session", default=None)
+
+
+def _session() -> _Session:
+    """The Session the running tool call belongs to."""
+    return _current_session.get() or _local_session
+
+
+def _session_for(session_id: str, acquire: bool = False) -> _Session:
+    """The live Session for `session_id`, dropping least recently used idle
+    Sessions while more than MAX_SESSIONS are live.
+
+    `acquire` marks a tool call in flight, in the same locked step, so the
+    Session cannot be evicted before the call releases it. If every other
+    Session is busy the cap is exceeded until one goes idle.
     """
+    with _sessions_lock:
+        session = _sessions.pop(session_id, None) or _Session()
+        _sessions[session_id] = session
+        if acquire:
+            session.in_flight += 1
+        _evict_idle_excess()
+        return session
+
+
+def _release(session: _Session) -> None:
+    with _sessions_lock:
+        session.in_flight -= 1
+        _evict_idle_excess()
+
+
+def _evict_idle_excess() -> None:
+    """Drop least recently used idle Sessions beyond MAX_SESSIONS.
+
+    Must be called with _sessions_lock held."""
+    idle = [sid for sid, s in _sessions.items() if not s.in_flight]
+    for sid in idle[: max(0, len(_sessions) - MAX_SESSIONS)]:
+        del _sessions[sid]
+
+
+def _request_session() -> _Session | None:
+    """Resolve the calling Session from the HTTP request.
+
+    None under stdio and for in-process calls, which have no HTTP request.
+    """
+    context = request_ctx.get(None)
+    request = context.request if context else None
+    if request is None:
+        if _serving_http:
+            raise ToolError(f"Refused: HTTP tool calls must carry the {SESSION_HEADER} header.")
+        return None
+    session_id = request.headers.get(SESSION_HEADER)
+    if not session_id:
+        raise ToolError(f"Refused: HTTP tool calls must carry the {SESSION_HEADER} header.")
+    return _session_for(session_id, acquire=True)
+
+
+def tool(fn: Callable[..., str] | None = None, *, main_thread: bool = False):
+    """Register `fn` as an MCP tool bound to the calling Session.
+
+    The body runs in a worker thread: FastMCP calls a sync tool directly on
+    the event loop, where dtcc_core's internal `asyncio.run()` (lidar and
+    gpkg downloads) raises, and a thread also keeps one slow tool from
+    stalling every other session. `main_thread=True` runs it on the event
+    loop instead, which is the main thread; GLFW rendering needs that. The
+    Session is bound through a context variable either way. Returns `fn`
+    unchanged so in-process callers keep calling it synchronously.
+    """
+    if fn is None:
+        return functools.partial(tool, main_thread=main_thread)
 
     @functools.wraps(fn)
-    async def run_in_thread(*args: Any, **kwargs: Any) -> str:
-        return await anyio.to_thread.run_sync(functools.partial(fn, *args, **kwargs))
+    async def run_bound(*args: Any, **kwargs: Any) -> str:
+        session = _request_session()
+        token = _current_session.set(session)
+        try:
+            if main_thread:
+                return fn(*args, **kwargs)
+            return await anyio.to_thread.run_sync(functools.partial(fn, *args, **kwargs))
+        finally:
+            _current_session.reset(token)
+            if session is not None:
+                _release(session)
 
-    mcp.tool()(run_in_thread)
+    mcp.tool()(run_bound)
     return fn
 
-
-# In-memory store for simulation results so the agent can refer back
-# to previous runs (e.g. for comparison). Keyed by run_id.
-_results: dict[str, dict[str, Any]] = {}
-
-# Shared object store for dtcc-core objects (PointCloud, Mesh, Raster, etc.)
-_object_store = ObjectStore()
 
 # Persistent disk cache for expensive operations (datasets, builders)
 _disk_cache = DiskCache()
@@ -73,7 +186,7 @@ def _fmt(data: Any) -> str:
 def _store_result(name: str, bounds: list[float], parameters: dict, result: Any) -> str:
     """Store a simulation result and return a run_id."""
     run_id = str(uuid.uuid4())[:8]
-    _results[run_id] = {
+    _session().results[run_id] = {
         "simulation": name,
         "bounds": bounds,
         "parameters": parameters,
@@ -81,7 +194,7 @@ def _store_result(name: str, bounds: list[float], parameters: dict, result: Any)
         "timestamp": time.time(),
     }
     # Also store in the object store so simulation results can feed pipelines
-    _object_store.store(result, source_op=f"simulation.{name}", label=run_id)
+    _session().objects.store(result, source_op=f"simulation.{name}", label=run_id)
     return run_id
 
 
@@ -407,7 +520,7 @@ def list_past_runs(limit: int = 10) -> str:
     Returns a JSON array of past runs with run_id, simulation name,
     bounds, parameters, and summary stats.
     """
-    runs = sorted(_results.items(), key=lambda kv: kv[1]["timestamp"], reverse=True)
+    runs = sorted(_session().results.items(), key=lambda kv: kv[1]["timestamp"], reverse=True)
     output = []
     for run_id, info in runs[:limit]:
         entry = {
@@ -436,10 +549,10 @@ def get_run_summary(run_id: str) -> str:
 
     Returns the full summary statistics for that run.
     """
-    if run_id not in _results:
+    if run_id not in _session().results:
         return _fmt({"error": f"Run {run_id} not found. Use list_past_runs() to see available runs."})
 
-    info = _results[run_id]
+    info = _session().results[run_id]
     result = info["result"]
 
     if getattr(result, "remote", False):
@@ -553,7 +666,7 @@ def run_operation(
         result = _dispatch(
             name=name,
             params=params,
-            store=_object_store,
+            store=_session().objects,
             label=label or "",
             cache=_disk_cache,
         )
@@ -576,10 +689,10 @@ def list_objects(limit: int = 20) -> str:
     Returns a JSON array of stored objects with id, type, source
     operation, label, and memory size.
     """
-    objects = _object_store.list(limit=limit)
+    objects = _session().objects.list(limit=limit)
     return _fmt({
-        "num_objects": len(_object_store),
-        "total_memory_mb": round(_object_store.total_bytes / (1024 * 1024), 2),
+        "num_objects": len(_session().objects),
+        "total_memory_mb": round(_session().objects.total_bytes / (1024 * 1024), 2),
         "objects": objects,
     })
 
@@ -598,7 +711,7 @@ def inspect_object(object_id: str) -> str:
     Returns a JSON summary of the object's contents.
     """
     try:
-        obj = _object_store.get(object_id)
+        obj = _session().objects.get(object_id)
     except KeyError:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
 
@@ -609,10 +722,9 @@ def inspect_object(object_id: str) -> str:
 
 # -- Visualization -----------------------------------------------------------
 
-# Not @tool: GLFW must create its window on the main thread (on macOS anywhere
-# else aborts the process), and FastMCP runs sync tools on the event loop,
-# which is the main thread under both stdio and uvicorn.
-@mcp.tool()
+# GLFW must create its window on the main thread; on macOS anywhere else
+# aborts the process.
+@tool(main_thread=True)
 def render_object(
     object_id: str,
     width: int = 1200,
@@ -637,7 +749,7 @@ def render_object(
     from .renderer import render_to_file, SUPPORTED_TYPES
 
     try:
-        obj = _object_store.get(object_id)
+        obj = _session().objects.get(object_id)
     except KeyError:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
 
@@ -684,7 +796,7 @@ def delete_object(object_id: str) -> str:
     or an error if not found.
     """
     # One locked step: tools run concurrently, so a check-then-delete could race.
-    entry = _object_store.delete(object_id)
+    entry = _session().objects.delete(object_id)
     if entry is None:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
 
@@ -708,7 +820,7 @@ def get_field_names(object_id: str) -> str:
     Returns a JSON object with field names, units, and counts.
     """
     try:
-        obj = _object_store.get(object_id)
+        obj = _session().objects.get(object_id)
     except KeyError:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
 
@@ -797,10 +909,9 @@ def export_object(
 
     Returns a JSON object with the exported file path, or an error.
     """
-    import os
 
     try:
-        obj = _object_store.get(object_id)
+        obj = _session().objects.get(object_id)
     except KeyError:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
 
@@ -883,7 +994,7 @@ def object_to_text(object_id: str, format: str = "markdown") -> str:
         return _fmt({"error": f"Unsupported format '{format}'. Only 'markdown' is supported."})
 
     try:
-        obj = _object_store.get(object_id)
+        obj = _session().objects.get(object_id)
     except KeyError:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
 
@@ -927,7 +1038,7 @@ def spatial_query(
     import numpy as np
 
     try:
-        obj = _object_store.get(object_id)
+        obj = _session().objects.get(object_id)
     except KeyError:
         return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
 
@@ -952,7 +1063,7 @@ def spatial_query(
                             filtered.add_station(station)
                             count += 1
                         break
-            new_id = _object_store.store(
+            new_id = _session().objects.store(
                 filtered, source_op="spatial_query.filter_by_bounds",
                 label=f"filtered from {object_id}",
             )
@@ -975,7 +1086,7 @@ def spatial_query(
                 arr = getattr(obj, attr, None)
                 if isinstance(arr, np.ndarray) and len(arr) == len(pts):
                     setattr(filtered, attr, arr[mask])
-            new_id = _object_store.store(
+            new_id = _session().objects.store(
                 filtered, source_op="spatial_query.filter_by_bounds",
                 label=f"filtered from {object_id}",
             )
@@ -1026,7 +1137,7 @@ def spatial_query(
                 filtered.add_station(station)
                 count += 1
 
-        new_id = _object_store.store(
+        new_id = _session().objects.store(
             filtered, source_op="spatial_query.filter_by_value",
             label=f"filtered from {object_id}",
         )
@@ -1090,7 +1201,7 @@ def spatial_query(
             if min_h <= (b.height if getattr(b, "height", None) else 0) <= max_h
         ]
 
-        new_id = _object_store.store(
+        new_id = _session().objects.store(
             filtered, source_op="spatial_query.buildings_by_height",
             label=f"filtered from {object_id}",
         )
@@ -1130,7 +1241,7 @@ def load_geojson(file_path: str) -> str:
         return _fmt(result)
 
     geojson = result["geojson"]
-    obj_id = _object_store.store(
+    obj_id = _session().objects.store(
         geojson, source_op="geojson.load", label=result["summary"]["file"],
     )
     return _fmt({"object_id": obj_id, **result["summary"]})
@@ -1155,7 +1266,7 @@ def query_geojson(
 
     Returns matching features and a new object_id for the filtered set.
     """
-    geojson = _object_store.get(object_id)
+    geojson = _session().objects.get(object_id)
     if geojson is None:
         return _fmt({"error": f"Object '{object_id}' not found in store"})
     if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
@@ -1165,7 +1276,7 @@ def query_geojson(
     if "error" in result:
         return _fmt(result)
 
-    new_id = _object_store.store(
+    new_id = _session().objects.store(
         result["geojson"], source_op="geojson.query",
         label=f"{property_name} {operator} {value}",
     )
@@ -1183,7 +1294,7 @@ def summarize_geojson_property(object_id: str, property_name: str) -> str:
         object_id: ID from a previous load_geojson or query_geojson call.
         property_name: The feature property to summarize.
     """
-    geojson = _object_store.get(object_id)
+    geojson = _session().objects.get(object_id)
     if geojson is None:
         return _fmt({"error": f"Object '{object_id}' not found in store"})
     if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
@@ -1204,7 +1315,25 @@ def _infer_field_name(simulation_name: str) -> str:
 
 
 def main():
-    mcp.run()
+    """Serve over stdio (default) or streamable-http, per DTCC_MCP_TRANSPORT."""
+    transport = os.getenv("DTCC_MCP_TRANSPORT", "stdio")
+    if transport == "stdio":
+        mcp.run()
+        return
+    if transport != "http":
+        raise SystemExit(f"DTCC_MCP_TRANSPORT must be 'stdio' or 'http', got {transport!r}")
+
+    import uvicorn
+
+    global _serving_http
+    _serving_http = True
+    # Our own uvicorn entry rather than mcp.run(transport=...): process-scoped
+    # startup (#12) belongs in this app's lifespan, which runs once per process.
+    uvicorn.run(
+        mcp.streamable_http_app(),
+        host=os.getenv("DTCC_MCP_HOST", "127.0.0.1"),
+        port=int(os.getenv("DTCC_MCP_PORT", "8051")),
+    )
 
 
 if __name__ == "__main__":

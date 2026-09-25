@@ -56,13 +56,25 @@ DEFAULT_PORT = int(os.getenv("DTCC_AGENT_PORT", "8050"))
 DEFAULT_HOST = os.getenv("DTCC_AGENT_HOST", "0.0.0.0")
 
 
-def get_mcp_server_config() -> dict:
-    """Return MCP server configuration for dtcc-agent.
+def get_mcp_server_config(session_id: str) -> dict:
+    """Return MCP server configuration for dtcc-agent, for one Session.
 
-    The agent mini-service is intentionally plain Python. By default the
-    MCP server is launched with the current interpreter; override
-    DTCC_AGENT_PYTHON only when the MCP package is installed elsewhere.
+    With DTCC_MCP_URL set, connect to a running streamable-http server and
+    carry the Session id in a header, so the server keeps this Session's
+    objects and runs apart from every other's (ADR-0004). Otherwise fall
+    back to stdio: the server is launched with the current interpreter;
+    override DTCC_AGENT_PYTHON only when the MCP package is installed
+    elsewhere.
     """
+    url = os.getenv("DTCC_MCP_URL")
+    if url:
+        return {
+            "dtcc-agent": {
+                "type": "http",
+                "url": url,
+                "headers": {"X-DTCC-Session": session_id},
+            }
+        }
     return {
         "dtcc-agent": {
             "type": "stdio",
