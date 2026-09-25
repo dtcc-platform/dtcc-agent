@@ -52,7 +52,7 @@ jobs:
 
       - name: Install with the candidate dtcc-core
         run: |
-          uv sync --locked --no-install-package dtcc-core
+          uv sync --locked --extra test --extra chatbot --no-install-package dtcc-core
           # Test the requested Core revision without restoring the project's pin.
           uv pip install \
             "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@${CORE_SHA}"
