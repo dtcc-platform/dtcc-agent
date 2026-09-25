@@ -96,8 +96,13 @@ This serves over stdio. To serve over streamable-http instead:
 DTCC_MCP_TRANSPORT=http DTCC_MCP_HOST=127.0.0.1 DTCC_MCP_PORT=8051 python -m dtcc_agent
 ```
 
-Over HTTP every tool call must carry an `X-DTCC-Session` header. Objects and runs belong
-to that Session and are never visible from another (ADR-0004). To point the chatbot at the
+Over HTTP every tool call must carry an `X-DTCC-Session` header; a call without one is
+refused. Objects and runs belong to that Session and are never visible from another
+(ADR-0004). The transport is stateless: the Session travels in the header, not in the MCP
+connection, so a client may open a new connection per request. At most 8 Sessions are live
+at once, each with an equal share (256 MiB) of a 2 GiB object budget. Past that, the least
+recently used idle Session is dropped along with its objects and runs; a Session with a tool
+call in flight is never dropped. To point the chatbot at the
 HTTP server, set `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`; it then sends its own session id
 in that header. Without `DTCC_MCP_URL` the chatbot falls back to spawning the server over stdio.
 
@@ -215,8 +220,9 @@ run_operation("builder.build_terrain_raster", {"pc": "a1b2c3d4", "cell_size": 2.
 Parameters marked `is_object_ref: true` in `describe_operation` output
 accept these IDs. The dispatcher resolves them from the store automatically.
 
-The store uses LRU eviction (default 2 GB limit) to prevent unbounded
-memory growth during long sessions.
+Each Session has its own store, which uses LRU eviction to prevent unbounded
+memory growth during long sessions. Over stdio the one Session gets the whole
+2 GiB budget; over HTTP each live Session gets 256 MiB (see Standalone above).
 
 ### What gets returned
 
