@@ -877,7 +877,7 @@ requires-dist = [
     { name = "anyio", specifier = ">=4" },
     { name = "chromadb", marker = "extra == 'chatbot'", specifier = ">=0.5.0" },
     { name = "claude-agent-sdk", marker = "extra == 'chatbot'", specifier = ">=0.1.0" },
-    { name = "dtcc-core", git = "https://github.com/dtcc-platform/dtcc-core.git?rev=18eb1767a89e214d18a4696205345ceb25749967" },
+    { name = "dtcc-core", git = "https://github.com/dtcc-platform/dtcc-core.git?rev=9b4e9b937bf4ae906832626bc63e5831e0bb151c" },
     { name = "fastapi", marker = "extra == 'chatbot'", specifier = ">=0.115.0" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "mcp", specifier = ">=1.0.0,<2" },
@@ -892,7 +892,7 @@ provides-extras = ["test", "chatbot"]
 [[package]]
 name = "dtcc-core"
 version = "0.9.8.dev0"
-source = { git = "https://github.com/dtcc-platform/dtcc-core.git?rev=18eb1767a89e214d18a4696205345ceb25749967#18eb1767a89e214d18a4696205345ceb25749967" }
+source = { git = "https://github.com/dtcc-platform/dtcc-core.git?rev=9b4e9b937bf4ae906832626bc63e5831e0bb151c#9b4e9b937bf4ae906832626bc63e5831e0bb151c" }
 dependencies = [
     { name = "affine" },
     { name = "aiohttp" },
