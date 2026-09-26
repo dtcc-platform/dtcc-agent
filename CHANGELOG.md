@@ -14,6 +14,8 @@ Last updated: 2026-09-25.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-26 | A limit on how much Core work runs at once, fair between users, and one download per tile ([#36](https://github.com/dtcc-platform/dtcc-agent/pull/36)) | ✅ |
+| 2026-09-26 | The automated reviewer gets repo context, and trials broader code suggestions ([#37](https://github.com/dtcc-platform/dtcc-agent/pull/37)) | ✅ |
 | 2026-09-25 | dtcc-core pin moved to Core's latest `develop`, picking up the upstream fixes ([#35](https://github.com/dtcc-platform/dtcc-agent/pull/35)) | ✅ |
 | 2026-09-25 | Session isolation over HTTP: each user's objects, runs and memory kept apart ([#33](https://github.com/dtcc-platform/dtcc-agent/pull/33)) | ✅ |
 | 2026-09-25 | Every tool runs off the event loop, so Core downloads work under the web server ([#32](https://github.com/dtcc-platform/dtcc-agent/pull/32)) | ✅ |
@@ -26,11 +28,64 @@ Last updated: 2026-09-25.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36.
 
 ---
 
 ## ✅ Merged
+
+### A limit on concurrent Core work (M1a/T8) · 2026-09-26 · [#36](https://github.com/dtcc-platform/dtcc-agent/pull/36)
+
+**Before:** since T4, up to 40 tools could run at once, the default size of the thread pool.
+Each Core operation can copy a large input before working on it, so a handful of users
+running builds together could run the server out of memory. That shows up as a crash, not as
+"busy, please wait". Separately, two users asking for the same new tile at the same moment
+would each download it, and Core's downloader can fail when two downloads of one tile
+overlap ([dtcc-core#126](https://github.com/dtcc-platform/dtcc-core/issues/126)).
+
+**Now:**
+- At most 4 tool calls run at once across the whole server. The number is set with
+  `DTCC_MCP_WORKERS`, so it can be sized to the machine's memory.
+- One user may use at most half of them, so a busy user never leaves the others waiting.
+  Over stdio, where there is only one user, the limit is the whole 4.
+- Two requests for the same dataset and bounds never download at the same time, whichever tool
+  they come through. The second waits, then usually reads the cache. While it waits it takes
+  none of the server's 4 workers, only one of its own user's share, and it can be cancelled.
+  Overlapping or nested areas are still downloaded separately.
+- Builds are not shared this way. Their cache key can match two different inputs, so sharing
+  would hand one user another user's result. Fixing that key is decision U2
+  ([#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)).
+- Rendering still runs on the main thread, outside the limit, as the graphics library needs.
+
+**How we know it works:**
+- Six calls from six users at once, with a limit of 2: never more than 2 run together.
+- Six calls from one user, with room for 10: never more than 2 run together.
+- Two users asking for one tile at once, one spelling the coordinates as whole numbers and one
+  as decimals: one download, and the second user gets a cache hit.
+- A user whose share is busy never holds up another user asking for the same tile.
+- While one download is in progress and a second request waits for it, an unrelated request
+  from a third user still gets a worker and finishes. A cancelled wait leaves nothing behind.
+- Each of these tests fails when the part it covers is removed from the code.
+
+**Trade-offs to know:**
+- A quick tool, such as listing your objects, waits behind long builds when every worker is
+  busy.
+- Fairness is per session id, and the server trusts the id the client sends until central
+  authentication lands (U11, [#15](https://github.com/dtcc-platform/dtcc-agent/issues/15)).
+
+### The automated reviewer gets repo context · 2026-09-26 · [#37](https://github.com/dtcc-platform/dtcc-agent/pull/37)
+
+**Before:** PR-Agent reviewed with no knowledge of this repo, and it only suggested code changes
+for outright bugs, so since #33 its suggestions had come back empty.
+
+**Now:** a `.pr_agent.toml` tells it what the agent is, where the glossary and decisions live,
+and what to check hardest: keeping each user's data separate, the concurrency rules from T8, and
+failures that happen quietly. As a trial, it also suggests maintainability fixes, not only bugs.
+Ending the trial is one line.
+
+**How we know it works:** asked to review #36 again, it flagged a timing-based test and suggested
+three code changes where it had suggested none. The test fix and one of the code changes were
+applied; the other two did not hold up.
 
 ### dtcc-core pin moved to Core's latest `develop` · 2026-09-25 · [#35](https://github.com/dtcc-platform/dtcc-agent/pull/35)
 
@@ -240,7 +295,7 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 
 ## What's next
 
-1. **The rest of M1a:** limit concurrent Core work (T8), split the cache (T6), per-session
+1. **The rest of M1a:** split the cache (T6), per-session
    file folders (T7), build the catalogue once per process (T10), the memory budget (T11),
    and the two-service container (T13).
 2. **M1b:** typed references, where a run and its object stay linked (T9), and cache

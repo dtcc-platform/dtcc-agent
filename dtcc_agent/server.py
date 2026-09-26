@@ -10,12 +10,15 @@ Run with: python -m dtcc_agent
 from __future__ import annotations
 
 import functools
+import inspect
 import json
 import os
 import threading
 import time
 import uuid
 from collections import OrderedDict
+from collections.abc import Hashable
+from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, Callable
@@ -29,7 +32,7 @@ from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
 from .object_store import ObjectStore
 from .serializers import serialize
-from .disk_cache import DiskCache
+from .disk_cache import CACHE_ALLOWLIST, DiskCache
 from .geojson_store import (
     load_geojson as _load_geojson,
     query_geojson as _query_geojson,
@@ -52,6 +55,19 @@ SESSION_HEADER = "X-DTCC-Session"
 OBJECT_BUDGET_BYTES = 2 * 1024**3
 MAX_SESSIONS = 8
 
+# Tool bodies running at once, across every Session (#19). Each operation may
+# deepcopy a heavy input, so anyio's default of 40 threads would trade a
+# capacity limit for an OOM kill. Created once per process, at import.
+_workers_env = os.getenv("DTCC_MCP_WORKERS", "4")
+if not (_workers_env.isascii() and _workers_env.isdigit() and int(_workers_env) >= 1):
+    raise ValueError(f"DTCC_MCP_WORKERS must be a whole number >= 1, got {_workers_env!r}")
+WORKERS = int(_workers_env)
+_workers = anyio.CapacityLimiter(WORKERS)
+
+# At most this many of them from one Session, so one busy Session never
+# leaves the others without a worker.
+SESSION_WORKERS = max(1, WORKERS // 2)
+
 
 def _new_session_objects() -> ObjectStore:
     return ObjectStore(max_bytes=OBJECT_BUDGET_BYTES // MAX_SESSIONS)
@@ -67,6 +83,10 @@ class _Session:
     results: dict[str, dict[str, Any]] = field(default_factory=dict)
     # Tool calls running in this Session; it is never evicted while nonzero.
     in_flight: int = 0
+    # This Session's share of _workers.
+    workers: anyio.CapacityLimiter = field(
+        default_factory=lambda: anyio.CapacityLimiter(SESSION_WORKERS)
+    )
 
 
 # Every Session served over HTTP, least recently used first, keyed by the id
@@ -76,7 +96,11 @@ _sessions: OrderedDict[str, _Session] = OrderedDict()
 _sessions_lock = threading.Lock()
 
 # stdio has exactly one client per process, and in-process callers have none.
-_local_session = _Session(objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES))
+# Being alone, it may use all of _workers.
+_local_session = _Session(
+    objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES),
+    workers=anyio.CapacityLimiter(WORKERS),
+)
 
 # Set by main() before serving HTTP. Over HTTP a call with no request must be
 # refused: falling back to _local_session would share it between clients.
@@ -139,19 +163,63 @@ def _request_session() -> _Session | None:
     return _session_for(session_id, acquire=True)
 
 
-def tool(fn: Callable[..., str] | None = None, *, main_thread: bool = False):
+@dataclass
+class _Flight:
+    lock: anyio.Lock = field(default_factory=anyio.Lock)
+    # Calls running or waiting under this key; the entry goes when it is 0.
+    holders: int = 0
+
+
+# Calls that would compute the same cached result, by key. Touched only on
+# the event loop, so it needs no lock of its own.
+_flights: dict[Hashable, _Flight] = {}
+
+
+@asynccontextmanager
+async def _flight(key: Hashable | None):
+    """Let one call per `key` run at a time; the rest wait here, then hit
+    the cache it filled. Waiting is on the event loop, before a worker is
+    taken, so a waiting call holds no worker and can be cancelled."""
+    if key is None:
+        yield
+        return
+    flight = _flights.setdefault(key, _Flight())
+    flight.holders += 1
+    try:
+        async with flight.lock:
+            yield
+    finally:
+        flight.holders -= 1
+        if not flight.holders:
+            del _flights[key]
+
+
+def tool(
+    fn: Callable[..., str] | None = None,
+    *,
+    main_thread: bool = False,
+    flight: Callable[[dict[str, Any]], Hashable | None] | None = None,
+):
     """Register `fn` as an MCP tool bound to the calling Session.
 
     The body runs in a worker thread: FastMCP calls a sync tool directly on
     the event loop, where dtcc_core's internal `asyncio.run()` (lidar and
     gpkg downloads) raises, and a thread also keeps one slow tool from
-    stalling every other session. `main_thread=True` runs it on the event
-    loop instead, which is the main thread; GLFW rendering needs that. The
-    Session is bound through a context variable either way. Returns `fn`
-    unchanged so in-process callers keep calling it synchronously.
+    stalling every other session. At most `_workers` bodies run at once
+    across the process, and at most the Session's share of them from one
+    Session. `main_thread=True` runs it on the event loop instead, which is
+    the main thread; GLFW rendering needs that. The Session is bound through
+    a context variable either way.
+
+    `flight` maps the call's arguments to a key; calls with the same key run
+    one at a time (see `_flight`), None opting a call out.
+
+    Returns `fn` unchanged so in-process callers keep calling it synchronously.
     """
     if fn is None:
-        return functools.partial(tool, main_thread=main_thread)
+        return functools.partial(tool, main_thread=main_thread, flight=flight)
+
+    signature = inspect.signature(fn)
 
     @functools.wraps(fn)
     async def run_bound(*args: Any, **kwargs: Any) -> str:
@@ -160,7 +228,15 @@ def tool(fn: Callable[..., str] | None = None, *, main_thread: bool = False):
         try:
             if main_thread:
                 return fn(*args, **kwargs)
-            return await anyio.to_thread.run_sync(functools.partial(fn, *args, **kwargs))
+            call = signature.bind(*args, **kwargs)
+            call.apply_defaults()
+            key = flight(call.arguments) if flight else None
+            # The Session's share before the flight: a Session waiting for
+            # its own share must not hold a key another Session needs.
+            async with _session().workers, _flight(key):
+                return await anyio.to_thread.run_sync(
+                    functools.partial(fn, *args, **kwargs), limiter=_workers
+                )
         finally:
             _current_session.reset(token)
             if session is not None:
@@ -198,6 +274,39 @@ def _store_result(name: str, bounds: list[float], parameters: dict, result: Any)
     return run_id
 
 
+# -- Flight keys -------------------------------------------------------------
+# Only downloads keyed by their parameters share a flight. Builders do not:
+# their cache key describes an input object by its metadata, which two
+# different objects can share (U2, #11), so a shared flight would hand one
+# caller the other's result.
+
+def _bounds_key(bounds: Any) -> str:
+    """One spelling per area: 319700 and 319700.0 are the same tile."""
+    try:
+        return json.dumps([float(b) for b in bounds])
+    except (TypeError, ValueError):
+        return json.dumps(bounds, default=str)
+
+
+def _download(dataset: str, source: str, bounds: Any) -> Hashable:
+    """What Core downloads: a dataset's source over bounds. Other parameters
+    (classifications, max_buildings) only filter or trim it afterwards."""
+    return dataset, source, _bounds_key(bounds)
+
+
+def _run_operation_flight(args: dict[str, Any]) -> Hashable | None:
+    name, params = args["name"], args.get("params") or {}
+    if not (name in CACHE_ALLOWLIST and name.startswith("datasets.") and params.get("bounds")):
+        return None
+    # The dispatcher downloads from LM when no source is given.
+    return _download(name, params.get("source", "LM"), params["bounds"])
+
+
+def _get_buildings_flight(args: dict[str, Any]) -> Hashable:
+    # The same download as the buildings dataset.
+    return _download("datasets.buildings", args["source"], args["bounds"])
+
+
 # -- Geocoding ---------------------------------------------------------------
 
 @tool
@@ -226,7 +335,7 @@ def geocode(place_name: str, radius: float = 250.0) -> str:
 
 # -- Urban context -----------------------------------------------------------
 
-@tool
+@tool(flight=_get_buildings_flight)
 def get_buildings(
     bounds: list[float],
     source: str = "LM",
@@ -634,7 +743,7 @@ def describe_operation(name: str) -> str:
     return _fmt(op.to_dict())
 
 
-@tool
+@tool(flight=_run_operation_flight)
 def run_operation(
     name: str,
     params: dict[str, Any] | None = None,
