@@ -106,6 +106,15 @@ call in flight is never dropped. To point the chatbot at the
 HTTP server, set `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`; it then sends its own session id
 in that header. Without `DTCC_MCP_URL` the chatbot falls back to spawning the server over stdio.
 
+At most `DTCC_MCP_WORKERS` tool calls (default 4) run at once across all Sessions, and at
+most half of them (at least 1) from one Session; the rest wait their turn. Each Core operation
+can copy a large input, so size it to the host's memory. Over stdio the one client may use all
+of them. Two calls that would download the same dataset for the same bounds never download
+at once, including `get_buildings` and `datasets.buildings` for one area: the later one waits,
+holding one of its Session's share but none of the process-wide workers, then usually reads
+the cache. The share is per `X-DTCC-Session` id, which is trusted as sent until central
+auth lands (U11, #15): a client that invents ids gets a share per id.
+
 ### Docker Mini-Service
 
 Start `dtcc-sim` first, then build and run the agent service:
