@@ -92,7 +92,7 @@ def _run_concurrently(calls):
 # -- The bound ---------------------------------------------------------------
 
 def test_concurrent_calls_from_many_sessions_never_exceed_the_pool(monkeypatch):
-    monkeypatch.setattr(server, "_workers", anyio.CapacityLimiter(2))
+    monkeypatch.setattr(server.runtime, "workers", anyio.CapacityLimiter(2))
     gauge = _Gauge(target=6)
     monkeypatch.setattr(dispatcher, "run_operation", gauge.body)
 
@@ -104,18 +104,18 @@ def test_concurrent_calls_from_many_sessions_never_exceed_the_pool(monkeypatch):
 def test_one_session_holds_at_most_its_share_of_the_pool(monkeypatch):
     # With the process-wide pool out of the way, one Session still cannot
     # take more than its share, so other Sessions always get a worker.
-    monkeypatch.setattr(server, "_workers", anyio.CapacityLimiter(10))
+    monkeypatch.setattr(server.runtime, "workers", anyio.CapacityLimiter(10))
     gauge = _Gauge(target=6)
     monkeypatch.setattr(dispatcher, "run_operation", gauge.body)
 
     _run_concurrently(["busy"] * 6)
 
-    assert gauge.peak == server.SESSION_WORKERS < 6
+    assert gauge.peak == server.runtime.SESSION_WORKERS < 6
 
 
 def test_the_local_session_may_use_the_whole_pool(monkeypatch):
     # stdio has one client per process: nobody to be fair to.
-    monkeypatch.setattr(server, "_workers", anyio.CapacityLimiter(4))
+    monkeypatch.setattr(server.runtime, "workers", anyio.CapacityLimiter(4))
     gauge = _Gauge(target=6)
     monkeypatch.setattr(dispatcher, "run_operation", gauge.body)
 
@@ -135,7 +135,7 @@ def test_the_pool_and_session_share_are_sized_from_the_environment(env_value, po
         env["DTCC_MCP_WORKERS"] = env_value
     out = subprocess.run(
         [sys.executable, "-c",
-         "import dtcc_agent.server as s; print(s._workers.total_tokens, s.SESSION_WORKERS)"],
+         "import dtcc_agent.runtime as r; print(r.workers.total_tokens, r.SESSION_WORKERS)"],
         env=env, capture_output=True, text=True, check=True,
     )
     assert out.stdout.split() == [pool, share]
@@ -161,7 +161,7 @@ def test_a_main_thread_tool_runs_even_when_the_pool_is_full(monkeypatch):
     monkeypatch.setattr(server, "_local_session", server._Session())
     object_id = server._session().objects.store([], source_op="test")
     full = anyio.CapacityLimiter(1)
-    monkeypatch.setattr(server, "_workers", full)
+    monkeypatch.setattr(server.runtime, "workers", full)
 
     async def run():
         await full.acquire_on_behalf_of(object())
@@ -174,7 +174,7 @@ def test_a_main_thread_tool_runs_even_when_the_pool_is_full(monkeypatch):
 
 def test_a_tool_that_raises_gives_its_worker_back(monkeypatch):
     pool = anyio.CapacityLimiter(1)
-    monkeypatch.setattr(server, "_workers", pool)
+    monkeypatch.setattr(server.runtime, "workers", pool)
 
     def boom():
         raise RuntimeError("core crashed")
@@ -254,7 +254,7 @@ def test_a_call_waiting_for_a_tile_holds_no_worker(monkeypatch, gated_download):
     # Otherwise four requests for one slow tile would take every worker, and
     # no other Session could run anything until the download finished.
     pool = anyio.CapacityLimiter(2)
-    monkeypatch.setattr(server, "_workers", pool)
+    monkeypatch.setattr(server.runtime, "workers", pool)
 
     async def run():
         async with anyio.create_task_group() as tg:
@@ -275,7 +275,7 @@ def test_a_call_waiting_for_a_tile_holds_no_worker(monkeypatch, gated_download):
 
 def test_a_cancelled_wait_for_a_tile_leaves_nothing_behind(monkeypatch, gated_download):
     pool = anyio.CapacityLimiter(2)
-    monkeypatch.setattr(server, "_workers", pool)
+    monkeypatch.setattr(server.runtime, "workers", pool)
 
     async def run():
         async with anyio.create_task_group() as tg:
@@ -301,7 +301,7 @@ def test_a_cancelled_wait_for_a_tile_leaves_nothing_behind(monkeypatch, gated_do
 def test_a_busy_session_never_holds_a_tile_another_session_needs(monkeypatch, tmp_path):
     # A Session whose share is in use waits for it before claiming a tile,
     # so another Session asking for that tile starts at once on a free worker.
-    monkeypatch.setattr(server, "_workers", anyio.CapacityLimiter(4))
+    monkeypatch.setattr(server.runtime, "workers", anyio.CapacityLimiter(4))
     monkeypatch.setattr(server, "_disk_cache", DiskCache(cache_dir=tmp_path))
     gate = threading.Event()
     wanted = [0, 0, 1, 1]
@@ -317,18 +317,18 @@ def test_a_busy_session_never_holds_a_tile_another_session_needs(monkeypatch, tm
 
     async def run():
         async with anyio.create_task_group() as tg:
-            for i in range(server.SESSION_WORKERS):  # the busy Session's whole share
+            for i in range(server.runtime.SESSION_WORKERS):  # the busy Session's whole share
                 tg.start_soon(_call, "run_operation", _point_cloud([10 + i, 0, 11 + i, 1]), "busy")
             await anyio.to_thread.run_sync(
                 _wait_until,
                 lambda: "busy" in server._sessions
-                and server._sessions["busy"].workers.borrowed_tokens == server.SESSION_WORKERS,
+                and server._sessions["busy"].workers.borrowed_tokens == server.runtime.SESSION_WORKERS,
             )
             tg.start_soon(_call, "run_operation", _point_cloud(wanted), "busy")
             # In flight counts it before it waits for the share.
             await anyio.to_thread.run_sync(
                 _wait_until,
-                lambda: server._sessions["busy"].in_flight == server.SESSION_WORKERS + 1,
+                lambda: server._sessions["busy"].in_flight == server.runtime.SESSION_WORKERS + 1,
             )
             with anyio.fail_after(2):
                 await _call("run_operation", _point_cloud(wanted), "other")

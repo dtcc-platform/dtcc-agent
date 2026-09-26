@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-09-25.
+Last updated: 2026-09-26.
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-09-25.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-26 | The catalogue is built once per process, and a broken Core install stops the server ([#PR](https://github.com/dtcc-platform/dtcc-agent/pull/PR)) | 🔍 |
 | 2026-09-26 | A limit on how much Core work runs at once, fair between users, and one download per tile ([#36](https://github.com/dtcc-platform/dtcc-agent/pull/36)) | ✅ |
 | 2026-09-26 | The automated reviewer gets repo context, and trials broader code suggestions ([#37](https://github.com/dtcc-platform/dtcc-agent/pull/37)) | ✅ |
 | 2026-09-25 | dtcc-core pin moved to Core's latest `develop`, picking up the upstream fixes ([#35](https://github.com/dtcc-platform/dtcc-agent/pull/35)) | ✅ |
@@ -28,7 +29,54 @@ Last updated: 2026-09-25.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 279 with #PR (in review).
+
+---
+
+## 🔍 In review
+
+### The catalogue is built once per process (M1a/T10) · 2026-09-26 · [#PR](https://github.com/dtcc-platform/dtcc-agent/pull/PR)
+
+**Before:** the list of operations the agent can run (133 of them) was built the first time
+anyone asked for it. That takes about 1.2 seconds, so the first user after every restart waited
+for it. If part of it failed to load, the server logged a warning and served a smaller list,
+which is how 135 operations quietly became 133 once. Since T4 two first requests could also
+both build it at the same time.
+
+**Now:**
+- The HTTP server builds the list when it starts, before it answers anyone, and prints how
+  many operations it has.
+- If any part that comes from the pinned dtcc-core fails, the HTTP server stops at startup
+  and says which part failed. A broken install can no longer look like a working one. That
+  now includes a Core that lists an operation it no longer has, and a Core dataset whose
+  options can't be read; both used to be skipped without a word.
+- Over stdio the list is built the first time it's needed. The chatbot starts a new stdio
+  server for every message, and most messages never need the list, so building it at startup
+  would add over a second to each one. A broken part then fails that first call, naming it.
+- Datasets from a dtcc-sim service are no longer loaded at startup. When the list is built, a
+  background thread asks dtcc-sim, and asks again every 30 seconds while it's down (the agent
+  warns once, though dtcc-core still logs its own warning on each attempt); the list picks its datasets up on the next read after
+  it answers. Until then, asking for one of them says dtcc-sim hasn't answered yet, rather
+  than that it doesn't exist. Before, if dtcc-sim was down when the server started,
+  its datasets were missing until a restart, and startup waited up to 5 seconds per
+  unreachable service. Now the two services can start in either order, and no request ever
+  waits on dtcc-sim, even one that hangs.
+- Datasets that don't come from the pinned Core (the optional `dtcc_sim` package, a dtcc-sim
+  service) are optional. One whose options can't be read is left out with a warning, and
+  never stops the server. A broken `dtcc_sim` package now warns and keeps Core's datasets;
+  before, it dropped every dataset, or for a broken dependency said nothing at all.
+- The worker limit from T8 now lives in the same startup module, `dtcc_agent/runtime.py`.
+
+**How we know it works:**
+- A real HTTP server, used by three sessions, builds the list once, before its port answers.
+- With a broken part, the HTTP server prints the part and exits with code 3.
+- With dtcc-sim pointed at an address that never answers, startup took 0.7 s (5.8 s before
+  this change). With a fake dtcc-sim that never answers, three reads of the list return at
+  once and dtcc-sim is asked only once, from the background thread.
+- Each test fails when the part it covers is removed: the HTTP startup hook, stdio not
+  building at startup, the lock that stops two first requests building it twice, the rule
+  that a Core failure stops the build, the 30-second retry, only one background thread
+  asking, and swapping in a new list rather than changing the one others are reading.
 
 ---
 
@@ -296,7 +344,7 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 ## What's next
 
 1. **The rest of M1a:** split the cache (T6), per-session
-   file folders (T7), build the catalogue once per process (T10), the memory budget (T11),
+   file folders (T7), the memory budget (T11),
    and the two-service container (T13).
 2. **M1b:** typed references, where a run and its object stay linked (T9), and cache
    versioning (T12).

@@ -78,9 +78,10 @@ jobs:
         run: uv run --no-sync pytest -q
 
       - name: Report the catalogue this Core produces
-        # Not an assertion. A Core revision that silently changes the operation
-        # count is the exact failure that went unnoticed between 135 and 133;
-        # printing it puts the number in the run log where a human can see it.
+        # Not an assertion. A Core that breaks a section already fails the
+        # suite (CatalogueError, #22), but one that adds or drops operations
+        # without breaking one passes; the silent 135 to 133 drop was that
+        # kind. Printing the count puts it in the run log for a human to see.
         run: |
           uv run --no-sync python - <<'PY'
           from dtcc_agent.registry import get_registry

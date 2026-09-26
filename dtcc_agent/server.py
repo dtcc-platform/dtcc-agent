@@ -28,6 +28,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.lowlevel.server import request_ctx
 
+from . import runtime
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
 from .object_store import ObjectStore
@@ -55,20 +56,6 @@ SESSION_HEADER = "X-DTCC-Session"
 OBJECT_BUDGET_BYTES = 2 * 1024**3
 MAX_SESSIONS = 8
 
-# Tool bodies running at once, across every Session (#19). Each operation may
-# deepcopy a heavy input, so anyio's default of 40 threads would trade a
-# capacity limit for an OOM kill. Created once per process, at import.
-_workers_env = os.getenv("DTCC_MCP_WORKERS", "4")
-if not (_workers_env.isascii() and _workers_env.isdigit() and int(_workers_env) >= 1):
-    raise ValueError(f"DTCC_MCP_WORKERS must be a whole number >= 1, got {_workers_env!r}")
-WORKERS = int(_workers_env)
-_workers = anyio.CapacityLimiter(WORKERS)
-
-# At most this many of them from one Session, so one busy Session never
-# leaves the others without a worker.
-SESSION_WORKERS = max(1, WORKERS // 2)
-
-
 def _new_session_objects() -> ObjectStore:
     return ObjectStore(max_bytes=OBJECT_BUDGET_BYTES // MAX_SESSIONS)
 
@@ -83,9 +70,9 @@ class _Session:
     results: dict[str, dict[str, Any]] = field(default_factory=dict)
     # Tool calls running in this Session; it is never evicted while nonzero.
     in_flight: int = 0
-    # This Session's share of _workers.
+    # This Session's share of runtime.workers.
     workers: anyio.CapacityLimiter = field(
-        default_factory=lambda: anyio.CapacityLimiter(SESSION_WORKERS)
+        default_factory=lambda: anyio.CapacityLimiter(runtime.SESSION_WORKERS)
     )
 
 
@@ -96,10 +83,10 @@ _sessions: OrderedDict[str, _Session] = OrderedDict()
 _sessions_lock = threading.Lock()
 
 # stdio has exactly one client per process, and in-process callers have none.
-# Being alone, it may use all of _workers.
+# Being alone, it may use all of runtime.workers.
 _local_session = _Session(
     objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES),
-    workers=anyio.CapacityLimiter(WORKERS),
+    workers=anyio.CapacityLimiter(runtime.WORKERS),
 )
 
 # Set by main() before serving HTTP. Over HTTP a call with no request must be
@@ -205,7 +192,7 @@ def tool(
     The body runs in a worker thread: FastMCP calls a sync tool directly on
     the event loop, where dtcc_core's internal `asyncio.run()` (lidar and
     gpkg downloads) raises, and a thread also keeps one slow tool from
-    stalling every other session. At most `_workers` bodies run at once
+    stalling every other session. At most `runtime.workers` bodies run at once
     across the process, and at most the Session's share of them from one
     Session. `main_thread=True` runs it on the event loop instead, which is
     the main thread; GLFW rendering needs that. The Session is bound through
@@ -235,7 +222,7 @@ def tool(
             # its own share must not hold a key another Session needs.
             async with _session().workers, _flight(key):
                 return await anyio.to_thread.run_sync(
-                    functools.partial(fn, *args, **kwargs), limiter=_workers
+                    functools.partial(fn, *args, **kwargs), limiter=runtime.workers
                 )
         finally:
             _current_session.reset(token)
@@ -1423,10 +1410,25 @@ def _infer_field_name(simulation_name: str) -> str:
     return mapping.get(simulation_name, "field")
 
 
+def _starting_runtime(app_lifespan):
+    """Wrap an ASGI app's lifespan so runtime.start() runs first, once per
+    process, and a failure stops the app before it accepts a request."""
+
+    @asynccontextmanager
+    async def lifespan(app):
+        runtime.start()
+        async with app_lifespan(app):
+            yield
+
+    return lifespan
+
+
 def main():
     """Serve over stdio (default) or streamable-http, per DTCC_MCP_TRANSPORT."""
     transport = os.getenv("DTCC_MCP_TRANSPORT", "stdio")
     if transport == "stdio":
+        # No runtime.start(): the chatbot starts a stdio server per message,
+        # so stdio builds the catalogue on first use instead (#22).
         mcp.run()
         return
     if transport != "http":
@@ -1437,9 +1439,11 @@ def main():
     global _serving_http
     _serving_http = True
     # Our own uvicorn entry rather than mcp.run(transport=...): process-scoped
-    # startup (#12) belongs in this app's lifespan, which runs once per process.
+    # startup (#12) goes in this app's lifespan, which runs once per process.
+    app = mcp.streamable_http_app()
+    app.router.lifespan_context = _starting_runtime(app.router.lifespan_context)
     uvicorn.run(
-        mcp.streamable_http_app(),
+        app,
         host=os.getenv("DTCC_MCP_HOST", "127.0.0.1"),
         port=int(os.getenv("DTCC_MCP_PORT", "8051")),
     )
