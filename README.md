@@ -107,7 +107,8 @@ HTTP server, set `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`; it then sends its own
 in that header. Without `DTCC_MCP_URL` the chatbot falls back to spawning the server over stdio.
 
 At most `DTCC_MCP_WORKERS` tool calls (default 4) run at once across all Sessions, and at
-most half of them (at least 1) from one Session; the rest wait their turn. Each Core operation
+most half of them (at least 1) from one Session; the rest wait their turn. `render_object`
+is outside this count: it runs on the main thread, where GLFW needs it. Each Core operation
 can copy a large input, so size it to the host's memory. Over stdio the one client may use all
 of them. Two calls that would download the same dataset for the same bounds never download
 at once, including `get_buildings` and `datasets.buildings` for one area: the later one waits,
