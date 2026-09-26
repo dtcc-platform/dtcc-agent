@@ -1,0 +1,21 @@
+# PR-Agent settings for this repo. Read from the default branch (develop).
+# The workflow in .github/workflows/pr-agent.yml sets the model and triggers.
+
+[pr_reviewer]
+extra_instructions = """\
+dtcc-agent is an MCP server (dtcc_agent/) and a FastAPI chatbot (chatbot/) in front of dtcc-core.
+Read CONTEXT.md for the domain terms; docs/adr/ records the decisions and wins over docs/plans/.
+Look hardest at:
+- Session isolation (ADR-0004): objects, runs and memory belong to one Session. Flag any path where one Session can read, overwrite, evict or be handed another Session's data, including through shared caches.
+- Concurrency in the @tool wrapper (dtcc_agent/server.py): Core runs in worker threads. Flag sync Core or blocking calls on the event loop, and locks or waits taken while holding a worker token. The order is Session share, then flight, then the process-wide worker limit.
+- Anything that fails quietly: swallowed exceptions, wrong defaults, a cache key that can collide.
+Tests should prove the behaviour they name, without sleep-based timing. Do not ask for docstrings or type hints alone.
+"""
+
+[pr_code_suggestions]
+# Trial: also suggest maintainability and readability fixes, not only bugs.
+focus_only_on_problems = false
+extra_instructions = """\
+Prefer suggestions that fix a real defect or make ownership clearer. Skip pure style, renames and comment wording.
+Match the surrounding code: plain functions, dataclasses, pytest functions with monkeypatch.
+"""
