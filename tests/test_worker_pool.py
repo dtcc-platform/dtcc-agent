@@ -37,6 +37,7 @@ BOUNDS_AS_FLOATS = [319700.0, 6399500.0, 320200.0, 6400000.0]
 @pytest.fixture(autouse=True)
 def fresh_sessions(monkeypatch):
     monkeypatch.setattr(server, "_sessions", OrderedDict())
+    monkeypatch.setattr(server, "_flights", {})
 
 
 async def _call(tool, args, session_id=None):
@@ -324,7 +325,11 @@ def test_a_busy_session_never_holds_a_tile_another_session_needs(monkeypatch, tm
                 and server._sessions["busy"].workers.borrowed_tokens == server.SESSION_WORKERS,
             )
             tg.start_soon(_call, "run_operation", _point_cloud(wanted), "busy")
-            await anyio.sleep(0.05)
+            # In flight counts it before it waits for the share.
+            await anyio.to_thread.run_sync(
+                _wait_until,
+                lambda: server._sessions["busy"].in_flight == server.SESSION_WORKERS + 1,
+            )
             with anyio.fail_after(2):
                 await _call("run_operation", _point_cloud(wanted), "other")
             gate.set()
