@@ -14,7 +14,7 @@ Last updated: 2026-09-26.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-26 | The catalogue is built once per process, and a broken Core install stops the server ([#PR](https://github.com/dtcc-platform/dtcc-agent/pull/PR)) | 🔍 |
+| 2026-09-26 | The catalogue is built once per process, and a broken Core install stops the server ([#43](https://github.com/dtcc-platform/dtcc-agent/pull/43)) | 🔍 |
 | 2026-09-26 | A limit on how much Core work runs at once, fair between users, and one download per tile ([#36](https://github.com/dtcc-platform/dtcc-agent/pull/36)) | ✅ |
 | 2026-09-26 | The automated reviewer gets repo context, and trials broader code suggestions ([#37](https://github.com/dtcc-platform/dtcc-agent/pull/37)) | ✅ |
 | 2026-09-25 | dtcc-core pin moved to Core's latest `develop`, picking up the upstream fixes ([#35](https://github.com/dtcc-platform/dtcc-agent/pull/35)) | ✅ |
@@ -29,13 +29,13 @@ Last updated: 2026-09-26.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 279 with #PR (in review).
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 279 with #43 (in review).
 
 ---
 
 ## 🔍 In review
 
-### The catalogue is built once per process (M1a/T10) · 2026-09-26 · [#PR](https://github.com/dtcc-platform/dtcc-agent/pull/PR)
+### The catalogue is built once per process (M1a/T10) · 2026-09-26 · [#43](https://github.com/dtcc-platform/dtcc-agent/pull/43)
 
 **Before:** the list of operations the agent can run (133 of them) was built the first time
 anyone asked for it. That takes about 1.2 seconds, so the first user after every restart waited
