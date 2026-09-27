@@ -106,6 +106,18 @@ call in flight is never dropped. To point the chatbot at the
 HTTP server, set `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`; it then sends its own session id
 in that header. Without `DTCC_MCP_URL` the chatbot falls back to spawning the server over stdio.
 
+The operation catalogue is built once per process. The HTTP server builds it at startup,
+before it accepts a request, and prints `dtcc-agent: catalogue built: N operations` to
+stderr; if any part of the catalogue from the pinned dtcc-core fails to register, it exits
+naming that part instead of serving a smaller catalogue. Over stdio the catalogue is built on
+the first call that needs it, since the chatbot starts a stdio server per message and most
+never read it; a broken part then fails that call, naming the part. Datasets from a dtcc-sim
+service (`DTCC_SIM_SERVICE_URL`) are not part of the build. When the catalogue is built, a
+background thread asks the service, and again every 30 seconds while it is down (the agent
+warns once; dtcc-core's own discovery warning still repeats each time); the catalogue picks its datasets up on the next read after it answers. Until
+then, asking for one of them says dtcc-sim hasn't answered yet. No request ever waits on
+dtcc-sim, and the two services can start in either order.
+
 At most `DTCC_MCP_WORKERS` tool calls (default 4) run at once across all Sessions, and at
 most half of them (at least 1) from one Session; the rest wait their turn. `render_object`
 is outside this count: it runs on the main thread, where GLFW needs it. Each Core operation
