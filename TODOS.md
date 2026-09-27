@@ -64,5 +64,5 @@ changes the design completely. The MCP transport already signals disconnection, 
 trigger exists. There is no concurrency machinery in the repo before M1.
 
 **Depends on / blocked by.** Unblocked: M1a/T8 added the bounded worker pool
-(`_workers` and each Session's `workers` share in `dtcc_agent/server.py`, sized by
-`DTCC_MCP_WORKERS`). Calls waiting for a worker currently wait with no limit or timeout.
+(`runtime.workers` in `dtcc_agent/runtime.py` and each Session's `workers` share in
+`dtcc_agent/server.py`, sized by `DTCC_MCP_WORKERS`). Calls waiting for a worker currently wait with no limit or timeout.

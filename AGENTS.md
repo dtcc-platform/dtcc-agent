@@ -26,3 +26,6 @@ Without the `chatbot` extra, `tests/test_chatbot_app.py` fails at collection (no
 `dtcc-core` is a declared dependency, pinned to a commit in `pyproject.toml`; do not move
 the pin by hand (`.github/workflows/dtcc-core-contract.yml` tests a candidate Core first).
 A missing Core fails loudly at `import dtcc_agent` rather than serving an empty catalogue.
+A Core that imports but fails to register a catalogue section raises `CatalogueError`
+(`dtcc_agent/registry.py`): the HTTP server exits at startup naming the section, and stdio
+fails the first call that reads the catalogue. Datasets from outside the pinned Core are optional.
