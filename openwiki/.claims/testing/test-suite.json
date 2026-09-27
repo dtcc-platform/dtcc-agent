@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:f4e7e9176479781d5f9677b08035ed9b57e0bad6ba33a8742a5bbd98c0d7d759",
+  "claims": [
+    {
+      "id": "claim_c31659df10d142d8a63ea6a505dd28d1",
+      "statement": "pytest is configured with pythonpath '.' and a single 'external' marker for network-dependent tests, used by the Nominatim geocoding tests.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml",
+          "version": "repo-file-v1:sha256:9bc33fd259df30f29ca0b9b01b1484968f791792ffeb8d7a8bd5b8a75ed9c52a"
+        },
+        {
+          "resource": "repo://tests/test_geocode.py#L45-L60",
+          "version": "repo-lines-v1:sha256:79d20e4ea3aa94440294f8174b4e58815ee1d4e94438608acff7325b9ef567f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmNGQ5ZDAxOTY0Y2FjZjRlMGRiM2UwM2EyOWNjYTQ1NWE2NmQ4MmRjODYxN2QxODljYmJmYmI4NGIwMGEzZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYjBlODdjNzE4ZTM5MzQ1ZDc0NzFmMjk1NjFmMTliZWY1ODg2ZTU0Yjk0YTA1MzZkNTZmZDRlYjFlNTIyMjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkMjAxNzdlMDFiY2E1NTAwZjhiNjczZGZlNDUzNTdlMDEzODk1YjI1OTFjZjJiMjI2MzJlYjAzM2ViOWJkMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6bdf99705a714563bce29c368420cbfc",
+      "statement": "CI installs the test and chatbot extras because the chatbot app test imports fastapi at collection time and would otherwise abort the whole run.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci-build-tests.yml",
+          "version": "repo-file-v1:sha256:136553ca5a99ccb6e073b25eb13f24104f0a9507488b44a2eabc16e6a81d92a9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c8b2ae919d4d4aceb8d5a07bab1aad58",
+      "statement": "test_server.py pins the tool surface to exactly 22 tools and characterises that run ids and object ids are indistinguishable and misrouted ids are missed rather than refused.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_server.py#L75-L228",
+          "version": "repo-lines-v1:sha256:65d25e746cb4e515daf36eed45928d6f6a8931e63071bfabf3b8bc79fc7fc123:eyJzZWxlY3RlZExpbmVDb3VudCI6MTU0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0NWIzYzVkNTZkZWY0MjFiNmE2NTEwOWJmN2JmN2M2ODlmODE0Yzg5ZTRhZjU4MjZkOGY5YjZiMjU5YjYyYTY1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5M2VhZGY2NzU1OWNiMjgyMDJmMDdhMTA3MGVjYjMwZThkODY4NTE5ZTFhMTQxZmViMzBjNDAwZTQ2MzJlOTZhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4Y2ZhMTVhYTJmNWQxNTA5YzhlNWFlMzgyZjQ5ZjY2Njc3ODYyZmEwYWQzMzA2NjFlZGMwMWY2YTAxOGMyZDA1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_bd94c0401228443ea7b7807b739f0ad2",
+      "statement": "Concurrency behaviour (worker-pool bound, per-Session share, single-flight downloads, cancellation) is covered by test_worker_pool.py using gated downloads rather than timing.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_worker_pool.py#L94-L440",
+          "version": "repo-lines-v1:sha256:ae940f3571cbdca3ed4791a5409652618511c63e719fa73a0d7b4f30edbcbd78:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQ3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhNzc0YWRlNjhjOTFkZDZiMDc5MWFiZDlhMDVkNDBmNDJiZTI5MTdjYTFjYmRhZTM4ZDU3NGJkNjQzZDU2YTNmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwZmU0ZTQ0NjY5MGIyZjU4ZmI4NTk0Y2RmZmU0MWQzZmE1YWE2ZjQ2YjhmZWNmNWZjNTAzN2FlY2Y0Mzg5NmY3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_5805c6e35dac456aa200d13c9e87970a",
+      "statement": "The catalogue tests isolate themselves from the developer's environment: an autouse fixture removes DTCC_SIM_SERVICE_URL and DTCC_REMOTE_SERVICES and resets the merge and retrier state for every test in the module.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_catalogue_startup.py#L38-L64",
+          "version": "repo-lines-v1:sha256:83ae30661a343ba8a72583ef6a75051ac74d9465ce9de4744e8a1ddfddda0f19:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZDM2ZTYzMjdlMjE1MDFjMWEzZjRjMjkzZTUyMDcwZmJiZDhkZjc4YTY2ZDc2MjkyYWRjNWU3ZDNmMWM5OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlZDRlMjdjMWE3NjMyMDE4MmZmY2NkYTM1ZTc1NmYyYTg2YjM1ZWUzMTc5ZThiOGRiN2U5YmU1OTRkMzE2ZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxODE3MzgzMDQ3ZmFlYjYzY2ZmMzJjMDcxMTQzZGY3MjA3NjU1OTk1NDY3NWQ4ZGViODAwMjc2YzYwNzZkMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2ODRhMjhkNDI0MzQxNzZlZjc2OGI1MTUwN2ZlYTdkMmNhOTRmMTczMDZhNjBjMGJiOTgxYTNhZmQ2NzJhNzAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-27T19:28:40.080Z"
+  }
+}

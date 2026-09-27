@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e54fd57fbe6dce7f3839cb58a778f90dbe0b230148e3dbba9f14f73adf618fe0",
+  "claims": [
+    {
+      "id": "claim_9da995f22fc3412c950955bd53d0117c",
+      "statement": "ADR-0003 decides to replace the Claude Agent SDK with pydantic-ai for provider portability (OpenRouter for testing, Bedrock for production), but the chatbot still uses ClaudeSDKClient with a hardcoded model.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/app.py#L89-L109",
+          "version": "repo-lines-v1:sha256:c12853df5d40b55b703669ef35b5ba739804d5ad1ac2f18f5c198694f7580c34:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjNzM1ZWVjYzBhYTAxNjcxMWNiN2EyMTA5M2NiN2NjNmIzYTJjNzZkYzlkNjc5ODAzZjRjZGU0NWE2NDQ3MjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3ZDA2MTczODMxYmYyOWVkOGM3MDdlZTYzYWMyNDk0MDk5MjUzZjYxMmI3NTk4NDRjYWVmZTM2MjdmOTNiOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5NGMxMGY1ZWFhYzNhOTVmMWUwZDFlNzJiYTI0MmM1NjhiNjI5MmRkNWY0N2UzYTkyNTczMDgzZGVjOWJkODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1MjkxOWRiMWQwZjRiZWU0ZjNlMGFlOTVmNWViNGZhZTc5OTg5NTdjNGY3NDA1NzdkYjAwYjA5ZWM1YjNjMzEifQ"
+        },
+        {
+          "resource": "repo://docs/adr/0003-replace-agent-sdk-with-pydantic-ai.md#L4-L22",
+          "version": "repo-lines-v1:sha256:b516d9fd34c9702354d3400581eddbbf84dc4c763ed7596d48e3634a1413e1d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmNmExNjc3M2VlZTcyMmJkY2ZkZjExNGIyOTliOWQzMmIzMDNhNTM4NjVmYmViMTdjMjZjMmMwOWIyNTdmNGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NjRhOTBiOTJjNTU5OWRiNGRmMzg5NmUzYWY3ODQ0Y2EyMDc3ZjQxZDk0NzkwZmY0YjMyZTk3OTExMzY1YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmNzMyODlkZTFiYjVlM2E4NDM0Y2ZmMzYxNjczOGY4NWU3ZDQzMmM5MTM2Y2E4MDk0MGI0NTk4MGE4YWViOGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_15763f9a57404281a46ff7f95825b73f",
+      "statement": "ADR-0005 places document and catalogue retrieval in a separate dtcc-docs MCP server, and withdraws the earlier chromadb/protobuf incompatibility evidence as non-reproducible.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0005-retrieval-as-a-separate-mcp-server.md#L4-L22",
+          "version": "repo-lines-v1:sha256:b9e7f421b378c4663a6fc706a172a935e6614dbe0c5bb9dbf82ce2ac1cecd0d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZTdjZTVlZTBhOGI3NTY0NDczMDMwMThjNDhhMTliZDRjY2RlMTc4YjdhODA5Nzc4MzIzZWJlMTMzZGM2YjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NjRhOTBiOTJjNTU5OWRiNGRmMzg5NmUzYWY3ODQ0Y2EyMDc3ZjQxZDk0NzkwZmY0YjMyZTk3OTExMzY1YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxZWUwNWZhMDhmMjI3MTI1MmExYzg5M2UxN2E4OWM1MmZiOWFjZjllOGY3MGQzNjg2MjlhNzg4OGExNTM3YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b54d8a9956e43d794e31fa2379daced",
+      "statement": "ADR-0006 designs prompt caching around Anthropic cache_control breakpoints with a stable tools-system-messages prefix, and rejects answer caching.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0006-anthropic-shaped-prompt-caching.md#L4-L22",
+          "version": "repo-lines-v1:sha256:a66bee81a689b9718a1f28182180dce2330a396c2543802a9eae1567e3599c2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZWE0ZTQyMDRjMGYxZDE2ZmE5MjUyYmUyNTZiMGRiNzMwZTU2NjRkMGU2YmM3MWI1MDg4MTc2YTkxZTEwZGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NjRhOTBiOTJjNTU5OWRiNGRmMzg5NmUzYWY3ODQ0Y2EyMDc3ZjQxZDk0NzkwZmY0YjMyZTk3OTExMzY1YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlNTE4YWRhZTZhYjUyYzJmNmYyN2Y4OWYwMWJlMzRmMDJhODA2MmZkM2JhZmU1MmViMTE4YWI2Mzk3ZGIxOTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_76924b788fd243c1aeddeb9473e19f28",
+      "statement": "ADR-0008 splits evaluation into a measurement layer needing no domain expert and a correctness layer needing one, sharing one harness.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0008-evaluation-is-one-harness-with-two-layers.md#L4-L22",
+          "version": "repo-lines-v1:sha256:c9f6380433259f7cdb48d5564b7161577e26a7e7eb2e1e03df37cfb88709b8d7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwM2NkZWY5MDAwNDRiN2JhZWFlZDk3ZGE2MTM3MDQyN2MyOGQyOGFlZjg2MDhlNzUyZWJmODI0NTk0OGY0MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyZTg3ZTI0MGNkNDdkM2ZmODlkMmFhNTI4YjAyZGYyMmViNzMwODk2NDRlYjM0NjVjYWQwNGUzYTkyMWE2NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmNzMyODlkZTFiYjVlM2E4NDM0Y2ZmMzYxNjczOGY4NWU3ZDQzMmM5MTM2Y2E4MDk0MGI0NTk4MGE4YWViOGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d8ba68ba421448f092a7df067a9409c3",
+      "statement": "ADR-0009 runs the rebuild on feature branches off develop merged by pull request each milestone, reversing an earlier fresh-repository decision.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0009-rebuild-on-a-branch-not-a-fresh-repository.md#L4-L22",
+          "version": "repo-lines-v1:sha256:d565b34982bc89530384f5afaf060555a70e8f5a8732a87ea0973811a7ce66aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4N2Y2OWM3YjU5ZmRiMWQ4MjY0ZjFkYzY3OWIwMTFhODE5YjVhYmUxMjc1MTg5YWRlYjM4NWY4MGRlZWE0NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlNmZjOTZmZmYxZTE2ZWY4NGQyYzQ3MjM2ODVlZjJiMjFiYjI5NDk5NjZhZjhlMTk4YjkwOWFlYTgxNjEwYTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyZTg3ZTI0MGNkNDdkM2ZmODlkMmFhNTI4YjAyZGYyMmViNzMwODk2NDRlYjM0NjVjYWQwNGUzYTkyMWE2NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZjE2ZjljMWNkODExODE3YjRkMWE2ZTcwYzU1YzFiODY1MzVlYTNiNWVkNTg3NjFkMzNlMjM3Y2IxZWQ2ZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e86f7becab60442d837bd685d9a97af7",
+      "statement": "The rebuild is organised in five milestones M0-M4, and keeps a register of deferred decisions D1-D9.",
+      "evidence": [
+        {
+          "resource": "repo://docs/plans/2026-09-19-rebuild-plan.md#L209-L290",
+          "version": "repo-lines-v1:sha256:57db7e19ce703c1f4f247c7231e6d8b8421c9adbba2dd86694019230128b16f3:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiMTM3NjM4ZTc1NjZiM2ZmZGMzZWY3MzNkNDNjZDhmNDU1MTFhMDRkNzU4MGM1OWZkNDk0MGZmMzQ1YWJmM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjYTUzMTI3ZGJmNTE4N2NkMmU0OWM3MTQxZGQ0ZjhlNDZmNTQ4YjYyOGE4YmQ4M2RmOGU2MGIxODdlYjQwZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmZjZmYzYxOGZjZTllYTZmYzJmYzE2ZWYyNjk3N2YyODlkZTE2MjllZDQyNzZjYzY5N2UyNzI5MjU5ZjVkZjQifQ"
+        },
+        {
+          "resource": "repo://docs/plans/2026-09-19-rebuild-plan.md#L68-L112",
+          "version": "repo-lines-v1:sha256:05cc5ce100ad5f072519a2a2d3afc1ece1b9eda3e68bb76d670fdd7616d6151e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMjNlZDBiNzYwNTUzZTRkNWE0ODVmM2RmZTUzNDljMjRjOTBjOTcxYTc3NzY4YjU3MTIzYWM0Y2FmOGVhNzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYTFkYjVkOGI2NGQ0OGMwMmMzMTc3NjliYjA3ZGMyMDk1NjdjMGQ3MTBhM2I0NGNjMTA4NWM1ZTRjN2JlY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4NTRjMTQyNmRiODhmM2IzMDAxOWQ4ODc1YTJlYTMzZDgwZDUzMWJjMTk2ZDk1ZDJjN2Q0MTYzZjc4ZmQwYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjMjRiNDExOTVkOGNlYTYwMDkzZTI4OThlMGY4M2U2ZThiNzdjMTQ1ZTIyMjE3MWY1YjgxMzQ0NjRkMjhiNjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eebdd66497dc4b5184703c05b7962aab",
+      "statement": "ADRs are the source of truth for decisions and supersede docs/plans; CONTEXT.md is the glossary.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:bc647b3c149bd0f92d127bd5bda8f3ad223effe22d283a705f70b1335eb2c22e"
+        },
+        {
+          "resource": "repo://docs/agents/domain.md",
+          "version": "repo-file-v1:sha256:d11b8d201e680d891b4191f5332eef9b191f07da1161c9e3bec40b155881adde"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-27T19:28:40.080Z"
+  }
+}

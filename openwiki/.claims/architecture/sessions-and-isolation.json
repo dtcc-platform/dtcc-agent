@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:7ee4eb944399bccf3de125bf7d9eb4aba33f09981c63588d938d11adb7d1559c",
+  "claims": [
+    {
+      "id": "claim_003015a8b19f45bd80f4e61264a2ac11",
+      "statement": "Each Session owns its own ObjectStore, its simulation results, an in-flight call counter and a worker-pool share, held in a _Session dataclass.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L63-L77",
+          "version": "repo-lines-v1:sha256:e27207990669c0277e83a1c4c49ebf52c6c02dddabb9e80d5c74078bf5e16f66:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYmFiODlmN2ZhYWFmMzY2NDcyODIxZmY4NzA2NWJlYTFjOGI1YmU2ZGQ3MmU1Yzg3NWYxOGRiN2VlOGJhNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlMjI3YTJmMGNkZTI0MDA3N2FhMzYyNjZjMjA2NDg5YTFmNDQ1NzZiN2Q2MmNiZjdlZDVhZjMxOTE4YjU4NjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_be6b0e2f7ab84ad196ee207d65f4cfaf",
+      "statement": "Over HTTP a tool call must carry a non-empty X-DTCC-Session header, and a call with no request while serving HTTP is refused rather than given the process-local session; stdio and in-process calls use a single local Session.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L86-L151",
+          "version": "repo-lines-v1:sha256:e0b0a74f6573d684c8e8a83692a7909f218cb7d1ee56f9795f7df17f5904514d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiZTk4Y2U5ODIxMzBkYmE5ZGZkNzFhOWI2YzlkNDcyMDk5MDk4YmE5Yzc5NGM1ZGRiOTdlZGQ2ZTYyNzFmNzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiNjhkZmYyMGNlN2VhOGFmZmYwZDJmNTNlNGJkNzIyMmNmNWU3NDQ4ZWUwOWQ4MzZmMjdlYmEyNzkzZDM1ZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1Y2UwNDI5MjAyZmJkNWUxYmFlNjJlNzc1Y2U2ODRhMWJjMjdmMjU3YWUxNTMzYTE4NzJiMDJkM2UwZDAxMDMifQ"
+        },
+        {
+          "resource": "repo://tests/test_http_sessions.py#L128-L190",
+          "version": "repo-lines-v1:sha256:016dd91b1f6a237a27440e7bb2f528485d2db92f1132602982f72d3247952b50:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljYWIyMjBmNjAwYTZjZjE0OTRiMTQzOTYyZTFkYjNiNzRjMTEzMjYyNmYyYzM1YzFkYzFlNjM5YWQyM2IxYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhZDQ3MTQzM2ViYTkxYzEzYjA5OTA1OWQ2ZWRjN2RiYmZhMWU0ODhkZDYxYzRmOWY5OGZjY2M4MWM2YjE0OWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiODVmODhhZjA4ZWE2ZDkwMWYzMTA3NjkzMmZiNzljNGU4YWZmMWVjNTdhMGQ4ZDVmZWJhZjA3ODFiYzhiNmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cd258e4aed5e4d5d94dba64b09b3ef41",
+      "statement": "At most MAX_SESSIONS = 8 HTTP Sessions are kept, each with a 1/8 share of the 2 GiB object budget; beyond the cap the least recently used idle Sessions are dropped with their objects and runs, and a Session with a tool call in flight is never evicted.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L104-L133",
+          "version": "repo-lines-v1:sha256:cb559fdc596b3041bb2cac1e1296f4a2beac37c1aef2336ee0f88d00fbffe8b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMmQwYjViNWJlZTdkNDRiZGVmMzFjZGY1YjNkNTc0ZTUyYTljMTQxMjEzNTY3NDA3N2I3OGE2MzYzNTNiNmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NDVmOTY2NzllYmQ4YzQ3YzhlMzA0YmU4ODU0M2M5ZDA3OTNiNDc5MzM5OWZlYjUxYzEzZTY1MjliODZkZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhYWY0N2MzMThmMDE3NzFiOTRjMWExYWYwYzZjZTIwZDQyMzg0MzNkNGVmOWQxZjRmN2Q3NWEyMzFmZTE0MjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2Y2QwNDU4ZDAwNzQyNWEwYmU0NmJhNWRjZGQyYzk3YmE2NmY3ZGUwNjQyNGI1MWQwODE3OWEwMzVkN2UzYTgifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L52-L61",
+          "version": "repo-lines-v1:sha256:28cdc4b95a2d3036c88a7c2da617155b92884c47f47614405428ec726254a2c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNTRhOTczMTI0YTY3NDIxOTQyNWRiOTE2ZWYzOWQ0N2YyNWFhNzJiMDlhMTAyZGFjNGRmZmUyYmM0ZWIxNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiZjI1NTBhMDRjYTc0NGFjNTE3MWNhNDBlNmUwZTQwOTdjMTk2YjkyMzRmMWM1OTYwMDViMzk5ZWJjOTUyNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MjY1MDY4ODdiMDJmYmI5OGZhMDk4YmFiM2JiZTI4NTU3MzRkNWY0ZDEyNWYyMGM3YjZlZGMxMzJkNDM1ZjYifQ"
+        },
+        {
+          "resource": "repo://tests/test_http_sessions.py#L198-L251",
+          "version": "repo-lines-v1:sha256:deda3ce0d3b1fab5791a637208e51990423da2aaaca1db2e4ceafec9ec04459c:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NzlhZGM4M2EyZGZiNWRhNmVjOWVmZWEzYTY2MDQ2NmQxZTUyNzE3MTc4NzVjOWQ3NDBlNjM4MDgyZDhkYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZWIxZmQxZTY5NjlkYjNmN2VjNGJmZjUwMWFhNzYxYWM1ZDY0NjQ4YzBlMTNlZTIwY2I2ZTM3MTYwZDlhODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2Y2M4MWMzYTI4NzI4MWI3YWViZmRhMWNkYTJlNzE1MzNmNmFkMGFkMjk5MTIzZTRhNzhhMDlhNWI1N2Y2MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkMGM4NmFhMjJiNjdiM2ViZDYwNDUyMzZhOGI0ZDQ3YTk4NmRiYWZlYWU4ODVmNTg2ZDczMGYxNjVhYWI0NzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3d8684255353403bb144f7acbd5b7b0a",
+      "statement": "The chatbot sends its own session id in the X-DTCC-Session header when DTCC_MCP_URL is set, and otherwise launches the MCP server as a stdio child process.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/config.py#L59-L84",
+          "version": "repo-lines-v1:sha256:10ebbde3994d59d4657d11f5f2c321c4351cf50c17ca58a038ae14e4c0668523:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NjQ4ZDYwMTA0MjI3YjhhYTBkMWQ4N2I3OWE3ZjU2MzI1NGFhY2Q4NmI5ZjRmNjVjY2ZiYmZiZDJiZTJhNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZDEwZWIyMjgxNmQ1NzE1ZDU1ODJlOGQ4OWM0OWZlYzJjZTA5ZGI3NWE5ZTExOTExYjdmNjhkM2YwODE3M2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_580d1663465e4a0481cdec7cee265c29",
+      "statement": "Conversation memory retrieval filters on the caller's session_id, so one Session never retrieves another Session's exchanges.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/memory.py#L63-L77",
+          "version": "repo-lines-v1:sha256:662b74884e03e5464b91f62781bf52e45a59a044108eb58245385af83d643ca8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2MjI4ZDM3YjYxMDM1NjI4YzExMWMyZDMxZjczYjdjOTVlMmU0NzFmM2Y4ZTY3M2MzYmYyZjFkNzljZmM3MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYTE5ODcxYjA1NDgyNDVjOTE3ZDk5MDU0YWU4ODliMzlmOGFlODA4MTVlZTc1N2IxZDExZmI0YmRkYzg5ZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxMjYxYzEyOWQzM2U4M2EzYWM1NDlkN2U1M2U5ZGU1MjBjMDBiN2QzM2E5YjNkYzNhODNiZDFlYWViNjAxMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1OGJmMWM0NWY2ZjNjMWM0N2M2ZDMzMmE5Y2ZhMDYyYWZlYzFhMzExYzRjYmU4NjFiNzY5NzNiNjc5ZjNjNWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_36b3c5993bf741c8abbf42a14f566caa",
+      "statement": "ADR-0004 keeps only bounds-keyed public downloads shared across Sessions; builder cache entries should be session-local because content_fingerprint hashes only metadata and can collide.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0004-session-is-the-isolation-unit.md#L44-L75",
+          "version": "repo-lines-v1:sha256:2bee1f2071d7c1a61d7ffe9f5b3e14b1dd58ec6390b377b98111f07178800013:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1YTE2ZjRjOGRlY2YxODIwNDU4NGVkZDFkYzRiZTI1YWFiNjExODliMDRjMjVjMmNkNGJmYTNlOGQ0ZjkxZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNmQzNzE1YTBjNDE0OTFlNGMzZGRkODVkNmY1ZDU2MGQyNDM5YTNkMTM3ZTg5MjdjM2YzMTdkOWU3YmZiOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2OWM2NjVmM2E2ZjIzNDYwZTFkMGQxOGFiMzY2NzljNDRhYTgyY2FiZTQwOGFlNGNmZWMyNWRiMGU3NDM2MGMifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L40-L53",
+          "version": "repo-lines-v1:sha256:d9c592b2f664061d2f5fd52e3b62ce03d6f89c4ab565e92157f9f76c43173e4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZThlYTQwNDhiYzQyNDcwNWJjNzRjYzhkZGUyODBjZmFhZTdlNmQ5M2YzYjZhMmU0YWYyMDM1MGUxMmRmNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNDhhYzVlNzdjNThmNDE3MjRhZDAwNmE3NTk3MjZiMGYxYTBkMzFlOGUwMTgwZDU0NzY0ZmI0YzUzYzEwN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNjdjOGE4OWY2NGYwZDAyOTMzZDkwYjgxOWQxZjk5OGIzOGQzMjExMGMwZTE2MjVlOThiMDFjNGUzMWFkZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMTA3ZjA0MzA5MDI3NjVlZmY3MzVlYzY4MTMwMThmYjRlYTg1MDk1NTIwYmQwYzM4ZDVjOTAxODEyY2RmNmIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-26T09:41:09.647Z"
+  }
+}
