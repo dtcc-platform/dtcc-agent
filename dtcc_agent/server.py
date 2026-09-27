@@ -1417,8 +1417,8 @@ def _starting_runtime(app_lifespan):
     @asynccontextmanager
     async def lifespan(app):
         runtime.start()
-        async with app_lifespan(app):
-            yield
+        async with app_lifespan(app) as state:
+            yield state  # Starlette copies it into each request's state
 
     return lifespan
 

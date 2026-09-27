@@ -79,6 +79,22 @@ def test_http_startup_builds_the_catalogue_before_the_app_starts(builds):
     assert order == [1, "serving"]
 
 
+def test_http_startup_keeps_the_app_lifespan_state(builds):
+    # Starlette copies a mapping a lifespan yields into every request's state.
+    @asynccontextmanager
+    async def app_lifespan(app):
+        yield {"session_manager": "ready"}
+
+    seen = []
+
+    async def run():
+        async with server._starting_runtime(app_lifespan)(None) as state:
+            seen.append(state)
+
+    anyio.run(run)
+    assert seen == [{"session_manager": "ready"}]
+
+
 def test_a_broken_catalogue_stops_the_http_app_starting(monkeypatch):
     def broken():
         raise CatalogueError("io: no module")
