@@ -14,7 +14,7 @@ Last updated: 2026-09-27.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-27 | A generated wiki of the codebase, for people and agents ([#PR](https://github.com/dtcc-platform/dtcc-agent/pull/PR)) | 🔍 |
+| 2026-09-27 | A generated wiki of the codebase, for people and agents ([#47](https://github.com/dtcc-platform/dtcc-agent/pull/47)) | 🔍 |
 | 2026-09-27 | The catalogue is built once per process, and a broken Core install stops the server ([#43](https://github.com/dtcc-platform/dtcc-agent/pull/43)) | ✅ |
 | 2026-09-26 | A limit on how much Core work runs at once, fair between users, and one download per tile ([#36](https://github.com/dtcc-platform/dtcc-agent/pull/36)) | ✅ |
 | 2026-09-26 | The automated reviewer gets repo context, and trials broader code suggestions ([#37](https://github.com/dtcc-platform/dtcc-agent/pull/37)) | ✅ |
@@ -36,7 +36,7 @@ Last updated: 2026-09-27.
 
 ## 🔍 In review
 
-### A generated wiki of the codebase · 2026-09-27 · [#PR](https://github.com/dtcc-platform/dtcc-agent/pull/PR)
+### A generated wiki of the codebase · 2026-09-27 · [#47](https://github.com/dtcc-platform/dtcc-agent/pull/47)
 
 **Before:** understanding a part of the agent meant reading the code, the ADRs and the
 README and piecing them together.
