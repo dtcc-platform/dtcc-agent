@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ade6bb0c481e2ba9639a8158d1e160b432c307b647240fbf51294edab5413243",
+  "claims": [
+    {
+      "id": "claim_91287ccec02148c08a9c50ef7e5ba64c",
+      "statement": "The @tool decorator registers an async wrapper with FastMCP that binds the calling Session into a ContextVar and runs the sync body in a worker thread under both the Session's limiter and the process-wide runtime.workers limiter, returning the original function unchanged for in-process callers.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L184-L239",
+          "version": "repo-lines-v1:sha256:5e2f79ac1854929a25d1010c5a52f4674b174e839bdd6f24c016136ac954837b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4OTQ5YmY4ZWY0MmQ0M2RjMDQ1NWU4NjQxNjExOTcwMmMzNDhlNGY3OGE1ODMzNmVhYzAwYzNkZTQzMmQxZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNmFlOWI0Nzc5NjQ5ODRjMDI0MTMwMmMyMDliMTYzNDc5MTJmYjdlYWY0NGI0NzczNjA2MDcwMThkMzAxNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkMzQxNmQxYjU3NzhmODcxZWMwODljOTFkMjY5NzY0YTk0OGM2ZjM1ZGU5YzYwM2I2ZjA4ZjJiYTFlM2UyOGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ec61768bb084bf6a2a2f98d84782eba",
+      "statement": "The process-wide worker pool size comes from DTCC_MCP_WORKERS (default 4), is validated at import to be a whole number >= 1, and each HTTP Session may use at most max(1, WORKERS // 2) of it.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/runtime.py#L17-L29",
+          "version": "repo-lines-v1:sha256:326d737302e4947ee95511f736175460bd71ae69f14fe82a955d95c19321bbda:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNjc2YzdlYzliOWM3OGUyYmIyZmQxOTZiM2ZkM2ZjY2U3NGQ4ODY5MWYxOWU3MGQ4OWI1YjhmYmQ4YTg1NGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3OWZmOTc4YTY5MWY5Y2M3ZmEzZWFlMjhiYWU1YTVjYjhhOGMxN2RlZmE2Y2IzZTBmZDI3ZDA3OGNjNDVmNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmYmRiZTIyOGZiOWU1ZjlmZTIyNzUzZDY4OWU4NDcxNGJiNGJkNWY4ZTc3ZTIzZGVkNDU0OWZmNzFkYmE0MzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiNmRkNGIwMjM1MWRkZjczYWVlZjdkOTVhOGU1Nzc5ZmY0NTEzZmM5ODg1MjY4MjMyZTQ5YzIzMGY0MWE0OWUifQ"
+        },
+        {
+          "resource": "repo://tests/test_worker_pool.py#L131-L152",
+          "version": "repo-lines-v1:sha256:c58d18b6d2ac1a9554a6439839c7095f3299c1b5d7cf078d6dc631b24f847a07:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NmNkNjY4MDYxMTExNzZjZDU2ODgxYzQxYzg1YjE1NGM3NWRlYjM3OWM5ODAyODVlZGNhZWU1ZmE3MzRhMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5MTFiNmViZjQzYjY0NGE1Yjg4NDM1OGZjZWJiZjRhNWRiNWJjN2Y3NDI1NmMyMzU3NmU3Y2E0ZTU2NWUyODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1YTAyZDJkMDU5YWYzOWFiM2E5ZDI0ODNmY2UyYjE5Y2YzZThlYWJjNjc4OWNiYmZjNjQxMzE4ZDhlMTM1NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4N2FiZTA5OTRiNWQwMTQ3MzNjNjVkNGEzMDg0NTNlYWYzYWYwYzNhMDQzOTQyZTEwNjU5N2Y3ZGZmMjMyMzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7290c1f145174795abd4a06bee51cd36",
+      "statement": "render_object is registered with main_thread=True so it runs on the event loop (main thread), as GLFW requires, outside the worker pool.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L821-L828",
+          "version": "repo-lines-v1:sha256:65865f13a693017c6742c8c658d767610f81300e0058eacb132d23377d44c4fc:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA0ZjYyY2Y2NzhjZTUxZjY5N2M0N2U3YjExN2M2MGJkZmQzNzg0OTc2YzMwMTJmMzliMDAwMmE4OWY3OTMyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmUyYTMxOTI1NjYyZmMyNzc4YTA1ZjYzZTNkY2EzNTUyMWMzMzdhZDhjZWU2NjA4MjQxNmU5YWUzMjIxNGU3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTM1OGNkNmJhMDY5ZjhhOGUwZDA1ODNmMWY3NGFlMjVjNDczOGFlNjllMmMwYzY1N2NjNjE5NGY1OTNhNjlkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjFmYjFjOGQ3YzUwZTZlMGMxOWE3MDFmMzMyNTFmMmJkM2RlMDQ3NGMzODBiOTllMDJiMjQwYTI4ZDBkYmRjOCJ9"
+        },
+        {
+          "resource": "repo://tests/test_tool_execution.py#L33-L52",
+          "version": "repo-lines-v1:sha256:0ef49c90b59f0d22ae586a01d19b783564b8e2372664f2cba9dfc1b83c188ca3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MmZhNTFiNjViMmZkNjdhZjkxYTI2NWFiNjZkYWIzMWI4OThjOGRkODRmZDY5OTA4Y2Y5YWJmYzhiNDQ0NDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwZGRlYWE1ZGQ5MTgwODVlZmJiOTRlNWFlZTY1ZGYzYjJkMjE1ODA2YTc0NTRjOWQ2ZGRhNWZiMmVjNGRhY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjNDFlN2I4YTAwMGJiNzZiOTYyZDFiNzBhZWVmZmJlNzNkNmNiMGZlYzVhNGVmMmMzN2I2N2M0ODgzNDBjYzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_612db84dbcb04aa0aa5e74790b6a229e",
+      "statement": "Concurrent calls that would download the same dataset for the same source and bounds are serialised by a per-key flight lock taken on the event loop before a worker is acquired; only bounded, cache-allowlisted datasets.* operations and get_buildings get a flight key, and builders are excluded.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L154-L181",
+          "version": "repo-lines-v1:sha256:e5a6e04edc3b5d58dc392211444c642af3c0acc72d7bdbee96efd34b82e44f3f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1OTg0YjM2MDdhNGM0NWFlOThlNjdhYmEwOGY3MzUzMTUyZTQwNDExYzdlNGMyNmZiOWEyM2RiOGRkZjYyMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMDVhYjg4NWQzN2E0YmE1N2UxOWM4MGFkMmIxMTkzNWM1M2VlODdmMThhODAzMzBjM2IxNzU4ZGU2NGI0NjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2MWM3NzI0YmFjNWI0N2Y1MjYwOTQzZWQ4MjY4MGE5ODAzMTkzM2IwNzNiZGQyNDM5YzgxNTlhYmJlNmFhMWYifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L265-L297",
+          "version": "repo-lines-v1:sha256:d833eebd963ba5b2dd69d1fddf6898cb8f99d8d66b85cf2cf87326af8a7a9690:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmZjk0OWU3ZWExNjk2M2I0MWIxYjQzYTk5YjFkZTExMjNjZWRmOTEzZTNhZDQ2ZTUxNTVmMThkZmMwOGIzODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYjhmOTI0MGVhNDRiNjkxNzI1NGRiMDQzZmM5ZDRhZWYyY2ZjNWUyNjc1Y2RjNWViZDAwMTA2MDI4MDVjMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmOTMzYjE0NjVmOWJiNzQwMzc2MGUwMjI4Y2M1NDk4ODU0MTY4YjNhNzI2YzdiMTUwN2Q2ZDVkM2Q2YjY5OWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5MGJjNmZlM2YyOWFiZTcyNzVlYTNkZjQ1ZjllOTY4NGUxYWE1MWM1ZjZjODEzMmI0MmNkMTIxM2M5NzhhMDgifQ"
+        },
+        {
+          "resource": "repo://tests/test_worker_pool.py#L229-L300",
+          "version": "repo-lines-v1:sha256:202bf173d5a60f46c06ab3ebdde576aa26be21f7691648f724e980f9a0ca90ae:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkMDVkNjQ5ZDYzMzc3MzQyNGFkZTVhNjg2ZWExY2EyNDVkNmM1NTcyYzJiNjVkYmU4OTE4MTY3OTAzY2U1ZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzNzA2ZDBmOTAzM2FlNTRhYzBjMTA2NWYyMzdhNzgyNzgxMTllOGE1MjFlY2JlYWVlM2JjYTU0MjI0N2U2ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5ODcyNDk1ZGZhNjE3MDYxMTZmZDE1NDBiYzliZWY4MDdhNzg4NjA4NTcxYTY4MmE0ZjVmMzU4MzI5YWE1YTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_df0c3d720e464c179d2b48c09ab17c8d",
+      "statement": "The FastMCP server is stateless over HTTP because the chatbot opens a new connection per message; session identity is carried in the X-DTCC-Session header instead of transport state.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L43-L49",
+          "version": "repo-lines-v1:sha256:c0c74e90a41853e2679309ea5d3280fe298f22e028b51f130a486ca47b8f3077:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDdjZTM3MDUzYTZmNTIyNjE2MmFlOGMyNzQ4NGYzOTNiZjlhODI1MTRjOWVjNzlkMzBlYzFiNzBkMTg2Y2FhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJlNmU4NTczYjBjN2M1ZmUwNWFlMDA2NDI4NjNjZGZlYWY0ODM2NGNhMTBmMGRmNmYyM2UzOTA2YjFjODVmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTMxNjI3NGEyNDA0OGM2NWExNTlkOWI2NmE1NjBlOTRlNDBlNjMyMTJmYWU1MGYwZGUxYzNiNWVhZGQzNmUyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjRjYTdlY2QxZGY1N2FiYzk3MGMzOGVkOWZlMzAxMzQ3NjFkZmYzMTg3Yzk2ZmE1NGNlZDVlZDk0NjJlOTRjNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_91316a25a6294919b154e96706ca873d",
+      "statement": "Over stdio, main() calls mcp.run() without building the catalogue, so the first call that reads it builds it; over HTTP, _starting_runtime runs runtime.start() in the app lifespan once per process before the app accepts a request and forwards the inner lifespan's yielded state.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L1413-L1433",
+          "version": "repo-lines-v1:sha256:ed1016cbb4b98f24f806b6381b3f1600b9b45df0f9b3241acf4f5b44926a8204:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NzJjMTc1Mzg2MGMzNTlkNTRmNzdhOTYyYmE1NjlmMTJhNjM4NWE4ZTkwOGQzM2NkODQxNzI1OWI0OGY0YTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNWM4MjYzMmZjODJkNGIyYzM0MGY0MjU1OGJhM2RmYTMxYzc2NTVkZjZmY2MxNjhiNGZkY2U1N2ZhYzYwNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjRiOTAwMzk3MzgyZGI4M2YxMGQxODgzNmVjMTA4NGJhNDU2ODIwNWUyMjAxNDkxYjE0YzJmZDc5MzNhOTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlZTQ2YTI5YTlkOGRmZGVlODg2MjhjZjkxMDkxYWNmZTk3NzJhYTY5ZDc5NWRiOWU1MThiZmE1ZDE3ZjVkZGQifQ"
+        },
+        {
+          "resource": "repo://tests/test_catalogue_startup.py#L66-L130",
+          "version": "repo-lines-v1:sha256:632a5b813bc4b40d30ae00f9701075093c81752bb7ea7e451b2f6d874445ee58:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MGQ0ODE5OGU1YzE1NzJkYjkyODFmMGUzMTM1Yjk1MjM4NzU5MDE4NjVjMTJiM2NhMzRkNTYyNzIwNDQwOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMyMWMzMTU3NDY1MWRkMzE2N2FiMDg0MTkzYmJlYjQ5Y2UxM2E0NTdiODdkYmM1M2I4MjZlMzM1ZDhkODVjNWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwZTAxNGY1OWQ4YTA4ZjcyZDE0NTJjZThhYTE5ZDRkMmYzMGI3YzkxNmQ0ZWM0MzAzODUxYjc5MDljOTEyZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_419c8f80b4974f3abde22c9456bb64d8",
+      "statement": "runtime.start() builds the catalogue through registry.build(), which never waits on dtcc-sim, and a CatalogueError from a broken Core propagates so the HTTP server exits before listening.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/registry.py#L495-L510",
+          "version": "repo-lines-v1:sha256:414f6bac5580f29466ea42e29978185df852e15f6b42c42167b23170220bf9ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOTY1MGQwNjI2MDc3MTczNTIyMTZmOWUyZGJmOTE1NDRlODAyMWMyOGRjZDUxYTZmNjE1ZjY0NzFmOTM2Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YzkxMDQ5NGJlNTJlYTk2ODY2MTc1ODg3YmZjNzVlYmQxY2FiMzViOGUyZDk2MDMwNGE1ZDI4N2Q1OGNkMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMTQyMzNjMGEyMTllYjBkMWZhMDc3YzVjMjkxMmM3MjBlMjJkMzYzM2E3Y2U1ZWNkYjNiNzdmMzdjMzYwNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MDMzYWJjYmE0OTIxZDExNmI4NjNjYzI5MTVjMjRiNTI0NzlmNDkzYWViODU1NjFhYzU3ZmNmMjYwYjIyNDUifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/runtime.py#L34-L42",
+          "version": "repo-lines-v1:sha256:cd38db55d7d879e1708db7a57851c6f0fb117674314776a113c113249145f821:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJlOThjOTMwODE4NGFlMjQ2ZjZmNDU2ZGY3YjBlN2JmNmM3NzBhMjAxNmEzNjI5ZTc1MmQyNjJlYmI3Mjk4NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDdlMDBiY2FmZWJmZmJhODYyYmZlOTdiNjJjMDBkNzAzNjc2NjEzZmIxYjZjMGE2NTUxMTkyZjFhOGEyOWEwZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjk2ZTA5ZjU0YjYyNTkwNDY0YzkzYmM0M2QzOGU3MGMwM2YzMDkwMGY0M2VkM2VkZTNlMzNlM2QwZmYxZDIzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-27T19:28:40.080Z"
+  }
+}

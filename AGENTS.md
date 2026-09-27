@@ -29,3 +29,16 @@ A missing Core fails loudly at `import dtcc_agent` rather than serving an empty 
 A Core that imports but fails to register a catalogue section raises `CatalogueError`
 (`dtcc_agent/registry.py`): the HTTP server exits at startup naming the section, and stdio
 fails the first call that reads the catalogue. Datasets from outside the pinned Core are optional.
+
+<!-- OPENWIKI:START -->
+
+## OpenWiki
+
+This repository has a generated `openwiki/` evidence index. It is optional just-in-time context, not required startup reading.
+
+- Treat source code and tests as authoritative. A brief's unknowns and review items are verification gaps, not automatic requirements.
+- Prefer the narrowest quiet validation that proves the changed behavior. Preserve complete failure output.
+
+The wiki is regenerated locally with `/openwiki` (update mode) every few pull requests; there is no scheduled workflow. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
+
+<!-- OPENWIKI:END -->

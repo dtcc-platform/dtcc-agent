@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:565924a3df32a668fefcc2b37087188ceaf72b68b93b3430dcf601d6eafac7af",
+  "claims": [
+    {
+      "id": "claim_32fc11b4023c4c5aa008420425548a03",
+      "statement": "Development setup requires Python 3.12 and the test and chatbot extras, installed with uv sync --locked.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md",
+          "version": "repo-file-v1:sha256:bc647b3c149bd0f92d127bd5bda8f3ad223effe22d283a705f70b1335eb2c22e"
+        },
+        {
+          "resource": "repo://pyproject.toml",
+          "version": "repo-file-v1:sha256:9bc33fd259df30f29ca0b9b01b1484968f791792ffeb8d7a8bd5b8a75ed9c52a"
+        }
+      ]
+    },
+    {
+      "id": "claim_53051b10280048d7996b6eb7783194e6",
+      "statement": "The MCP server is started with python -m dtcc_agent over stdio, or over streamable HTTP with DTCC_MCP_TRANSPORT=http, and the chatbot connects to an HTTP server via DTCC_MCP_URL or otherwise spawns it over stdio.",
+      "evidence": [
+        {
+          "resource": "repo://README.md",
+          "version": "repo-file-v1:sha256:a1c943d1789448588e0753e980134400e1fc1e3109514000c8665dc16885eab6"
+        },
+        {
+          "resource": "repo://chatbot/config.py#L59-L84",
+          "version": "repo-lines-v1:sha256:10ebbde3994d59d4657d11f5f2c321c4351cf50c17ca58a038ae14e4c0668523:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NjQ4ZDYwMTA0MjI3YjhhYTBkMWQ4N2I3OWE3ZjU2MzI1NGFhY2Q4NmI5ZjRmNjVjY2ZiYmZiZDJiZTJhNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZDEwZWIyMjgxNmQ1NzE1ZDU1ODJlOGQ4OWM0OWZlYzJjZTA5ZGI3NWE5ZTExOTExYjdmNjhkM2YwODE3M2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L1426-L1449",
+          "version": "repo-lines-v1:sha256:e2d5a3010686b7aad2ae3b4016ced9322b7fac3676e1b0604d1a37407d7f9773:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyZTMxMjU3ZGMwYWUxZDU5MzAzN2MyODBjOWFkNTA4MTliOGE2YzhjZjcyOGJlMDcxNmQwMGEzZWVjYzA0YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5NjRmYjUzYjI3MjE2MzZkNDg0NjljZTdjNDNkOWU5YjJlODQ2NWQzNmNhZTI0ZjMwN2MzZWY0M2I3MDNjYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzMmU2OTIyNTE4NDY1ZGVlOTg3MGU3NjAxNjU0YWVkZWI4OThiODQ5ZmJmNmMzZjA0OGM4YzE5MmY3M2JmMGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6baf149227cd42d59850f862868723ea",
+      "statement": "The chatbot package is started with python -m chatbot, which runs uvicorn on the configured host and port (default 0.0.0.0:8050).",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/__main__.py",
+          "version": "repo-file-v1:sha256:82dc7cc4dc1c48acfcb90144386cc386c15e2ed09c8d40a6466a6e0a9dd2a1a8"
+        },
+        {
+          "resource": "repo://chatbot/app.py#L289-L296",
+          "version": "repo-lines-v1:sha256:000266dc6a016084421478c9cb0ce34920c91d1fe0ebdfa4930ef81ab89387e5:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzJlMzEyNTdkYzBhZTFkNTkzMDM3YzI4MGM5YWQ1MDgxOWI4YTZjOGNmNzI4YmUwNzE2ZDAwYTNlZWNjMDRiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2UyNzhhNWJjMDViYzJlY2FmYTFjMjZmMDVhMjk1NTliMjAzMDVlMWVlN2U4ZmE2MTRkYWJjZDQwYWMxZjBjMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDA2ZTRlYjc4Y2MwZTBiOGU4ZTI5Y2ZlY2I3NDQ4Y2NkOWM2MGRmYjBmN2UyZDg2MDdmYmMzYWJjMzk0NDA2YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MTM0MGNjMjM5YTE1OWNlOWI2MDIyZTlmNjMyMjgzMmUyZWFkNzZjYWU5ZTQ3NTRkMjEwZWI4ZmI2ZDVlOCJ9"
+        },
+        {
+          "resource": "repo://chatbot/config.py#L55-L56",
+          "version": "repo-lines-v1:sha256:b38796e05e228adcd9fc7be8d2943d46defc5cc84d935afdb6f675c0530af144:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2M3OGIyZDI2YzdhNWI4OTM1MDU0MzZiY2Q5MGI2NGI2OThlNGU4MGU5MWM5MTY2ODMxZWJjNjdlZjA1ZmYxMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmEzNWNjYjkzMjA1MTk2MmM3OWEyMWU4MDM3MjY2MGRiOTFlMmQwNWQwNWM1ODcyNThlODZjYzdiNzYyYzMyYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmFjYTkyNDdhNTA4MWQ4ODUzMmEwNDY5MWM1NmYyYjExNTAwMmI0NWY3ZGFhYjI3NmI4ZDczYTIyZmZlM2U4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmEwZGQ0NjVmNDc3YmM4MzY3OGZkMTZmNGE1YTcyOGZhOGI1OTkwZjYzMzUwZTMxZGU2NjA3M2UyNmM3ODU2MiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_807d3227bf8d4c59bd117e4b48356905",
+      "statement": "Only the HTTP server builds the catalogue and prints its size at startup, exiting on a broken Core; a stdio server builds it on the first call that needs it.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/runtime.py#L34-L42",
+          "version": "repo-lines-v1:sha256:cd38db55d7d879e1708db7a57851c6f0fb117674314776a113c113249145f821:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJlOThjOTMwODE4NGFlMjQ2ZjZmNDU2ZGY3YjBlN2JmNmM3NzBhMjAxNmEzNjI5ZTc1MmQyNjJlYmI3Mjk4NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDdlMDBiY2FmZWJmZmJhODYyYmZlOTdiNjJjMDBkNzAzNjc2NjEzZmIxYjZjMGE2NTUxMTkyZjFhOGEyOWEwZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjk2ZTA5ZjU0YjYyNTkwNDY0YzkzYmM0M2QzOGU3MGMwM2YzMDkwMGY0M2VkM2VkZTNlMzNlM2QwZmYxZDIzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L1413-L1433",
+          "version": "repo-lines-v1:sha256:ed1016cbb4b98f24f806b6381b3f1600b9b45df0f9b3241acf4f5b44926a8204:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NzJjMTc1Mzg2MGMzNTlkNTRmNzdhOTYyYmE1NjlmMTJhNjM4NWE4ZTkwOGQzM2NkODQxNzI1OWI0OGY0YTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNWM4MjYzMmZjODJkNGIyYzM0MGY0MjU1OGJhM2RmYTMxYzc2NTVkZjZmY2MxNjhiNGZkY2U1N2ZhYzYwNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjRiOTAwMzk3MzgyZGI4M2YxMGQxODgzNmVjMTA4NGJhNDU2ODIwNWUyMjAxNDkxYjE0YzJmZDc5MzNhOTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlZTQ2YTI5YTlkOGRmZGVlODg2MjhjZjkxMDkxYWNmZTk3NzJhYTY5ZDc5NWRiOWU1MThiZmE1ZDE3ZjVkZGQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-27T19:28:40.080Z"
+  }
+}

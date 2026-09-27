@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:665cfb74de8ae47e0ca976c8251e9b763df551ab46fb11f71e55e76380b5e6e4",
+  "claims": [
+    {
+      "id": "claim_b19ba07e1e2842748016f689ceb73672",
+      "statement": "The repository ships two packages: dtcc_agent, an MCP server exposing dtcc-core/dtcc-sim operations as tools, and chatbot, a FastAPI web app that drives a Claude Agent SDK session against that MCP server over a WebSocket.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/app.py#L188-L286",
+          "version": "repo-lines-v1:sha256:4e5fb96315809389a9a609cdb225c3043fb8d2a75b3a6294fe695e293c879bc3:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzZDQ3YzZlYWYyMWFlY2U4NDM2NmFhNDVkZjE0ZTExNTI4NjRhZGQyNWJkYzAxNGNjZWFmZmMzNzhiNGQ2MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhNjVhMmIwYWJlZTVkNTk5YTQ3YzIyZTYxMTA5MDRjYzRiMTVlYWQyYjc2NTRlNDgzMmExOGNhMDE0MDc4OGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkODQ1YWJhMDBjZTFiNzM4MWQ1ZDkyOWQzZTczYTEwM2FlNDk5NTk1NTdmYWNhNDFjZGQ1YTNkNTQ3Yjg5OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5M2JkNjZlMmJiNzFmM2I4YTkyNDA2NGJiZjdiMDdjNTkwM2E3NzNmYTRmOGMzNTQ2MDYwMzg2NjcxZDNhNzMifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L1-L10",
+          "version": "repo-lines-v1:sha256:9297c6264811e83abe52b36555314efc6061dd779220aeb7e86149962f6dfe8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxODE5YzM4MTA4ZWExZjhlZGMzYjhlNWVhODE2YTcwNDYzNDZlYzAwZTkwOGM5NTY3YzA3OTZmMmUzMmFhNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzODRiZmRiMmRmMzgwYjY1NTdjYzdhNzFkMTY4OTE0MTViY2NhYTg3Njk5NDA2ZTIzNmY3NTJjNjQxNTM4OWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwNGMxMmI0NjQyMjYwZjYzYzdkNDBjY2NhNjMyMzMxYTA1MzBlYTE5ODlmMTU2YTc3NDNmZDRkNjExNDE3YzUifQ"
+        },
+        {
+          "resource": "repo://pyproject.toml",
+          "version": "repo-file-v1:sha256:9bc33fd259df30f29ca0b9b01b1484968f791792ffeb8d7a8bd5b8a75ed9c52a"
+        }
+      ]
+    },
+    {
+      "id": "claim_40704581f7834ed39976cf53509bf788",
+      "statement": "Importing dtcc_agent fails loudly with reinstall instructions when dtcc_core is not importable, instead of degrading to an empty catalogue.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/__init__.py#L5-L36",
+          "version": "repo-lines-v1:sha256:01c6aaeb40ef3b5931e6cff40e14145e25f4f9089694759770efaf558e9e685b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2YzhlZDU0NTNhZDgwMzQzZTY5NGJlMjYzNTdmZjI1NmYzZTkxMDE5NjNkZmJhZTAxOGNkOWQwZTA3N2E0NWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3MTRlYWRkYjg5MjQzY2EzZGI5Yzk4YWFjMWU0OGZkOWQ0ZGE1NTczYWQ4YzgwOTQ5MjkxNTBiOWYzNWI4YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4NTdmOTE2MjY4NTY4MzlhYjFhYjcwOTZhMGM4YWVjOTJhZWFkYTRkZjIzNDBhNzQ1YTg0MDlkNzJkMmU3N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_16826a3e6d794c60acfc660086d79edf",
+      "statement": "Simulations run through a remote dtcc-sim service when DTCC_SIM_SERVICE_URL or DTCC_REMOTE_SERVICES is configured, and fall back to in-process dtcc-sim otherwise.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/runner.py#L1-L14",
+          "version": "repo-lines-v1:sha256:f37b8511f4b006d480a0e50d8a5988d0d9243991bccab138e967115436314505:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwYWMwNGQ0ZTYxMjMxOGVkMGQ4NDYxNDVkN2IzMTcwNWIzODhjNTU4MGI5MGFjMGU4NzJmNmRjOTU5NWQ5YzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/runner.py#L54-L123",
+          "version": "repo-lines-v1:sha256:a51723855ae5fb59bbd00d5af237b0c7c223678fdac8a937de75236f75a66e92:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MTYyMGYyOTZmOWU0ZjU4MDY4Mzk5Y2MwMmY1MmY0Njg2OTY2YmI1OGZkNjBkMTAwOGI5NGE2MDFiNDQ4YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5MmExYmQ5NjE5ZGI4M2YxMDhlZWY1M2Q1YmIwMjgyNmQyNTJlMjY5NzBhNmQ3MWE2N2Q1ZDZkNjBjNWZkMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4NDlkMWFjZjJiNThmMmE0NjBlM2EyNDY4NjAxYzFiZWFlODIyYmQ2NzY0OWVmZGE0MTE4MDY0N2ZhNjNiMWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e8906450fc2447fd8a0c627965c05117",
+      "statement": "ADR-0001 was accepted on 2026-09-15: the chatbot is part of the product and is the platform's conversational front door, decided by authority rather than interview evidence.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0001-agent-is-a-conversational-front-door.md#L1-L22",
+          "version": "repo-lines-v1:sha256:2c49b2368713d261b448de09dc3b15e4416cd3852f687be6702e344512a3db01:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3MjI5ZWRjOTA0ZDgxNzA0NGE5MjI2YWE5NzVlOTdhZWU0MmI2OGNjZWQxMWY5YjM1OThjZDQ4ODgyNzg2YjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiMDIxY2NkYjI5OGU4MzA3NWZlMGIxMGRmNWFmNjQ3OWQ4YmUzNjg4NTI4YzdmOThkNTRmMGM5MTRlNjJlMTcifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-27T19:28:40.080Z"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:caec659b39557898996f6462524b60645690e35d5e3c8cff45ae5abee8080617",
+  "claims": [
+    {
+      "id": "claim_5a40abeabd6f4532b7c31d8cb7e35e3d",
+      "statement": "The disk cache pickles objects under <cache_dir>/objects with a JSON index, defaults to /tmp/dtcc_cache (overridable by DTCC_AGENT_CACHE_DIR), expires entries after 168 hours and enforces a 10 GB budget by evicting oldest entries, with cleanup run at construction.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L232-L266",
+          "version": "repo-lines-v1:sha256:37ce1fbfde11dbd5dd3e1d7585e37605b7e6ae4c06fd97a481449f9f2743a989:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NjhmNmVmOGQ4N2ZlNmNhOTU4ZTQ1M2NmZWNhODVmMTNkMGJhMmZiMDJkZjkzZWMyZWYxMDE5NTY2NjA5MDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiNWViMDc1N2FlYTVkYjllMTI5ZDU0NWQ2NDVkMWY1ZTg1YTJkM2NmMmU2NDg3MjkxNzY3M2Y0NDAyNjUwOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4OWJiOTliYmNmMmNhNTM5NjU4ZWE0YzQ4NzdiNTZhZTY5ZDJhYWM4YzdhY2ZjOWUyNDcwMWQzYzVmNzRkYjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1NzZjNTViMWVmOTA0MDhmYWFhODk1NDU5ZmVjZmY5YWM4MzM0MWFiYTc4YWEzOWY2MmViNTIxYmM4Y2RlMGIifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L24-L26",
+          "version": "repo-lines-v1:sha256:3bb407a7c34a43486ebc1ab72959e2b124402de332e31969ea8360b0927b5991:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1Zjk0ZjkyMDA5MmU5NDQ3MjBmMDg2MjMzNWM5NzE3ZDcyYmU2ZmRjZmJjOTVmMjJlOGQ4YTljOWUyZDE3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTRlZDc0ZGFhYjMxOTM1ZDVjNDBjMGRmYTVjNmI1MGE2MTAyMWM4NzI0YWM3NjE3ZTVkZGJlZjk2YWFiMzcyNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTQ0NjVhMGIwZjMyMDk4OWQyYWJmMDJmYzAyY2EwMTBiOWQ1NWNhZThlNjkzODA5ZmJhNWI0ZTVmODgwNTcxOCJ9"
+        },
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L83-L104",
+          "version": "repo-lines-v1:sha256:fccb5bb17d94952969daad34f48117c220f282336677877dc5274edff8c74e3f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZDY1ODU5MTdmMjY5MGI0MTNkMzFhOGVjNWE3N2FlYTQ5NjQzNTFhYzAzMTE3MjU3ZjhjOGUzMzk2M2E3M2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0ZTIyZmRjZWQ3Yzk0YzNlYTVkNmFlNDBkYTQwMzhhMmU5MjkzNjk0M2M0ZTIzNDM5MTdjZmZhZTJkNTAxMjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4ZGZiMTc4NmIwYTgxNzJkN2QyMDk1MWY2Mjk3N2E3Yjc2OGVkOGJjOTcxNzBlNzVlZTM4ZGVhM2I2YTFjY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1ZDA0MWZmNzc2MWE2ZmQ5ZGExNTc2MDNjOThiYzE0ZGUwYjI1M2FiYmYxMDY3YzAyYjJlZDVjNWVhYjllY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0d7a14db9eb1430991ea565420791013",
+      "statement": "Only operations in CACHE_ALLOWLIST are cached: three bounds-keyed downloads and five builder operations.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L28-L37",
+          "version": "repo-lines-v1:sha256:5d8bb0dd8ff52b4664ef20d59c8c0ce6093d70d441147fe2565327ed06bdf182:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkNGIwYTI3M2Y3N2ZjM2IyMTU4NGVkZWM1YzRkZWQzMjUxNWZiNTUwZDVlNzczNDk2NjBjZTA2YjczZTZkNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1ODBiNzY1MThkYWU5NzlmYWViZDAyMzY3YTI5MjkyYTUwZDk3NjA5MjI1MWEzOGE2Y2UzMDg4MGJhNDI4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5NWYyMDI1MmVhZTg5NDg1ZjUzNmQwY2IxMDM0NzRlYzVhYjIyYzM5OTAxYmYxZDFmOWUwNGVmMDZmOWYzODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczOGM0MzI2OGNiYjMzNGIyNjk4NGM3Y2Y1YWZmMjMwZTIxNTZlYTIwZWJjMTQ0MjY3ZTE2NDk2OTY0MGVkYjAifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L100-L118",
+          "version": "repo-lines-v1:sha256:00ed8973ef15757c413854a9d564518dcfcc7e55fa96d524257e596fb9ef0c87:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxN2JiZDk4NTU4NjEzNDFkMzg2ZDNhMzdkOTMyMWFmYjk0ZWFlZWYwZjU3ZTRjNTBhYzhlNzczNzdhNTFmOTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjNmNiZDVmZjdiZjM4NjZiNTI1ZGZiZTk2YzRkOWM5YmU1ZDc1ZmYwM2FhZGM3Zjk2ZjY1Yjg1NGNmYmI2YTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlYmMyOGI2MDkzYjFmYTY1ZGI4ZDhiYjI1ZWZjZWFmOTJkM2RiN2IyNzU2MzY4Y2Y2OGFkZWM4YWI3ZDNkNzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMTI4NTY3ZTMwYzU2ZTI0MWZjODhhYzdlN2RiNmY5ZWExM2ZmNzFmODAzMzg5NThiMmI0NjY2ODI0ZWRkN2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b74f0b4c709048e6ae300d4dc811d529",
+      "statement": "Dataset lookups return the smallest non-expired cached entry whose bounds contain the request, and the dispatcher crops point clouds by point position and Cities by building footprint centroid when the cached bounds are larger.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/crop.py#L14-L36",
+          "version": "repo-lines-v1:sha256:a2d7723f00fbfcb97b0621d0dc669b2abcd8b1c03032750ffcff4aadbf7b44c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmZmFhMGM3Mzg3NmI1MmFjMDM0YTJkMDAxOTIyZThjZWExZDI4MzBjMzVhY2NkZDAwNzQyYzZiYzI1ZDNmNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNjBjM2NjOGY4MzIzYTM4YjM4MTI5OGYwNGI3ODE3N2U0ZTA1ZDVjMjllMmU3MmQwZDBhYWRjZDJjMjdkNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0ZmVjZmE3ZDQzODAyNjI1N2IyYTFhYWQyZDMyNzFlMTY5ODRjOTdhZDFiOTQ4OGY1MDM3NjdjYTJmMmNhYzYifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L156-L202",
+          "version": "repo-lines-v1:sha256:738ff5223beb97644cc1e197d834a1affb9019c679e7c058e3a39664ed5d0214:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlZjk2ODhlNzk2M2U0OWQ4NjNkY2ExY2MyMTRlNzI2MGNjZTQ3NWI3Y2MyOTYyNzNiY2Y2YjY5MjlkMDZjMDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5Zjc2YjViY2M0Mzc4Y2MzMWQwODAwYWM0ZWJjNTczMjBjMzc3NmJlNjAzMmY3ZWExYmQ3MTgyNzBiOTA1ZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNzFkZjZlOTE1OGZiNjZjYmM1NmZhMTE5NWU3NTIyN2NiYzMyN2Y2Yzg5YmI1ZDBlMDg5NTk2NWUwN2Y4NzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxMjFiNzZmMDMxMDIxYTYyMTJmZTY4ZTQ4ZjNiMjkyZDE0MWI4YjBhOWMxZTcyNTI0ZmViMDIwMDRhZDVhZTcifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L279-L306",
+          "version": "repo-lines-v1:sha256:e585f901a317b17e8a670ee86d2a3dddafe3ad058fdb44b9d2a17c82b1063420:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhNGUxNDMyMjJlMjUyMzJhNDZkMWEyMzdlNTcxYThhNTE5NDY4MTFhZDAzMDUwZmE2NjkwNTRmMjY3ZGNiZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwOGFlY2RkMTNmYzE5MzIwNmEzODJiNTVlNGE4ZWEyMGU2MWFmNWJmZjI5YzUxZWI1OWY4ZGJmZDg4YjU2NmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a973bd2ffd8044e79e81f40b33df80ed",
+      "statement": "Builder cache keys replace object-ref parameters with content_fingerprint, which hashes only type, source_op, nbytes and label metadata and never the object contents, so distinct inputs with equal metadata collide.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L40-L53",
+          "version": "repo-lines-v1:sha256:d9c592b2f664061d2f5fd52e3b62ce03d6f89c4ab565e92157f9f76c43173e4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZThlYTQwNDhiYzQyNDcwNWJjNzRjYzhkZGUyODBjZmFhZTdlNmQ5M2YzYjZhMmU0YWYyMDM1MGUxMmRmNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNDhhYzVlNzdjNThmNDE3MjRhZDAwNmE3NTk3MjZiMGYxYTBkMzFlOGUwMTgwZDU0NzY0ZmI0YzUzYzEwN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNjdjOGE4OWY2NGYwZDAyOTMzZDkwYjgxOWQxZjk5OGIzOGQzMjExMGMwZTE2MjVlOThiMDFjNGUzMWFkZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMTA3ZjA0MzA5MDI3NjVlZmY3MzVlYzY4MTMwMThmYjRlYTg1MDk1NTIwYmQwYzM4ZDVjOTAxODEyY2RmNmIifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L309-L346",
+          "version": "repo-lines-v1:sha256:e05e57c612c48151088d608121bb975b7cd537a38c81a006d044312dbd164938:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0NDZkYzhhMTY3NGVhZDI1OTU2ZWUwMTU0OWMxZjcyMDU0NDk5MmVjMjEyZGM5Y2IxYTQwZWNjNjEyNWNkZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3NDY3OWY5OGQwODk4YzBkMDhlMjI0ODZmNzhmNGU4NTgxZTRkZjFhZGMwMGYxN2JlZjU5ZjJkMTg1ZDFiNDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwNGFlZjVlZjBjMDkxMDQ4ZTQ4NmNjZmEwNDQzYzlmZWViNDMzMTNhOWNhMjQ0ZTFhZWMwNTQ0Yjc0ZmYzMGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a37486f603944079f9f82e801e7eb53",
+      "statement": "Cache lookup and write failures are logged and never fail the operation.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L261-L276",
+          "version": "repo-lines-v1:sha256:725f63920a526e7bda69b29289696276d978f2b13d5c2623d8e4d97a8a643282:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1ZjE3M2YyMTkxOGViODU5NTI5NWVjYzUwYWRiNTJmNTg1MmVhOTYzZjhiNjhkODczZjc0YWI2YjY5MmMwYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYjE3MzJlNTQ2MjMzOTcwYTA1ODk3ZWExYjZhOGI1NDljYmYyODJmYjE1MzUwYTY2MmU4NGI3NzAxM2NiMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhNGMxN2Y0ODA5MTM3ZTA2NTRmYTg2ZTdiOGI3OGY4ZDRmMzdiMWMwNWE4NzgyNzkxZGM2ODI4YmNiZmMyYmMifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L377-L390",
+          "version": "repo-lines-v1:sha256:01a56a36e7b18d8afcb6a7e5f39e9a0fd7b7a3b6b08d628e210ff4276d604de3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMjFhMDNiNTBiNTVmN2VmMmFkZjkwNjg3ZGJkYzdiODQ0Yzc2N2ViNzY0OWMyMjA5NTExZjEyZTUzZDU3ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6e7a3867a6b74aa89ed918ea9b5eff49",
+      "statement": "The dispatcher only writes single-object results to the disk cache; tuple and primitive results are skipped.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L349-L362",
+          "version": "repo-lines-v1:sha256:b23af4185c7050b16adf6784841713d58730c4824d655e4e758d97c41412a532:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjMGEyYmViYzgwNDIxNzgxZTM5OTQwMjU2M2Q0M2M1ZDkxNTQ4YTkwY2VhNTMxMTFjMGQ2NzllODAxZDlkMjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiYjc2MDg2YTdjZDE3Njc3MTQ2ZmM3YzE2OTg2ZmMzZDhjZDkwNDE0ZjNlZGIzZTk5YWJkNWIxOGUwOWRiYmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a5ebc4a5b2da48b892fb54bb2f32d3cb",
+      "statement": "A get_buildings cache hit returns the cached summary with only its bounds field replaced, without cropping to the requested area.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L346-L358",
+          "version": "repo-lines-v1:sha256:1d76e37bdee55d788a6bc9339f41d518b38fcd30451bf2bf82af323338c7280b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZDM3Y2E2NGUyNjRlY2QxNjA3NjRjZDA0MDQ2NDU4NzFhNjU1OWYzMjlhYmUwNDNiYmExY2VjNGJiYTA1NDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiYzI2MGE4ODNiNDQ0OGUyMjViMjEwNmQzNDQ3Zjk5YzUxNjBmOTExN2M5NWUzYzM1MDIwNmE2ODAwMTNhOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzMjkwOWNlOTIxM2MxMmY4YzFmNmI2N2Y1ZTdhM2ViZWViZjg5ZjQxMzZmNTA1MTJiNWZjNWRiNzk4OTZkMTAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-26T09:41:09.647Z"
+  }
+}
