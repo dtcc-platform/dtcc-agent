@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-09-27.
+Last updated: 2026-09-28.
 
 ---
 
@@ -14,7 +14,8 @@ Last updated: 2026-09-27.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-27 | A generated wiki of the codebase, for people and agents ([#47](https://github.com/dtcc-platform/dtcc-agent/pull/47)) | 🔍 |
+| 2026-09-28 | Restart the agent after redeploying dtcc-sim, decided on #46 ([#48](https://github.com/dtcc-platform/dtcc-agent/pull/48)) | ✅ |
+| 2026-09-27 | A generated wiki of the codebase, for people and agents ([#47](https://github.com/dtcc-platform/dtcc-agent/pull/47)) | ✅ |
 | 2026-09-27 | The catalogue is built once per process, and a broken Core install stops the server ([#43](https://github.com/dtcc-platform/dtcc-agent/pull/43)) | ✅ |
 | 2026-09-26 | A limit on how much Core work runs at once, fair between users, and one download per tile ([#36](https://github.com/dtcc-platform/dtcc-agent/pull/36)) | ✅ |
 | 2026-09-26 | The automated reviewer gets repo context, and trials broader code suggestions ([#37](https://github.com/dtcc-platform/dtcc-agent/pull/37)) | ✅ |
@@ -34,7 +35,7 @@ Last updated: 2026-09-27.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
 ### A generated wiki of the codebase · 2026-09-27 · [#47](https://github.com/dtcc-platform/dtcc-agent/pull/47)
 
@@ -55,10 +56,6 @@ README and piecing them together.
 **How we know it works:** the pages were regenerated after T10 (#43) merged, so they
 describe the catalogue as it is on `develop`. Every factual statement passed OpenWiki's
 check that its linked code exists.
-
----
-
-## ✅ Merged
 
 ### The catalogue is built once per process (M1a/T10) · 2026-09-27 · [#43](https://github.com/dtcc-platform/dtcc-agent/pull/43)
 
