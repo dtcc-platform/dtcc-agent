@@ -116,7 +116,9 @@ service (`DTCC_SIM_SERVICE_URL`) are not part of the build. When the catalogue i
 background thread asks the service, and again every 30 seconds while it is down (the agent
 warns once; dtcc-core's own discovery warning still repeats each time); the catalogue picks its datasets up on the next read after it answers. Until
 then, asking for one of them says dtcc-sim hasn't answered yet. No request ever waits on
-dtcc-sim, and the two services can start in either order.
+dtcc-sim, and the two services can start in either order. Once dtcc-sim has answered it is
+not asked again, so restart the agent after redeploying dtcc-sim: until then a new
+simulation is missing and a removed one is still offered (#46).
 
 At most `DTCC_MCP_WORKERS` tool calls (default 4) run at once across all Sessions, and at
 most half of them (at least 1) from one Session; the rest wait their turn. `render_object`
@@ -130,7 +132,8 @@ auth lands (U11, #15): a client that invents ids gets a share per id.
 
 ### Docker Mini-Service
 
-Start `dtcc-sim` first, then build and run the agent service:
+Start `dtcc-sim` and the agent service, in either order. After redeploying `dtcc-sim`
+on its own, restart the agent so it picks up the new list of simulations:
 
 ```bash
 cd ../dtcc-sim
