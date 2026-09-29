@@ -14,6 +14,7 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-29 | Building heights are real, bad bounds are refused, and the disk cache can't be tampered with ([#51](https://github.com/dtcc-platform/dtcc-agent/pull/51)) | 🔍 |
 | 2026-09-29 | Building counts for a smaller area inside a cached one are right, via either tool ([#50](https://github.com/dtcc-platform/dtcc-agent/pull/50), fixes [#39](https://github.com/dtcc-platform/dtcc-agent/issues/39)) | 🔍 |
 | 2026-09-28 | Restart the agent after redeploying dtcc-sim, decided on #46 ([#48](https://github.com/dtcc-platform/dtcc-agent/pull/48)) | ✅ |
 | 2026-09-27 | A generated wiki of the codebase, for people and agents ([#47](https://github.com/dtcc-platform/dtcc-agent/pull/47)) | ✅ |
@@ -32,11 +33,34 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 295 with #50.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 295 with #50 → 326 with #51.
 
 ---
 
 ## 🔍 In review
+
+### Building heights are real, bad bounds are refused, and the disk cache can't be tampered with · 2026-09-29 · [#51](https://github.com/dtcc-platform/dtcc-agent/pull/51)
+
+**Before:** every `get_buildings` answer said the buildings were 0 m tall, because Core keeps
+its height estimate where we did not look. `run_operation("datasets.buildings")` returned no
+count or heights at all. The total footprint area covered only the buildings listed. An
+upside-down or zero-size area was answered from any larger cached area. The disk cache lived
+in `/tmp/dtcc_cache`, where another user on the machine could plant a file the agent would
+load and run, and two agent processes sharing the cache lost each other's entries.
+
+**Now:**
+- Heights come from Core's estimate (or its measurement), in `get_buildings` and in
+  `run_operation` alike. Live on Lindholmen: 3.0 to 28.5 m, mean 15.9 m, where it said 0.
+- The total footprint area covers every building in the area.
+- `run_operation`, `get_buildings`, `run_simulation` and `compare_scenarios` refuse bounds
+  that describe no area, with a message saying why.
+- The cache lives in `~/.cache/dtcc_agent` by default, is created private, and the agent
+  refuses to start on a cache another user could change. Docker's `/data/cache` is unaffected.
+- Several processes can share one cache without losing entries.
+
+**How we know it works:** 326 tests pass, 31 of them new, including 8 processes writing one
+cache at once (1600 of 1600 entries kept). A Codex adversarial review ran three rounds and a
+Claude review one; every finding was fixed.
 
 ### Building counts for a smaller area inside a cached one are right · 2026-09-29 · [#50](https://github.com/dtcc-platform/dtcc-agent/pull/50)
 
