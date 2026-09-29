@@ -13,7 +13,8 @@ from the object's actual contents.
 
 **Why.** The eng review of 2026-09-19 made four `CACHE_ALLOWLIST` entries session-local —
 `builder.build_terrain_surface_mesh`, `builder.build_city_surface_mesh`,
-`builder.raster.slope_aspect`, `builder.pc_filter.classification_filter` — because their
+`builder.raster.slope_aspect` (removed from the allowlist by #42: it returns two rasters,
+which the cache does not store), `builder.pc_filter.classification_filter` — because their
 cache key hashes only `type`, `source_op`, `nbytes` and `label`, never the contents. Two
 sessions whose inputs share those four attributes collide and can be served each other's
 derived results. Making them session-local closed that, and cost cross-session reuse of
