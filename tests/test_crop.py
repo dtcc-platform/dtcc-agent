@@ -136,3 +136,15 @@ def test_crop_groups_parts_by_the_source_feature_not_the_random_building_id(sour
     cropped = crop_to_bounds(city, [0, 0, 100, 100])
 
     assert cropped.buildings == [other]
+
+
+def test_buildings_without_any_id_are_judged_one_by_one():
+    """PR-Agent: an empty id must not tie unrelated buildings together."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    inside = _building(10, 10, id="")
+    outside = _building(500, 500, id="")
+
+    cropped = crop_to_bounds(BuildingCollection([inside, outside]), [0, 0, 100, 100])
+
+    assert cropped.buildings == [inside]
