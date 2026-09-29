@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-09-28.
+Last updated: 2026-09-29.
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-09-28.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-29 | Building counts for a smaller area inside a cached one are right, via either tool ([#50](https://github.com/dtcc-platform/dtcc-agent/pull/50), fixes [#39](https://github.com/dtcc-platform/dtcc-agent/issues/39)) | 🔍 |
 | 2026-09-28 | Restart the agent after redeploying dtcc-sim, decided on #46 ([#48](https://github.com/dtcc-platform/dtcc-agent/pull/48)) | ✅ |
 | 2026-09-27 | A generated wiki of the codebase, for people and agents ([#47](https://github.com/dtcc-platform/dtcc-agent/pull/47)) | ✅ |
 | 2026-09-27 | The catalogue is built once per process, and a broken Core install stops the server ([#43](https://github.com/dtcc-platform/dtcc-agent/pull/43)) | ✅ |
@@ -31,9 +32,34 @@ Last updated: 2026-09-28.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 295 with #50.
 
 ---
+
+## 🔍 In review
+
+### Building counts for a smaller area inside a cached one are right · 2026-09-29 · [#50](https://github.com/dtcc-platform/dtcc-agent/pull/50)
+
+**Before:** asking `get_buildings` about an area inside one already cached returned the
+cached area's answer with only its bounds changed: the building count, the building list
+and the height statistics all described the larger area (#39). `run_operation` on
+`datasets.buildings` had the same bug for a different reason: its crop kept every building.
+
+**Now:**
+- `get_buildings` caches the building download, not its summary, crops it to the area asked
+  for, and summarises it per request. A different `max_buildings` reuses the same download.
+- The crop keeps exactly what a fresh download of that area would: Core's own rule, the whole
+  footprint inside the bounds less 2 m, with multi-part buildings kept or dropped together.
+- `get_buildings` and `run_operation("datasets.buildings")` share one cache entry, so
+  whichever runs first saves the other a download.
+- A cached area that cannot be cropped is downloaded again rather than reused whole.
+
+**How we know it works:** a live run on Lindholmen (500 m cached, a 200 m area inside it) gave the same buildings from the cache as from a fresh download: 13 of 127 on LM, 12 of 138 on OSM. 295 tests pass, 15 of them new, built from real Core buildings:
+a sub-area inside a cached one, buildings crossing the edge, multi-part buildings, and each
+cache failure path. Reviewed by five specialist passes, a Claude adversarial pass and three
+Codex rounds. Two rare edge cases remain where the cache can count one building more at the
+edge than a fresh download (tiny or malformed source shapes), filed as
+[#49](https://github.com/dtcc-platform/dtcc-agent/issues/49).
 
 ## ✅ Merged
 

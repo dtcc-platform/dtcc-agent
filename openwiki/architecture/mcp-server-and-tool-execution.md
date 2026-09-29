@@ -5,7 +5,7 @@ description: How dtcc-agent registers its MCP tools, runs each call in a bounded
 tags: [mcp, server, concurrency, transport, startup]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-27T19:28:40.080Z
+    at: 2026-09-29T13:24:05.367Z
 sources:
   - id: openwiki-source-4163f0ea9e6726ccca521458
     resource: repo://dtcc_agent/registry.py

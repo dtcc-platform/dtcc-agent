@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:7ee4eb944399bccf3de125bf7d9eb4aba33f09981c63588d938d11adb7d1559c",
+  "pageVersion": "sha256:c48817b9e290e959971b7c6c7b45c3322507ef549ddaf812ecddd9abbb72ae0b",
   "claims": [
     {
       "id": "claim_003015a8b19f45bd80f4e61264a2ac11",
@@ -66,21 +66,31 @@
     },
     {
       "id": "claim_36b3c5993bf741c8abbf42a14f566caa",
-      "statement": "ADR-0004 keeps only bounds-keyed public downloads shared across Sessions; builder cache entries should be session-local because content_fingerprint hashes only metadata and can collide.",
+      "statement": "ADR-0004 keeps only bounds-keyed public downloads (datasets.point_cloud and datasets.buildings) shared across Sessions; builder cache entries should be session-local because content_fingerprint hashes only metadata and can collide.",
       "evidence": [
         {
-          "resource": "repo://docs/adr/0004-session-is-the-isolation-unit.md#L44-L75",
-          "version": "repo-lines-v1:sha256:2bee1f2071d7c1a61d7ffe9f5b3e14b1dd58ec6390b377b98111f07178800013:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1YTE2ZjRjOGRlY2YxODIwNDU4NGVkZDFkYzRiZTI1YWFiNjExODliMDRjMjVjMmNkNGJmYTNlOGQ0ZjkxZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNmQzNzE1YTBjNDE0OTFlNGMzZGRkODVkNmY1ZDU2MGQyNDM5YTNkMTM3ZTg5MjdjM2YzMTdkOWU3YmZiOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2OWM2NjVmM2E2ZjIzNDYwZTFkMGQxOGFiMzY2NzljNDRhYTgyY2FiZTQwOGFlNGNmZWMyNWRiMGU3NDM2MGMifQ"
+          "resource": "repo://docs/adr/0004-session-is-the-isolation-unit.md#L44-L78",
+          "version": "repo-lines-v1:sha256:822892a55b2b8f99bdb981a87d01d14873f79922a5a33711420d72c8545d3f74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNDcxNWM5MzMzNzA4YjNlNDViZmE1MWYyZWFjYTFmYjZhZmIzODAzMjQ2ZWVhY2FlNWI2ODQ3YjY1OTY5MTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNmQzNzE1YTBjNDE0OTFlNGMzZGRkODVkNmY1ZDU2MGQyNDM5YTNkMTM3ZTg5MjdjM2YzMTdkOWU3YmZiOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlMjU2OGVmODE4MTZiMTY4MDc3YTkxNmZlZmM1NDhhNTYxYTc3ZTAwNTE2ZDRkZmRhZWM3ODQ3ODQ5YmI1YzQifQ"
         },
         {
-          "resource": "repo://dtcc_agent/disk_cache.py#L40-L53",
+          "resource": "repo://dtcc_agent/disk_cache.py#L39-L52",
           "version": "repo-lines-v1:sha256:d9c592b2f664061d2f5fd52e3b62ce03d6f89c4ab565e92157f9f76c43173e4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZThlYTQwNDhiYzQyNDcwNWJjNzRjYzhkZGUyODBjZmFhZTdlNmQ5M2YzYjZhMmU0YWYyMDM1MGUxMmRmNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNDhhYzVlNzdjNThmNDE3MjRhZDAwNmE3NTk3MjZiMGYxYTBkMzFlOGUwMTgwZDU0NzY0ZmI0YzUzYzEwN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNjdjOGE4OWY2NGYwZDAyOTMzZDkwYjgxOWQxZjk5OGIzOGQzMjExMGMwZTE2MjVlOThiMDFjNGUzMWFkZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMTA3ZjA0MzA5MDI3NjVlZmY3MzVlYzY4MTMwMThmYjRlYTg1MDk1NTIwYmQwYzM4ZDVjOTAxODEyY2RmNmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b92e33312814a10ba80e992398b7346",
+      "statement": "get_buildings has no disk-cache entry of its own: it reads and writes the shared datasets.buildings download through load_cached_dataset and store_dataset and summarises per request.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L346-L386",
+          "version": "repo-lines-v1:sha256:62b2e39eda0a58655f5e559ac8a7cdaea6223c2fc3223748fced523671dc0f8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhZTRhOWI1OWJmNDc5ZjYwYjBmNjBiOWIyZjMzMTYyNzk5ZDg5YTc0MjM4Yjk1YTQyZTBlNTFiYmQyZDRhMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyZmMxYzZkMzZhYjI3NGYwMzhiZWZiY2MzYTMxM2M3ZTViMTRhOTI3OWU1YThmMmE3NTEyZjRjMDA2MWJjMWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwNTIxYjdkMmU0MzAyNGNhZDBjNjlmNGY1NmY3OTNlYTAyNjhkZDUyZTIyMGM4OWE4NTQ4NDgwZmY1NGFjMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYTIyOTg3MTMzMWIzODNjYmI2Y2E4MjFlNWRjN2QwNmEwOWJmNDA2OGEwZDk5MzFkY2VlODBhMTUzOGI4MzIifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-26T09:41:09.647Z"
+    "at": "2026-09-29T13:24:05.367Z"
   }
 }

@@ -276,6 +276,63 @@ def _check_cache(
         return None
 
 
+def _dataset_params_hash(name: str, params: dict[str, Any]) -> str:
+    """Key a dataset download by everything but its bounds. Source defaults to
+    LM here as it does in Core, so a call that leaves it out shares an entry
+    with one that names it."""
+    non_bounds = {k: v for k, v in params.items() if k != "bounds"}
+    non_bounds.setdefault("source", "LM")
+    return canonical_params_hash(name, non_bounds)
+
+
+def load_cached_dataset(
+    name: str,
+    params: dict[str, Any],
+    cache: DiskCache,
+) -> Any | None:
+    """A cached download covering ``params["bounds"]``, cropped to them.
+
+    None on a miss, and when a larger cached area cannot be cropped: reusing
+    it whole would answer for the wrong area (#39).
+    """
+    bounds = params.get("bounds")
+    if not bounds:
+        return None
+    source = params.get("source", "LM")
+    hit = cache.dataset_lookup(name, source, _dataset_params_hash(name, params), bounds)
+    if hit is None:
+        return None
+    cache_id, cached_bounds = hit
+    obj = cache.load(cache_id)
+    if cached_bounds != list(bounds):
+        cropped = crop_to_bounds(obj, list(bounds))
+        if cropped is obj:
+            logger.info("Cannot crop cached %s (%s); treating as a miss",
+                        name, type(obj).__name__)
+            return None
+        obj = cropped
+    return obj
+
+
+def store_dataset(
+    name: str,
+    params: dict[str, Any],
+    obj: Any,
+    cache: DiskCache,
+) -> None:
+    """Cache a dataset download under the key load_cached_dataset reads."""
+    bounds = params.get("bounds")
+    cache.store(
+        obj=obj,
+        operation=name,
+        category="datasets",
+        params_hash=_dataset_params_hash(name, params),
+        bounds=list(bounds) if bounds else None,
+        source=params.get("source", "LM"),
+        object_type=type(obj).__name__,
+    )
+
+
 def _check_cache_dataset(
     name: str,
     params: dict[str, Any],
@@ -283,20 +340,9 @@ def _check_cache_dataset(
     cache: DiskCache,
 ) -> dict[str, Any] | None:
     """Check disk cache for a dataset operation."""
-    bounds = params.get("bounds")
-    if not bounds:
+    obj = load_cached_dataset(name, params, cache)
+    if obj is None:
         return None
-    source = params.get("source", "LM")
-    non_bounds = {k: v for k, v in params.items() if k != "bounds"}
-    ph = canonical_params_hash(name, non_bounds)
-    result = cache.dataset_lookup(name, source, ph, bounds)
-    if result is None:
-        return None
-    cache_id, cached_bounds = result
-    obj = cache.load(cache_id)
-    # Crop if cached bounds are larger than requested
-    if cached_bounds != list(bounds):
-        obj = crop_to_bounds(obj, list(bounds))
     obj_id = store.store(obj, source_op=name, label="(cached)")
     return {
         "operation": name,
@@ -363,28 +409,20 @@ def _populate_cache(
     except KeyError:
         return
 
-    if category == "datasets":
-        bounds = params.get("bounds")
-        source = params.get("source", "LM")
-        non_bounds = {k: v for k, v in params.items() if k != "bounds"}
-        ph = canonical_params_hash(name, non_bounds)
-        bounds_list = list(bounds) if bounds else None
-    else:
-        fingerprints = _compute_fingerprints(params, store)
-        ph = canonical_params_hash(name, params, fingerprints)
-        bounds_list = None
-        source = None
-
     try:
-        cache.store(
-            obj=obj,
-            operation=name,
-            category=category,
-            params_hash=ph,
-            bounds=bounds_list,
-            source=source,
-            object_type=type(obj).__name__,
-        )
+        if category == "datasets":
+            store_dataset(name, params, obj, cache)
+        else:
+            fingerprints = _compute_fingerprints(params, store)
+            cache.store(
+                obj=obj,
+                operation=name,
+                category=category,
+                params_hash=canonical_params_hash(name, params, fingerprints),
+                bounds=None,
+                source=None,
+                object_type=type(obj).__name__,
+            )
     except Exception:
         logger.warning("Failed to store %s result in disk cache", name,
                         exc_info=True)

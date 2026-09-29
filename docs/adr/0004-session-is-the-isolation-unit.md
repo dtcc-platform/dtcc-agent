@@ -70,6 +70,10 @@ session-keyed.**
 > stay shared — those are keyed on bounds and source alone. The other five are session-local.
 > Restoring cross-session reuse of derived geometry requires a fingerprint that hashes contents,
 > tracked as `TODOS.md` T-001.
+>
+> *Update 2026-09-29 (#39):* `get_buildings` no longer has its own entry. It caches the
+> `datasets.buildings` download and summarises per request, so the shared set is
+> `datasets.point_cloud` and `datasets.buildings`.
 
 So the isolation unit is the Session for *state*, and the bounds-and-parameters tuple for *public
 derived data*. Both are properties of the object, which preserves this ADR's original reason for

@@ -5,7 +5,7 @@ description: How run_operation resolves parameters, calls a dtcc-core function o
 tags: [dispatcher, object-store, serializers, references, pipelines]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-26T09:41:09.647Z
+    at: 2026-09-29T13:24:05.367Z
 sources:
   - id: openwiki-source-7931b878d950a1ff97af7eb8
     resource: repo://docs/adr/0010-references-are-typed-and-a-run-records-its-object.md
@@ -19,7 +19,7 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
-generated: { by: "claude-code", at: "2026-09-26T09:41:09.647Z" }
+generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
 ---
 
 # Dispatch, object references and serialization
@@ -35,7 +35,7 @@ The generic dispatch path lets an LLM chain any catalogued dtcc-core Operation w
 The MCP tool `run_operation(name, params, label)` in `server.py` calls `dispatcher.run_operation(name, params, store=_session().objects, cache=_disk_cache)`:
 
 1. **Look up** the `OperationInfo` in the catalogue. An unknown name returns `{"error": ...}`.
-2. **Check the disk cache** if the name is in `CACHE_ALLOWLIST`. A hit returns immediately with `cache_hit: true` (see [Disk cache](disk-cache.md)).
+2. **Check the disk cache** if the name is in `CACHE_ALLOWLIST`. Datasets go through `load_cached_dataset`, which crops a larger cached area to the request; the `get_buildings` tool uses the same helper. A hit returns immediately with `cache_hit: true` (see [Disk cache](disk-cache.md)).
 3. **Call the Operation.**
    - *Datasets* (`_run_dataset`) are called as `ds(**params)`, with a `Bounds` object converted back to a list.
    - *Functions* (`_run_function`) resolve each declared parameter:
@@ -48,7 +48,7 @@ The MCP tool `run_operation(name, params, label)` in `server.py` calls `dispatch
    - A **list** of Building, Tree or Surface is stored as one object.
    - A **primitive or dict** is returned inline and not stored.
    - **Anything else** is stored and returned with its `result_id`.
-5. **Populate the disk cache** on success.
+5. **Populate the disk cache** on success, datasets through `store_dataset`.
 
 Exceptions from Core are caught and returned as `{"error": "Operation '<name>' failed: ..."}`. Tools return error payloads rather than raising, so the LLM can recover.
 

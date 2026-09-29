@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1d3d40ef4294d06c332c3424590db8574285f8eda6e4b9b2817ba91a0dc966ab",
+  "pageVersion": "sha256:949641caab86d78c339f962c4ca15fcaca4c0e23d1a0522d0b997f1a643a4b12",
   "claims": [
     {
       "id": "claim_739e3c592e0448d09eedf3d83899fdca",
@@ -74,11 +74,11 @@
     },
     {
       "id": "claim_546ebe580611422fb9f7c190b021a8fb",
-      "statement": "get_buildings returns a summary with building count, per-building height and footprint area computed from lod0 vertices, height statistics and a truncated flag.",
+      "statement": "summarize_buildings returns a summary with building count, per-building height and footprint area computed from lod0 vertices, height statistics and a truncated flag.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/runner.py#L245-L332",
-          "version": "repo-lines-v1:sha256:8e12e4e5c503723a6efa48e1880bc49cc132cc0249a835464476cb0fa1947d20:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzZGMxMzBjYzk2MjY2MDBjNWRiMGNmNGU5MmRkODU1ZjU4ZjE1NDllN2FkZWVkZmQ4MjE0Mzc4OTQ5YTVmYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YzdmOTIzZDEyODg2ZmI1YTEwZmRmMGVhMTc0NjU5OTBhZmYxMDFiZDQzYmY1OGY4MWQ2MGZkMjE4OTRmNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://dtcc_agent/runner.py#L262-L342",
+          "version": "repo-lines-v1:sha256:3c7d790b350866d296a72de65d24ee0f00a447c7198828dbd916b89080ad529b:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5OWNmNGZlZmM0MzE0ODc1MTUyMjViZjQ0NWQwYjM2Yjg5MDVmOTU5NGIyOWFiZjhhZTZhOGEyYjI3YjBmYjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzOWYxNzAyYjBjMDZiNzQ0ZGQ4NTYzOTI2NDMwNTJkM2FjYjA5ZmY3NzhlN2ZiNGZmMzc1Y2FjNTY2ZGRmODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -91,10 +91,24 @@
           "version": "repo-lines-v1:sha256:90be9f6b1855457a736fa9b2682379a6bca7f4e53a71017124c08e01f527df45:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YzVlOTBmM2U3ZDFhMDU4MWYzOTBmY2ViNDgxMDM4MzkyZjA3NTgzMGEyNWJkZWIxYWZjNTU2ZWMyZDYyZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3Y2JiMWNlODMwNzA0ZGVlODE1NTE5ZmIxMTJlYjQyZmE3OTgzMWFjNTFlNjU5ODM4OWFmZTNkMGU5ZTg5NGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5YWJhNzk2ODM4MzI5NGY4ZjhlZDI2ZjVkNDhjY2U0ZjM1ZWIxYjY4MDRhNzVhZDU0MzNhZGMzYWJhYmY1NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhYzllNWFhZDAxMDgzZmYxODA2NzJkZTY2YTViODQ3N2Y3MTAxZGFjOWIyNDA1OGY2NTA3NTIyMzQ5ZjM0MWMifQ"
         }
       ]
+    },
+    {
+      "id": "claim_10bc6b1d58694ee48e9ce3900867cb43",
+      "statement": "get_buildings downloads with runner.fetch_buildings only on a cache miss and builds every answer with runner.summarize_buildings for the bounds asked.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/runner.py#L245-L259",
+          "version": "repo-lines-v1:sha256:cdd23c1dca2bde0c78256d9ed9206b3f2c66fc5d60e07ec28e22fddf0a61f362:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMWU2Yjc1NmRlZDA1NzNmYzMzOGIyN2FmMGYwMWFkYWQzNGMyN2Q2NjNjNTUxMTVkMTMyNmJlNjg0ZTVjMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmM2I5ZTFkNGY4MmU5ZDBkZTc2NWY4ZTIzNWUyYmFiYzg4NTViYTVlMjI1MzNkMWI3NWE0NjhhYjEzZWIyN2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YzdmOTIzZDEyODg2ZmI1YTEwZmRmMGVhMTc0NjU5OTBhZmYxMDFiZDQzYmY1OGY4MWQ2MGZkMjE4OTRmNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0MTRjNDY1NGU3ZGM3M2I5MGRhMmI3ZGMwZDkzYmU1Nzk5ZTA5YjY3MzJkNDQ0YzQxZDE2MzA0NzQyOGYyMjEifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L346-L380",
+          "version": "repo-lines-v1:sha256:bfac8b18ca428a2836a7b1dbbaed0665996c97754f81351427d3f525c2aae0a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhZTRhOWI1OWJmNDc5ZjYwYjBmNjBiOWIyZjMzMTYyNzk5ZDg5YTc0MjM4Yjk1YTQyZTBlNTFiYmQyZDRhMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMzFjODkwYWQ5M2E5OWExMWYyZTU0NTZmNmJjYTExZTViYjQwOWI0MmM2MmQ3MzIyOGI0MmRlNTk0MzRlM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwNTIxYjdkMmU0MzAyNGNhZDBjNjlmNGY1NmY3OTNlYTAyNjhkZDUyZTIyMGM4OWE4NTQ4NDgwZmY1NGFjMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4MGVkODExMGJmYTkzYjBlMDY3NTEyOWVhNDJjODQwYTA1ZjBjYmZmYjY3MTFiYTkwN2RjNTg0OWRjYWRhMDIifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-27T19:28:40.080Z"
+    "at": "2026-09-29T13:24:05.367Z"
   }
 }

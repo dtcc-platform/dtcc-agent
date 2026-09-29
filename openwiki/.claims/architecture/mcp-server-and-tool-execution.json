@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ade6bb0c481e2ba9639a8158d1e160b432c307b647240fbf51294edab5413243",
+  "pageVersion": "sha256:5f7abfef2e204f5eb50bb76b94b9c19fcb5c2b2c6b0a20fe029c03aa42745c00",
   "claims": [
     {
       "id": "claim_91287ccec02148c08a9c50ef7e5ba64c",
       "statement": "The @tool decorator registers an async wrapper with FastMCP that binds the calling Session into a ContextVar and runs the sync body in a worker thread under both the Session's limiter and the process-wide runtime.workers limiter, returning the original function unchanged for in-process callers.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/server.py#L184-L239",
-          "version": "repo-lines-v1:sha256:5e2f79ac1854929a25d1010c5a52f4674b174e839bdd6f24c016136ac954837b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4OTQ5YmY4ZWY0MmQ0M2RjMDQ1NWU4NjQxNjExOTcwMmMzNDhlNGY3OGE1ODMzNmVhYzAwYzNkZTQzMmQxZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNmFlOWI0Nzc5NjQ5ODRjMDI0MTMwMmMyMDliMTYzNDc5MTJmYjdlYWY0NGI0NzczNjA2MDcwMThkMzAxNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkMzQxNmQxYjU3NzhmODcxZWMwODljOTFkMjY5NzY0YTk0OGM2ZjM1ZGU5YzYwM2I2ZjA4ZjJiYTFlM2UyOGEifQ"
+          "resource": "repo://dtcc_agent/server.py#L185-L236",
+          "version": "repo-lines-v1:sha256:abb346b0c198933b195943e303f76ef8cb70e8413fa4a7689ea3184b8c833d18:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4OTQ5YmY4ZWY0MmQ0M2RjMDQ1NWU4NjQxNjExOTcwMmMzNDhlNGY3OGE1ODMzNmVhYzAwYzNkZTQzMmQxZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNmFlOWI0Nzc5NjQ5ODRjMDI0MTMwMmMyMDliMTYzNDc5MTJmYjdlYWY0NGI0NzczNjA2MDcwMThkMzAxNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5OGIxNTgyMGQ3MzYwNjY3ZTRmOWE2OTkwMWI1ODVjZDQzZTg2YzdiZWU0YTBjNzBmOTQ3YzQ2MTQyM2M1MWIifQ"
         }
       ]
     },
@@ -99,6 +99,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-27T19:28:40.080Z"
+    "at": "2026-09-29T13:24:05.367Z"
   }
 }

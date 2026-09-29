@@ -269,6 +269,8 @@ automatically cached to disk at `/tmp/dtcc_cache/`. The cache uses:
 
 - **Spatial containment** for datasets: if a cached result covers a
   larger area than requested, the cached data is reused and cropped.
+  Buildings are cropped with Core's own footprint rule, so the result matches
+  a fresh download; a cached object that cannot be cropped is downloaded again.
 - **Content fingerprinting** for builders: input objects are hashed by
   their metadata (type, size, source), so the same pipeline step with
   equivalent inputs hits the cache even across sessions.
@@ -277,6 +279,9 @@ automatically cached to disk at `/tmp/dtcc_cache/`. The cache uses:
 
 Both `run_operation` (via the dispatcher) and `get_buildings` (direct
 MCP tool) check the disk cache before fetching from external sources.
+`get_buildings` caches the building download itself, keyed like
+`datasets.buildings`, and summarises it per request, so a smaller area inside
+a cached one is cropped before it is counted.
 
 ## Examples
 

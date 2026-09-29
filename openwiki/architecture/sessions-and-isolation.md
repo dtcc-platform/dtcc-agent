@@ -3,9 +3,6 @@ type: architecture
 title: Sessions and isolation
 description: How dtcc-agent makes the Session the isolation unit (ADR-0004), covering the X-DTCC-Session header, per-Session object stores and runs, the eight-Session cap with LRU eviction, the local stdio Session, and the gaps that remain.
 tags: [session, isolation, security, adr-0004, http]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-26T09:41:09.647Z
 sources:
   - id: openwiki-source-778a883bcdc0a6ed0b3401f7
     resource: repo://chatbot/config.py
@@ -19,7 +16,10 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-7da8cb11cdc15fb1e5a1f088
     resource: repo://tests/test_http_sessions.py
-generated: { by: "claude-code", at: "2026-09-26T09:41:09.647Z" }
+generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-09-29T13:24:05.367Z
 ---
 
 # Sessions and isolation
@@ -63,7 +63,7 @@ Sessions are keyed by the header value rather than by MCP transport session, bec
 
 Taken literally, "never visible from another" would destroy the disk cache's containment reuse. ADR-0004's corrected split is:
 
-- Public upstream downloads (`datasets.point_cloud`, `datasets.buildings`, `get_buildings`) stay shared. They are keyed on bounds and source alone.
+- Public upstream downloads (`datasets.point_cloud`, `datasets.buildings`) stay shared. They are keyed on bounds and source alone. `get_buildings` has no entry of its own: it reads and writes the `datasets.buildings` download and summarises per request (#39).
 - Builder results derived from user objects should be session-local, because `content_fingerprint` hashes only metadata (`type`, `source_op`, `nbytes`, `label`) and two Sessions can collide. Cross-session reuse of derived geometry is tracked as `TODOS.md` T-001.
 
 ## Known gaps (recorded, not hidden)

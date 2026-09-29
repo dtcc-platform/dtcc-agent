@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d65f61b474e8d30c663ea71f45b60f4cb5f5c9408bdaade0dada6530c0627708",
+  "pageVersion": "sha256:bf46f53304e92d8f340d6c35b7531cfcdfc936f84c92c9980449e919a4da3e52",
   "claims": [
     {
       "id": "claim_7f9ee33d42b74fec93893f659cb039d8",
@@ -79,8 +79,8 @@
       "statement": "The agent and dtcc-sim can start in either order: dtcc-sim's datasets are never registered at startup but asked for from a background thread every 30 seconds until the service answers.",
       "evidence": [
         {
-          "resource": "repo://README.md",
-          "version": "repo-file-v1:sha256:a1c943d1789448588e0753e980134400e1fc1e3109514000c8665dc16885eab6"
+          "resource": "repo://README.md#L114-L136",
+          "version": "repo-lines-v1:sha256:905d21b2ead9ead9e334a08144c5dfc0c7cdf28f429ead6c39f1464e54375037:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNmI5ODdjMzEwNTI2YWY5NTFhZWJjOWQzMmU2MjViZjA3ZWZlYWJkNDRmMmIwMzM3MzI1ZGM5YTBhM2JjY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxYzk0YmQ1ZjBkODNjZjQzZmI1ZDcyYzkzNGI3ZDU0ZGY5ODY4NzlkNDc4YTc5ZjMyODAwMTVmMzFkZWY5NGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhNThlNTQwZDEwYjRkMmJhYWQ5NmUyNGNiMjUxMWMxZjAxNWRjN2JmNzE3M2QwNzJiZWE4M2NlYmZlNWQyOGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0Y2U2NTU0ODg4NWYyZjY3ZTQ2NjIzOGFiZjZhNmY0MTEyNzc3NTMyZDE4MGExOTcwZTYyMTRjODcyYmVlOTUifQ"
         },
         {
           "resource": "repo://dtcc_agent/registry.py#L401-L457",
@@ -91,6 +91,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-27T19:28:40.080Z"
+    "at": "2026-09-29T13:24:05.367Z"
   }
 }
