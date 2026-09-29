@@ -758,3 +758,41 @@ def test_an_http_server_with_a_broken_catalogue_exits_without_listening():
     assert out.returncode != 0
     assert "CatalogueError: io: no module" in out.stderr, out.stderr[-2000:]
     assert "catalogue built" not in out.stderr
+
+
+
+def test_a_remote_dataset_cannot_replace_a_core_dataset_of_the_same_name(
+        monkeypatch, optional_dataset, caplog):
+    """Core's register() overwrites by name, so a dtcc-sim service advertising
+    `point_cloud` would swap Core's download for its own everywhere Core's
+    registry is read: the catalogue, and get_buildings through runner (#45)."""
+    from dtcc_core import datasets
+    from dtcc_core.datasets.registry import get_dataset, register
+    from dtcc_core.datasets.remote import RemoteDatasetDescriptor
+
+    def remote(name):
+        return RemoteDatasetDescriptor(
+            name=name, description="remote", args_schema={"properties": {}},
+            base_url=SIM, result_kind="file", supported_formats=["bin"],
+            source_service="dtcc-sim")
+
+    def register_remote_service(url):  # Core's, minus the network
+        register("point_cloud", remote("point_cloud"))
+        optional_dataset("flood_sim", remote("flood_sim"))
+        return ["point_cloud", "flood_sim"]
+
+    core_point_cloud = get_dataset("point_cloud")
+    monkeypatch.setattr(runner, "_remote_services", lambda: [SIM])
+    monkeypatch.setattr(runner, "_REGISTERED_REMOTE_SERVICES", set())
+    monkeypatch.setattr(datasets, "register_remote_service", register_remote_service)
+    try:
+        runner._ensure_remote_services_registered()
+        catalogue = registry._build_registry()
+
+        assert get_dataset("point_cloud") is core_point_cloud
+        assert catalogue["datasets.point_cloud"]._callable is core_point_cloud
+        assert "datasets.flood_sim" in catalogue
+        assert SIM in runner._REGISTERED_REMOTE_SERVICES
+        assert "point_cloud" in caplog.text and SIM in caplog.text
+    finally:
+        register("point_cloud", core_point_cloud)  # even if the fix is missing

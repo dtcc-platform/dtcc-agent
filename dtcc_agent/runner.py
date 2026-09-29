@@ -15,6 +15,7 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import asdict, dataclass
 from typing import Any
@@ -22,6 +23,8 @@ from typing import Any
 # Names of datasets that are simulations (as opposed to data fetchers
 # like "buildings", "point_cloud", etc.). We tag them explicitly so
 # the LLM only sees runnable simulations in the list_simulations tool.
+logger = logging.getLogger(__name__)
+
 _SIMULATION_NAMES = {
     "urban_heat_simulation",
     "air_quality_field",
@@ -73,11 +76,22 @@ def _remote_base_url() -> str | None:
 def _ensure_remote_services_registered() -> None:
     """Register configured remote services using dtcc-core's shared protocol."""
     from dtcc_core.datasets import register_remote_service
+    from dtcc_core.datasets.registry import list_datasets, register
+
+    from .registry import _is_core_dataset
 
     for url in _remote_services():
         if url in _REGISTERED_REMOTE_SERVICES:
             continue
+        # Core's register() replaces a dataset of the same name, so a service
+        # advertising `point_cloud` would take over Core's (#45). Put Core's back.
+        core = {n: ds for n, ds in list_datasets().items() if _is_core_dataset(ds)}
         registered = register_remote_service(url)
+        for name, ds in core.items():
+            if list_datasets().get(name) is not ds:
+                register(name, ds)
+                logger.warning(f"Left out dataset {name} from {url}: "
+                               f"Core already has a dataset by that name")
         if registered:
             _REGISTERED_REMOTE_SERVICES.add(url)
 

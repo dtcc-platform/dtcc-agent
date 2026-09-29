@@ -14,6 +14,7 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-29 | A dtcc-sim service can no longer replace a Core dataset by reusing its name ([#55](https://github.com/dtcc-platform/dtcc-agent/pull/55), fixes [#45](https://github.com/dtcc-platform/dtcc-agent/issues/45)) | 🔍 |
 | 2026-09-29 | The wiki describes the cache as it is after #50 and #51 ([#52](https://github.com/dtcc-platform/dtcc-agent/pull/52)) | ✅ |
 | 2026-09-29 | Building heights are real, bad bounds are refused, and the disk cache can't be tampered with ([#51](https://github.com/dtcc-platform/dtcc-agent/pull/51)) | ✅ |
 | 2026-09-29 | Building counts for a smaller area inside a cached one are right, via either tool ([#50](https://github.com/dtcc-platform/dtcc-agent/pull/50), fixes [#39](https://github.com/dtcc-platform/dtcc-agent/issues/39)) | ✅ |
@@ -34,7 +35,26 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #55.
+
+---
+
+## 🔍 In review
+
+### A dtcc-sim service can no longer replace a Core dataset by reusing its name · 2026-09-29 · [#55](https://github.com/dtcc-platform/dtcc-agent/pull/55)
+
+**Before:** Core's dataset registry replaces an entry of the same name. A dtcc-sim service
+that advertised `point_cloud` or `buildings` took over Core's: `run_operation` and
+`get_buildings` would then fetch from that service instead of Core, and the only trace was a
+Core log line (#45).
+
+**Now:** when the agent registers a dtcc-sim service, it puts back any Core dataset the
+service replaced and logs a warning naming the dataset and the service. The service's other
+datasets join as before.
+
+**How we know it works:** a new test registers a service advertising `point_cloud` and a new
+`flood_sim`, and checks that Core's registry and the catalogue keep Core's `point_cloud` while
+`flood_sim` joins. It fails without the fix. 328 tests pass.
 
 ---
 
