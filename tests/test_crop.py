@@ -50,3 +50,32 @@ def test_crop_keeps_only_core_buildings_centred_in_bounds():
 
     assert len(cropped.buildings) == 1
     assert len(city.buildings) == 2
+
+
+def test_crop_drops_a_core_building_it_cannot_place():
+    """Without LOD0 geometry footprint() is None. Core's size filter drops such
+    a building from a fresh download, so a crop must not count it anywhere."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+    from dtcc_core.model import Building
+
+    city = BuildingCollection([Building(), _building(0, 0)])
+    cropped = crop_to_bounds(city, [-50, -50, 100, 100])
+
+    assert len(cropped.buildings) == 1
+    assert cropped.buildings[0].footprint() is not None
+
+
+def test_crop_keeps_what_a_fresh_core_download_keeps():
+    """Core keeps a footprint only when it lies wholly inside the bounds shrunk
+    by 2 m. A building whose centre is inside but whose edge crosses them is
+    not in a fresh download, so a crop drops it too."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    inside = _building(10, 10)          # 10..20, clear of the 2 m margin
+    crossing = _building(95, 40)        # 95..105 crosses x = 100
+    in_margin = _building(89, 60)       # 89..99 ends inside the 2 m margin
+    city = BuildingCollection([inside, crossing, in_margin])
+
+    cropped = crop_to_bounds(city, [0, 0, 100, 100])
+
+    assert cropped.buildings == [inside]

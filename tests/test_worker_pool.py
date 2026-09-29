@@ -374,7 +374,8 @@ def test_two_sessions_never_download_one_area_s_buildings_at_once(monkeypatch, t
 
 def test_the_two_ways_to_fetch_buildings_never_download_one_area_at_once(monkeypatch, tmp_path):
     # get_buildings and run_operation("datasets.buildings") make the same Core
-    # download, so they share its flight (dtcc-core#126).
+    # download, so they share its flight (dtcc-core#126) and its cache entry:
+    # the later one answers from the earlier one's download.
     gate = threading.Event()
     running, peak, calls = [0], [0], []
     lock = threading.Lock()
@@ -410,7 +411,7 @@ def test_the_two_ways_to_fetch_buildings_never_download_one_area_at_once(monkeyp
 
     anyio.run(run)
 
-    assert len(calls) == 2 and peak[0] == 1
+    assert len(calls) == 1 and peak[0] == 1
 
 
 # -- Which calls share a flight ----------------------------------------------

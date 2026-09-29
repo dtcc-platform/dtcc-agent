@@ -242,11 +242,7 @@ def run(
     return ds(**kwargs)
 
 
-def fetch_buildings(
-    bounds: list[float],
-    source: str = "LM",
-    smallest_building_size: float = 15.0,
-) -> Any:
+def fetch_buildings(bounds: list[float], source: str = "LM") -> Any:
     """Download the buildings in a bounding box as a Core BuildingCollection.
 
     Parameters
@@ -255,15 +251,12 @@ def fetch_buildings(
         [minx, miny, maxx, maxy] in EPSG:3006.
     source : str
         Data source: "LM" (Lantmäteriet) or "OSM" (OpenStreetMap).
-    smallest_building_size : float
-        Minimum footprint area in m² to include.
+
+    Core's defaults apply otherwise, as they do for datasets.buildings, so
+    the two share a cache entry.
     """
     ds = _get_core_dataset("buildings")
-    return ds(
-        bounds=bounds,
-        source=source,
-        smallest_building_size=smallest_building_size,
-    )
+    return ds(bounds=bounds, source=source)
 
 
 def summarize_buildings(

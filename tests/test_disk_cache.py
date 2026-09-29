@@ -283,25 +283,16 @@ def test_cache_survives_restart():
 def test_get_buildings_answers_for_a_smaller_area_inside_a_cached_one(monkeypatch, tmp_path):
     """A containing cache hit is cropped to the requested area before it is
     summarised, not returned whole with its bounds relabelled (#39)."""
-    import numpy as np
     from dtcc_core.datasets.buildings import BuildingCollection
-    from dtcc_core.model import Building, GeometryType, Surface
 
     import dtcc_agent.runner as runner
     import dtcc_agent.server as server
-
-    def building(x, y, height):
-        b = Building()
-        square = [[x, y, 0], [x + 10, y, 0], [x + 10, y + 10, 0], [x, y + 10, 0]]
-        b.add_geometry(Surface(vertices=np.array(square, float)), GeometryType.LOD0)
-        b.height = height
-        return b
 
     downloads = []
 
     def fetch(**kwargs):
         downloads.append(kwargs)
-        return BuildingCollection([building(0, 0, 10.0), building(500, 500, 30.0)])
+        return BuildingCollection([_core_building(0, 0, 10.0), _core_building(500, 500, 30.0)])
 
     monkeypatch.setattr(runner, "fetch_buildings", fetch)
     monkeypatch.setattr(server, "_disk_cache", DiskCache(cache_dir=tmp_path))
@@ -315,3 +306,165 @@ def test_get_buildings_answers_for_a_smaller_area_inside_a_cached_one(monkeypatc
     assert part["height_stats"]["max_m"] == 10.0
     assert len(part["buildings"]) == 1
     assert len(downloads) == 1  # the sub-area and another max_buildings reuse the download
+
+    other_source = json.loads(server.get_buildings(bounds=[-50, -50, 100, 100], source="OSM"))
+    assert other_source["source"] == "OSM"
+    assert [d["source"] for d in downloads] == ["LM", "OSM"]
+
+
+def _core_building(x, y, height):
+    import numpy as np
+    from dtcc_core.model import Building, GeometryType, Surface
+
+    b = Building()
+    square = [[x, y, 0], [x + 10, y, 0], [x + 10, y + 10, 0], [x, y + 10, 0]]
+    b.add_geometry(Surface(vertices=np.array(square, float)), GeometryType.LOD0)
+    b.height = height
+    return b
+
+
+def _isolated_get_buildings(monkeypatch, tmp_path, fetch):
+    import dtcc_agent.runner as runner
+    import dtcc_agent.server as server
+
+    cache = DiskCache(cache_dir=tmp_path)
+    monkeypatch.setattr(runner, "fetch_buildings", fetch)
+    monkeypatch.setattr(server, "_disk_cache", cache)
+    return server, cache
+
+
+def test_get_buildings_answers_exact_bounds_from_cache_without_cropping(monkeypatch, tmp_path):
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    import dtcc_agent.crop as crop
+
+    downloads = []
+
+    def fetch(**kwargs):
+        downloads.append(kwargs)
+        return BuildingCollection([_core_building(0, 0, 10.0), _core_building(20, 20, 20.0)])
+
+    server, _ = _isolated_get_buildings(monkeypatch, tmp_path, fetch)
+    server.get_buildings(bounds=[-100, -100, 100, 100])
+
+    crops = []
+    monkeypatch.setattr(crop, "crop_to_bounds", lambda obj, b: crops.append(b) or obj)
+    again = json.loads(server.get_buildings(bounds=[-100, -100, 100, 100], max_buildings=1))
+
+    assert len(downloads) == 1 and crops == []
+    assert again["num_buildings"] == 2
+    assert len(again["buildings"]) == 1 and again["truncated"] is True
+
+
+def test_get_buildings_reports_a_failed_download_and_caches_nothing(monkeypatch, tmp_path):
+    def fetch(**kwargs):
+        raise RuntimeError("LM unreachable")
+
+    server, cache = _isolated_get_buildings(monkeypatch, tmp_path, fetch)
+    result = json.loads(server.get_buildings(bounds=[0, 0, 100, 100]))
+
+    assert result == {"error": "Failed to fetch buildings: LM unreachable"}
+    assert cache.dataset_lookup(
+        "datasets.buildings", "LM",
+        canonical_params_hash("datasets.buildings", {"source": "LM"}),
+        [0, 0, 100, 100],
+    ) is None
+
+
+def test_get_buildings_answers_when_the_cache_cannot_be_written(monkeypatch, tmp_path):
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    server, cache = _isolated_get_buildings(
+        monkeypatch, tmp_path, lambda **kw: BuildingCollection([_core_building(0, 0, 10.0)]))
+
+    def broken_store(**kwargs):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(cache, "store", broken_store)
+    result = json.loads(server.get_buildings(bounds=[-50, -50, 50, 50]))
+
+    assert result["num_buildings"] == 1
+
+
+def test_get_buildings_downloads_again_when_a_cached_entry_cannot_be_read(monkeypatch, tmp_path):
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    downloads = []
+
+    def fetch(**kwargs):
+        downloads.append(kwargs)
+        return BuildingCollection([_core_building(0, 0, 10.0)])
+
+    server, cache = _isolated_get_buildings(monkeypatch, tmp_path, fetch)
+    server.get_buildings(bounds=[-50, -50, 50, 50])
+
+    def unreadable(cache_id):
+        raise pickle.UnpicklingError("corrupt")
+
+    monkeypatch.setattr(cache, "load", unreadable)
+    result = json.loads(server.get_buildings(bounds=[-50, -50, 50, 50]))
+
+    assert len(downloads) == 2
+    assert result["num_buildings"] == 1
+
+
+def test_get_buildings_summarises_an_empty_area(monkeypatch, tmp_path):
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    server, _ = _isolated_get_buildings(monkeypatch, tmp_path, lambda **kw: BuildingCollection([]))
+    result = json.loads(server.get_buildings(bounds=[0, 0, 10, 10]))
+
+    assert result["num_buildings"] == 0
+    assert result["buildings"] == [] and result["truncated"] is False
+    assert result["height_stats"]["max_m"] == 0.0
+    assert result["total_footprint_area_m2"] == 0
+
+
+def test_get_buildings_reuses_a_download_the_dispatcher_cached(monkeypatch, tmp_path):
+    """run_operation("datasets.buildings") usually leaves source out; its
+    entry must still serve get_buildings, which always names it."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    import dtcc_agent.dispatcher as dispatcher
+    from dtcc_agent.object_store import ObjectStore
+
+    def fetch(**kwargs):
+        raise AssertionError("should answer from the dispatcher's cache entry")
+
+    server, cache = _isolated_get_buildings(monkeypatch, tmp_path, fetch)
+    store = ObjectStore()
+    downloaded = BuildingCollection([_core_building(0, 0, 10.0), _core_building(500, 500, 30.0)])
+    result_id = store.store(downloaded, source_op="datasets.buildings")
+    dispatcher._populate_cache(
+        "datasets.buildings", "datasets", {"bounds": [-100, -100, 600, 600]},
+        {"result_id": result_id}, store, cache,
+    )
+
+    result = json.loads(server.get_buildings(bounds=[-50, -50, 100, 100]))
+
+    assert result["num_buildings"] == 1
+
+
+def test_get_buildings_downloads_again_when_a_larger_cached_area_cannot_be_cropped(monkeypatch, tmp_path):
+    """A plain list (an older Core's return type) has no crop. Reusing it
+    whole would answer for the cached area, so it counts as a miss (#39)."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    from dtcc_agent.dispatcher import store_dataset
+
+    downloads = []
+
+    def fetch(**kwargs):
+        downloads.append(kwargs)
+        return BuildingCollection([_core_building(0, 0, 10.0)])
+
+    server, cache = _isolated_get_buildings(monkeypatch, tmp_path, fetch)
+    store_dataset(
+        "datasets.buildings", {"bounds": [-100, -100, 600, 600], "source": "LM"},
+        [_core_building(0, 0, 10.0), _core_building(500, 500, 30.0)], cache,
+    )
+
+    result = json.loads(server.get_buildings(bounds=[-50, -50, 100, 100]))
+
+    assert result["num_buildings"] == 1
+    assert len(downloads) == 1

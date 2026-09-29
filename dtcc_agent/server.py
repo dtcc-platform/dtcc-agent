@@ -12,6 +12,7 @@ from __future__ import annotations
 import functools
 import inspect
 import json
+import logging
 import os
 import threading
 import time
@@ -233,6 +234,8 @@ def tool(
     return fn
 
 
+logger = logging.getLogger(__name__)
+
 # Persistent disk cache for expensive operations (datasets, builders)
 _disk_cache = DiskCache()
 
@@ -345,22 +348,16 @@ def get_buildings(
     Returns a JSON object with building list and height statistics.
     """
     from . import runner
-    from .crop import crop_to_bounds
-    from .disk_cache import canonical_params_hash
+    from .dispatcher import load_cached_dataset, store_dataset
 
-    # Cache the download, not the summary: the download can be cropped to a
-    # smaller area inside it, and max_buildings only trims the answer. Keyed
-    # as the dispatcher keys datasets.buildings, so either path can reuse it.
-    ph = canonical_params_hash("datasets.buildings", {"source": source})
-    buildings = None
+    # Cache the download, not the summary: a download can be cropped to a
+    # smaller area inside it, and max_buildings is applied when summarising.
+    # The dispatcher's datasets.buildings shares these entries.
+    params = {"bounds": bounds, "source": source}
     try:
-        hit = _disk_cache.dataset_lookup("datasets.buildings", source, ph, bounds)
-        if hit is not None:
-            cache_id, cached_bounds = hit
-            buildings = _disk_cache.load(cache_id)
-            if cached_bounds != list(bounds):
-                buildings = crop_to_bounds(buildings, list(bounds))
+        buildings = load_cached_dataset("datasets.buildings", params, _disk_cache)
     except Exception:
+        logger.warning("Disk cache lookup failed for get_buildings", exc_info=True)
         buildings = None  # fall through to fresh fetch
 
     if buildings is None:
@@ -370,21 +367,17 @@ def get_buildings(
             return _fmt({"error": f"Failed to fetch buildings: {exc}"})
 
         try:
-            _disk_cache.store(
-                obj=buildings,
-                operation="datasets.buildings",
-                category="datasets",
-                params_hash=ph,
-                bounds=list(bounds),
-                source=source,
-                object_type=type(buildings).__name__,
-            )
+            store_dataset("datasets.buildings", params, buildings, _disk_cache)
         except Exception:
-            pass  # cache write failure is non-fatal
+            logger.warning("Failed to cache buildings", exc_info=True)
 
-    return _fmt(runner.summarize_buildings(
-        buildings, bounds=bounds, source=source, max_buildings=max_buildings,
-    ))
+    try:
+        summary = runner.summarize_buildings(
+            buildings, bounds=bounds, source=source, max_buildings=max_buildings,
+        )
+    except Exception as exc:
+        return _fmt({"error": f"Failed to summarise buildings: {exc}"})
+    return _fmt(summary)
 
 
 # -- Simulation discovery ----------------------------------------------------

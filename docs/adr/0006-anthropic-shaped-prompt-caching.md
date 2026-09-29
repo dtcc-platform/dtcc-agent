@@ -34,6 +34,9 @@ inconsistency — `disk_cache.CACHE_ALLOWLIST` holds those same seven plus `get_
 packages independently encode "the operations that matter" with nothing linking them. One should
 derive from the other, or both from measurement.
 
+*Update 2026-09-29 (#39):* `get_buildings` left `CACHE_ALLOWLIST`; it now caches under
+`datasets.buildings`. The allowlist holds only the seven Core operations.
+
 **Why this matters more than it looks.** The model never sees 133 tools; it sees 22, three of
 which are the dispatch tools (`list_operations`, `describe_operation`, `run_operation`). Discovery
 is therefore round trips before any real work starts, and the catalogue is the thing being re-sent.
