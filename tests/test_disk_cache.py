@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from dtcc_agent.disk_cache import DiskCache
 
 
@@ -416,7 +418,7 @@ def test_get_buildings_summarises_an_empty_area(monkeypatch, tmp_path):
 
     assert result["num_buildings"] == 0
     assert result["buildings"] == [] and result["truncated"] is False
-    assert result["height_stats"]["max_m"] == 0.0
+    assert result["height_stats"]["max_m"] is None
     assert result["total_footprint_area_m2"] == 0
 
 
@@ -468,3 +470,194 @@ def test_get_buildings_downloads_again_when_a_larger_cached_area_cannot_be_cropp
 
     assert result["num_buildings"] == 1
     assert len(downloads) == 1
+
+
+# --- where the cache lives, and who may write it ---
+
+
+def test_the_default_cache_dir_is_per_user_not_shared_tmp(monkeypatch, tmp_path):
+    import importlib
+
+    import dtcc_agent.disk_cache as disk_cache
+
+    monkeypatch.delenv("DTCC_AGENT_CACHE_DIR", raising=False)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    try:
+        assert importlib.reload(disk_cache).CACHE_DIR == tmp_path / "xdg" / "dtcc_agent"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(disk_cache)
+
+
+def test_a_new_cache_dir_is_private(tmp_path):
+    import stat
+
+    DiskCache(cache_dir=tmp_path / "fresh")
+
+    assert stat.S_IMODE((tmp_path / "fresh").stat().st_mode) == 0o700
+
+
+def test_the_cache_refuses_a_dir_others_can_write(tmp_path):
+    """Loading a pickle runs code; anyone who can write the dir could plant one."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    shared.chmod(0o777)
+
+    with pytest.raises(CacheDirError, match="writable by other users"):
+        DiskCache(cache_dir=shared)
+
+
+def test_the_cache_refuses_a_dir_another_user_owns(monkeypatch, tmp_path):
+    import os
+
+    from dtcc_agent.disk_cache import CacheDirError
+
+    monkeypatch.setattr(os, "getuid", lambda: os.stat(tmp_path).st_uid + 1)
+
+    with pytest.raises(CacheDirError, match="owned by another user"):
+        DiskCache(cache_dir=tmp_path)
+
+
+# --- several processes sharing one cache dir ---
+
+
+def test_two_caches_on_one_dir_keep_each_others_entries(tmp_path):
+    """Each process used to rewrite index.json from its own copy, dropping
+    entries another process had added since it started."""
+    a = DiskCache(cache_dir=tmp_path)
+    b = DiskCache(cache_dir=tmp_path)
+
+    a.store(obj=1, operation="datasets.buildings", category="datasets",
+            params_hash="h", bounds=[0, 0, 10, 10], source="LM")
+    b.store(obj=2, operation="datasets.buildings", category="datasets",
+            params_hash="h", bounds=[100, 100, 110, 110], source="LM")
+
+    assert len(DiskCache(cache_dir=tmp_path)._index) == 2
+    hit = a.dataset_lookup("datasets.buildings", "LM", "h", [101, 101, 109, 109])
+    assert hit is not None and a.load(hit[0]) == 2
+
+
+def test_the_cache_refuses_a_dir_whose_parent_others_can_write(tmp_path):
+    """Whoever can write the parent can swap the whole cache dir for theirs."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    parent.chmod(0o775)
+
+    with pytest.raises(CacheDirError, match="writable by other users"):
+        DiskCache(cache_dir=parent / "cache")
+
+
+def test_a_sticky_shared_parent_like_tmp_is_fine(tmp_path):
+    parent = tmp_path / "tmp"
+    parent.mkdir()
+    parent.chmod(0o1777)
+
+    DiskCache(cache_dir=parent / "cache")
+
+
+def test_the_cache_refuses_a_pickle_others_can_write(tmp_path):
+    """A private dir does not help if one of its pickles is writable."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    cache = DiskCache(cache_dir=tmp_path / "c")
+    cache_id = cache.store(obj=1, operation="op", category="builder", params_hash="h")
+    (tmp_path / "c" / "objects" / f"{cache_id}.pkl").chmod(0o666)
+
+    with pytest.raises(CacheDirError, match="writable by other users"):
+        DiskCache(cache_dir=tmp_path / "c")
+
+
+def test_cache_files_are_created_private(tmp_path):
+    import os
+    import stat
+
+    old = os.umask(0o002)
+    try:
+        cache = DiskCache(cache_dir=tmp_path / "c")
+        cache_id = cache.store(obj=1, operation="op", category="builder", params_hash="h")
+    finally:
+        os.umask(old)
+
+    for name in ("index.json", "index.lock", f"objects/{cache_id}.pkl"):
+        assert stat.S_IMODE((tmp_path / "c" / name).stat().st_mode) == 0o600, name
+
+
+def test_load_refuses_a_cache_id_that_is_not_one(tmp_path):
+    cache = DiskCache(cache_dir=tmp_path / "c")
+
+    with pytest.raises(ValueError):
+        cache.load("../../elsewhere")
+
+
+def test_missing_parents_are_created_private_whatever_the_umask(tmp_path):
+    """A fresh ~/.cache made under umask 002 was 0775 and failed the check."""
+    import os
+    import stat
+
+    old = os.umask(0o002)
+    try:
+        DiskCache(cache_dir=tmp_path / "home" / ".cache" / "dtcc_agent")
+    finally:
+        os.umask(old)
+
+    assert stat.S_IMODE((tmp_path / "home" / ".cache").stat().st_mode) == 0o700
+
+
+def test_a_symlinked_cache_dir_is_used_through_its_real_path(tmp_path):
+    """Once checked, the cache never follows the link again, so swapping it
+    cannot redirect pickle loads."""
+    real = tmp_path / "real"
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+    real.mkdir(mode=0o700)
+
+    cache = DiskCache(cache_dir=link)
+
+    assert cache._cache_dir == real.resolve()
+
+
+@pytest.mark.parametrize("name", ["objects", "deadbeef.pkl"])
+def test_the_cache_refuses_a_symlink_inside_it(tmp_path, name):
+    """The cache never makes links, and a link's target may sit in a
+    directory others can write, where it can be replaced after the check."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    target = tmp_path / "elsewhere"
+    target.mkdir(mode=0o700)
+    (tmp_path / "c").mkdir(mode=0o700)
+    (tmp_path / "c" / name).symlink_to(target)
+
+    with pytest.raises(CacheDirError, match="a symlink"):
+        DiskCache(cache_dir=tmp_path / "c")
+
+
+def test_load_does_not_follow_a_symlinked_pickle(tmp_path):
+    cache = DiskCache(cache_dir=tmp_path / "c")
+    planted = tmp_path / "planted.pkl"
+    planted.write_bytes(b"not read")
+    (tmp_path / "c" / "objects" / "deadbeef.pkl").symlink_to(planted)
+
+    with pytest.raises(OSError):
+        cache.load("deadbeef")
+
+
+def test_startup_ignores_a_file_removed_while_it_scans(monkeypatch, tmp_path):
+    """Another process's cleanup or index write can remove a file mid-scan."""
+    from pathlib import Path
+
+    (tmp_path / "c").mkdir(mode=0o700)
+    ghost = tmp_path / "c" / "index.123.tmp"
+    real_iterdir = Path.iterdir
+
+    def iterdir_with_a_ghost(self):
+        yield from real_iterdir(self)
+        if self.name == "c":
+            yield ghost  # listed, then gone
+
+    monkeypatch.setattr(Path, "iterdir", iterdir_with_a_ghost)
+
+    DiskCache(cache_dir=tmp_path / "c")

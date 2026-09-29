@@ -348,7 +348,10 @@ def get_buildings(
     Returns a JSON object with building list and height statistics.
     """
     from . import runner
-    from .dispatcher import load_cached_dataset, store_dataset
+    from .dispatcher import bounds_error, load_cached_dataset, store_dataset
+
+    if error := bounds_error(bounds):
+        return _fmt({"error": error})
 
     # Cache the download, not the summary: a download can be cropped to a
     # smaller area inside it, and max_buildings is applied when summarising.
@@ -444,8 +447,11 @@ def run_simulation(
     Returns a JSON object with run_id, simulation metadata, and summary
     statistics (min, max, mean, std, median, percentiles).
     """
+    from .dispatcher import bounds_error
     from .runner import run as _run
 
+    if error := bounds_error(bounds):
+        return _fmt({"error": error})
     params = parameters or {}
 
     try:
@@ -526,7 +532,11 @@ def compare_scenarios(
     Returns a JSON object with summary stats for each scenario and
     the difference (B minus A).
     """
+    from .dispatcher import bounds_error
     from .runner import run as _run
+
+    if error := bounds_error(bounds):
+        return _fmt({"error": error})
 
     # Run scenario A
     try:
