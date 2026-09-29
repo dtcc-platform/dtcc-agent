@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import math
 from copy import deepcopy
 from typing import Any
 
@@ -26,6 +27,28 @@ from .disk_cache import (
 from .crop import crop_to_bounds
 
 logger = logging.getLogger(__name__)
+
+
+def bounds_error(value: Any) -> str | None:
+    """Why ``value`` is not an area, or None when it is one.
+
+    Bounds are [minx, miny, maxx, maxy] (or with zmin/zmax, six values) of
+    finite numbers with each min below its max. An inverted or zero-area box
+    is refused here: a cache lookup would otherwise treat any larger cached
+    area as containing it and answer for nothing.
+    """
+    if not isinstance(value, (list, tuple)) or len(value) not in (4, 6):
+        return "Invalid bounds: expected [minx, miny, maxx, maxy]."
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+               and math.isfinite(v) for v in value):
+        return "Invalid bounds: every value must be a finite number."
+    half = len(value) // 2
+    if any(value[i] >= value[i + half] for i in range(2)):
+        return (f"Invalid bounds {list(value)}: minx must be below maxx and "
+                "miny below maxy.")
+    if half == 3 and value[2] > value[5]:
+        return f"Invalid bounds {list(value)}: zmin must not exceed zmax."
+    return None
 
 
 def _resolve_bounds(value: Any) -> Any:
@@ -96,6 +119,8 @@ def run_operation(
     summary, and label.
     """
     params = params or {}
+    if "bounds" in params and (error := bounds_error(params["bounds"])):
+        return {"error": error}
     try:
         op = get_operation(name)
     except KeyError as exc:

@@ -416,7 +416,7 @@ def test_get_buildings_summarises_an_empty_area(monkeypatch, tmp_path):
 
     assert result["num_buildings"] == 0
     assert result["buildings"] == [] and result["truncated"] is False
-    assert result["height_stats"]["max_m"] == 0.0
+    assert result["height_stats"]["max_m"] is None
     assert result["total_footprint_area_m2"] == 0
 
 

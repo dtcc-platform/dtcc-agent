@@ -259,6 +259,18 @@ def fetch_buildings(bounds: list[float], source: str = "LM") -> Any:
     return ds(bounds=bounds, source=source)
 
 
+def _building_height(b: Any) -> float | None:
+    """A building's height in metres, or None when it has none.
+
+    Core's own precedence: the modelled estimate, else the measurement. A
+    download sets only the estimate; Building.height is the measurement.
+    """
+    h = b.estimated_height
+    if h is None:
+        h = b.measured_height
+    return float(h) if h is not None and h > 0 else None
+
+
 def summarize_buildings(
     buildings: Any,
     bounds: list[float],
@@ -281,16 +293,18 @@ def summarize_buildings(
     Returns
     -------
     dict with keys: bounds, crs, source, num_buildings, buildings,
-    height_stats, total_footprint_area_m2
+    height_stats (None values when no building has a height),
+    total_footprint_area_m2 (over every building, not only those listed)
     """
     import numpy as np
 
     details = []
     heights = []
+    total_area = 0.0
 
     for i, b in enumerate(buildings):
-        h = b.height
-        if h is not None and h > 0:
+        h = _building_height(b)
+        if h is not None:
             heights.append(h)
 
         # Compute footprint area from lod0 vertices
@@ -302,28 +316,26 @@ def summarize_buildings(
             if num_vertices >= 3:
                 v = np.array(verts)
                 x, y = v[:, 0], v[:, 1]
-                footprint_area = round(
-                    0.5 * abs(float(
-                        np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
-                    )),
-                    1,
-                )
+                footprint_area = 0.5 * abs(float(
+                    np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
+                ))
+                total_area += footprint_area
 
         ground_height = b.attributes.get("ground_height")
 
         if i < max_buildings:
             detail = {
                 "id": str(b.id),
-                "height_m": round(h, 1) if h else None,
+                "height_m": round(h, 1) if h is not None else None,
                 "ground_height_m": round(ground_height, 1) if ground_height else None,
                 "footprint_vertices": num_vertices,
             }
             if footprint_area is not None:
-                detail["footprint_area_m2"] = footprint_area
+                detail["footprint_area_m2"] = round(footprint_area, 1)
             details.append(detail)
 
-    heights_arr = np.array(heights) if heights else np.array([0.0])
-    total_area = sum(d.get("footprint_area_m2", 0) for d in details)
+    def stat(f):
+        return round(float(f(np.array(heights))), 1) if heights else None
 
     return {
         "bounds": bounds,
@@ -333,10 +345,10 @@ def summarize_buildings(
         "buildings": details,
         "truncated": len(buildings) > max_buildings,
         "height_stats": {
-            "min_m": round(float(heights_arr.min()), 1),
-            "max_m": round(float(heights_arr.max()), 1),
-            "mean_m": round(float(heights_arr.mean()), 1),
-            "median_m": round(float(np.median(heights_arr)), 1),
+            "min_m": stat(np.min),
+            "max_m": stat(np.max),
+            "mean_m": stat(np.mean),
+            "median_m": stat(np.median),
         },
         "total_footprint_area_m2": round(total_area, 1),
     }
