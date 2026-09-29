@@ -157,18 +157,31 @@ export CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-PASTE-TOKEN-HERE"
 
 Do not wrap `claude setup-token` in command substitution. It is interactive and
 can capture the whole login screen into `CLAUDE_CODE_OAUTH_TOKEN`, which makes
-Claude send an invalid `Authorization: Bearer ...` header. Verify without
+Claude send an invalid `Authorization: Bearer ...` header. Check it without
 printing the token:
 
 ```bash
-python verify_auth.py --require-oauth
+case "$CLAUDE_CODE_OAUTH_TOKEN" in
+  *[![:graph:]]*|"") echo "CLAUDE_CODE_OAUTH_TOKEN is empty or has spaces or newlines" ;;
+  sk-ant-oat01-*)    echo "CLAUDE_CODE_OAUTH_TOKEN looks right" ;;
+  *)                 echo "CLAUDE_CODE_OAUTH_TOKEN does not start with sk-ant-oat01-" ;;
+esac
 ```
 
-After starting Docker, verify the token reached the container:
+After starting Docker, run the same check inside the container to confirm the token
+reached it:
 
 ```bash
-docker compose exec -T dtcc-agent python verify_auth.py --require-oauth
+docker compose exec -T dtcc-agent sh -c '
+case "$CLAUDE_CODE_OAUTH_TOKEN" in
+  *[![:graph:]]*|"") echo "CLAUDE_CODE_OAUTH_TOKEN is empty or has spaces or newlines" ;;
+  sk-ant-oat01-*)    echo "CLAUDE_CODE_OAUTH_TOKEN looks right" ;;
+  *)                 echo "CLAUDE_CODE_OAUTH_TOKEN does not start with sk-ant-oat01-" ;;
+esac'
 ```
+
+This checks the token's shape, not that Claude accepts it. Sending one chat message
+through the service is the real test.
 
 `ANTHROPIC_API_KEY` is also supported if you prefer API-key auth.
 
