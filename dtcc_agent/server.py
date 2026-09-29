@@ -344,46 +344,47 @@ def get_buildings(
 
     Returns a JSON object with building list and height statistics.
     """
-    from .runner import get_buildings as _get_buildings
+    from . import runner
+    from .crop import crop_to_bounds
     from .disk_cache import canonical_params_hash
 
-    # Check disk cache
-    non_bounds = {"source": source, "max_buildings": max_buildings}
-    ph = canonical_params_hash("get_buildings", non_bounds)
+    # Cache the download, not the summary: the download can be cropped to a
+    # smaller area inside it, and max_buildings only trims the answer. Keyed
+    # as the dispatcher keys datasets.buildings, so either path can reuse it.
+    ph = canonical_params_hash("datasets.buildings", {"source": source})
+    buildings = None
     try:
-        hit = _disk_cache.dataset_lookup("get_buildings", source, ph, bounds)
+        hit = _disk_cache.dataset_lookup("datasets.buildings", source, ph, bounds)
         if hit is not None:
             cache_id, cached_bounds = hit
-            result = _disk_cache.load(cache_id)
-            result = dict(result, bounds=bounds)
-            return _fmt(result)
+            buildings = _disk_cache.load(cache_id)
+            if cached_bounds != list(bounds):
+                buildings = crop_to_bounds(buildings, list(bounds))
     except Exception:
-        pass  # fall through to fresh fetch
+        buildings = None  # fall through to fresh fetch
 
-    # Cache miss — fetch and cache
-    try:
-        result = _get_buildings(
-            bounds=bounds,
-            source=source,
-            max_buildings=max_buildings,
-        )
-    except Exception as exc:
-        return _fmt({"error": f"Failed to fetch buildings: {exc}"})
+    if buildings is None:
+        try:
+            buildings = runner.fetch_buildings(bounds=bounds, source=source)
+        except Exception as exc:
+            return _fmt({"error": f"Failed to fetch buildings: {exc}"})
 
-    try:
-        _disk_cache.store(
-            obj=result,
-            operation="get_buildings",
-            category="datasets",
-            params_hash=ph,
-            bounds=list(bounds),
-            source=source,
-            object_type="dict",
-        )
-    except Exception:
-        pass  # cache write failure is non-fatal
+        try:
+            _disk_cache.store(
+                obj=buildings,
+                operation="datasets.buildings",
+                category="datasets",
+                params_hash=ph,
+                bounds=list(bounds),
+                source=source,
+                object_type=type(buildings).__name__,
+            )
+        except Exception:
+            pass  # cache write failure is non-fatal
 
-    return _fmt(result)
+    return _fmt(runner.summarize_buildings(
+        buildings, bounds=bounds, source=source, max_buildings=max_buildings,
+    ))
 
 
 # -- Simulation discovery ----------------------------------------------------

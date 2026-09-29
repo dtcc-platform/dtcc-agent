@@ -68,9 +68,11 @@ def _crop_city(city: Any, bounds: list[float]) -> Any:
 
     kept = []
     for b in city.buildings:
-        footprint = getattr(b, "footprint", None)
-        if footprint is not None and hasattr(footprint, "centroid"):
-            cx, cy = footprint.centroid.x, footprint.centroid.y
+        # Core's Building.footprint() is a method returning a Surface whose
+        # centroid is an [x, y, z] array.
+        footprint = b.footprint()
+        if footprint is not None:
+            cx, cy = footprint.centroid[:2]
             if xmin <= cx <= xmax and ymin <= cy <= ymax:
                 kept.append(b)
         else:

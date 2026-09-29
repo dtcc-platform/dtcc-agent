@@ -1,5 +1,6 @@
 """Tests for persistent disk cache."""
 
+import json
 import pickle
 import tempfile
 from datetime import datetime, timedelta
@@ -279,40 +280,38 @@ def test_cache_survives_restart():
 # --- get_buildings cache path ---
 
 
-def test_get_buildings_cache_hit():
-    """get_buildings results are cached and returned on matching bounds."""
-    with tempfile.TemporaryDirectory() as td:
-        cache = DiskCache(cache_dir=Path(td))
-        buildings_result = {
-            "num_buildings": 42,
-            "bounds": [319700, 6399500, 320200, 6400000],
-            "buildings": [{"id": 1, "height": 12.5}],
-            "height_stats": {"mean": 12.5},
-        }
-        ph = canonical_params_hash("get_buildings", {"source": "LM", "max_buildings": 100})
+def test_get_buildings_answers_for_a_smaller_area_inside_a_cached_one(monkeypatch, tmp_path):
+    """A containing cache hit is cropped to the requested area before it is
+    summarised, not returned whole with its bounds relabelled (#39)."""
+    import numpy as np
+    from dtcc_core.datasets.buildings import BuildingCollection
+    from dtcc_core.model import Building, GeometryType, Surface
 
-        cache.store(
-            obj=buildings_result,
-            operation="get_buildings",
-            category="datasets",
-            params_hash=ph,
-            bounds=[319700, 6399500, 320200, 6400000],
-            source="LM",
-            object_type="dict",
-        )
+    import dtcc_agent.runner as runner
+    import dtcc_agent.server as server
 
-        # Exact same bounds → hit
-        hit = cache.dataset_lookup("get_buildings", "LM", ph, [319700, 6399500, 320200, 6400000])
-        assert hit is not None
-        cache_id, cached_bounds = hit
-        loaded = cache.load(cache_id)
-        assert loaded["num_buildings"] == 42
+    def building(x, y, height):
+        b = Building()
+        square = [[x, y, 0], [x + 10, y, 0], [x + 10, y + 10, 0], [x, y + 10, 0]]
+        b.add_geometry(Surface(vertices=np.array(square, float)), GeometryType.LOD0)
+        b.height = height
+        return b
 
-        # Smaller bounds within cached area → also hit
-        hit2 = cache.dataset_lookup("get_buildings", "LM", ph, [319800, 6399600, 320100, 6399900])
-        assert hit2 is not None
+    downloads = []
 
-        # Different source → miss
-        ph_osm = canonical_params_hash("get_buildings", {"source": "OSM", "max_buildings": 100})
-        miss = cache.dataset_lookup("get_buildings", "OSM", ph_osm, [319700, 6399500, 320200, 6400000])
-        assert miss is None
+    def fetch(**kwargs):
+        downloads.append(kwargs)
+        return BuildingCollection([building(0, 0, 10.0), building(500, 500, 30.0)])
+
+    monkeypatch.setattr(runner, "fetch_buildings", fetch)
+    monkeypatch.setattr(server, "_disk_cache", DiskCache(cache_dir=tmp_path))
+
+    whole = json.loads(server.get_buildings(bounds=[-100, -100, 600, 600]))
+    part = json.loads(server.get_buildings(bounds=[-50, -50, 100, 100], max_buildings=5))
+
+    assert whole["num_buildings"] == 2
+    assert part["num_buildings"] == 1
+    assert part["bounds"] == [-50, -50, 100, 100]
+    assert part["height_stats"]["max_m"] == 10.0
+    assert len(part["buildings"]) == 1
+    assert len(downloads) == 1  # the sub-area and another max_buildings reuse the download

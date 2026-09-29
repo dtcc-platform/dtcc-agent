@@ -339,8 +339,8 @@ def test_a_busy_session_never_holds_a_tile_another_session_needs(monkeypatch, tm
 
 def test_two_sessions_never_download_one_area_s_buildings_at_once(monkeypatch, tmp_path):
     # Overlapping downloads of one tile can fail inside Core (dtcc-core#126).
-    # max_buildings only trims the answer, so it shares the flight too; its
-    # cache entry differs, so the second call downloads again, but after.
+    # max_buildings only trims the answer, so it shares the flight too, and
+    # the second call answers from the first one's cached download.
     gate = threading.Event()
     calls, running, peak = [], [0], [0]
 
@@ -350,9 +350,9 @@ def test_two_sessions_never_download_one_area_s_buildings_at_once(monkeypatch, t
         peak[0] = max(peak[0], running[0])
         assert gate.wait(5)
         running[0] -= 1
-        return {"buildings": [], "num_buildings": 0}
+        return []
 
-    monkeypatch.setattr(runner, "get_buildings", fetch)
+    monkeypatch.setattr(runner, "fetch_buildings", fetch)
     monkeypatch.setattr(server, "_disk_cache", DiskCache(cache_dir=tmp_path))
     key = server._get_buildings_flight({"bounds": BOUNDS, "source": "LM"})
 
@@ -369,7 +369,7 @@ def test_two_sessions_never_download_one_area_s_buildings_at_once(monkeypatch, t
 
     anyio.run(run)
 
-    assert len(calls) == 2 and peak[0] == 1
+    assert len(calls) == 1 and peak[0] == 1
 
 
 def test_the_two_ways_to_fetch_buildings_never_download_one_area_at_once(monkeypatch, tmp_path):
@@ -389,7 +389,7 @@ def test_the_two_ways_to_fetch_buildings_never_download_one_area_at_once(monkeyp
             running[0] -= 1
         return []
 
-    monkeypatch.setattr(runner, "get_buildings", lambda **kw: {**kw, "buildings": download(**kw)})
+    monkeypatch.setattr(runner, "fetch_buildings", download)
     op = MagicMock(category="datasets", _callable=download)
     op.name = "datasets.buildings"
     monkeypatch.setattr(dispatcher, "get_operation", lambda name: op)

@@ -242,13 +242,12 @@ def run(
     return ds(**kwargs)
 
 
-def get_buildings(
+def fetch_buildings(
     bounds: list[float],
     source: str = "LM",
     smallest_building_size: float = 15.0,
-    max_buildings: int = 100,
-) -> dict[str, Any]:
-    """Fetch buildings in a bounding box and return a JSON-friendly summary.
+) -> Any:
+    """Download the buildings in a bounding box as a Core BuildingCollection.
 
     Parameters
     ----------
@@ -258,6 +257,31 @@ def get_buildings(
         Data source: "LM" (Lantmäteriet) or "OSM" (OpenStreetMap).
     smallest_building_size : float
         Minimum footprint area in m² to include.
+    """
+    ds = _get_core_dataset("buildings")
+    return ds(
+        bounds=bounds,
+        source=source,
+        smallest_building_size=smallest_building_size,
+    )
+
+
+def summarize_buildings(
+    buildings: Any,
+    bounds: list[float],
+    source: str = "LM",
+    max_buildings: int = 100,
+) -> dict[str, Any]:
+    """Summarise buildings as a JSON-friendly dict.
+
+    Parameters
+    ----------
+    buildings : iterable of Building
+        The buildings to describe, already limited to ``bounds``.
+    bounds : list[float]
+        [minx, miny, maxx, maxy] in EPSG:3006, echoed in the result.
+    source : str
+        Data source the buildings came from.
     max_buildings : int
         Max number of per-building details to return.
 
@@ -267,13 +291,6 @@ def get_buildings(
     height_stats, total_footprint_area_m2
     """
     import numpy as np
-
-    ds = _get_core_dataset("buildings")
-    buildings = ds(
-        bounds=bounds,
-        source=source,
-        smallest_building_size=smallest_building_size,
-    )
 
     details = []
     heights = []

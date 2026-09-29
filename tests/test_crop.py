@@ -30,3 +30,23 @@ def test_crop_returns_original_if_unknown_type():
     obj = {"data": 123}
     result = crop_to_bounds(obj, [0, 0, 100, 100])
     assert result is obj
+
+
+def _building(x, y):
+    from dtcc_core.model import Building, GeometryType, Surface
+
+    b = Building()
+    square = [[x, y, 0], [x + 10, y, 0], [x + 10, y + 10, 0], [x, y + 10, 0]]
+    b.add_geometry(Surface(vertices=np.array(square, float)), GeometryType.LOD0)
+    return b
+
+
+def test_crop_keeps_only_core_buildings_centred_in_bounds():
+    """What datasets.buildings returns: a Core BuildingCollection (#39)."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    city = BuildingCollection([_building(0, 0), _building(500, 500)])
+    cropped = crop_to_bounds(city, [-50, -50, 100, 100])
+
+    assert len(cropped.buildings) == 1
+    assert len(city.buildings) == 2
