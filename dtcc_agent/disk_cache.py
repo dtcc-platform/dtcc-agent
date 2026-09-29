@@ -2,26 +2,36 @@
 
 Stores pickled objects on disk with a JSON metadata index.
 Supports spatial containment lookup for datasets and exact
-hash lookup for builders. Thread-safe via a lock.
+hash lookup for builders. Thread-safe via a lock, and safe for several
+processes sharing one directory via a file lock on the index.
 """
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import logging
 import os
 import pickle
+import stat
 import threading
 import time
 import uuid
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-CACHE_DIR = Path(os.getenv("DTCC_AGENT_CACHE_DIR", "/tmp/dtcc_cache"))
+def _default_cache_dir() -> Path:
+    # Per user, never a shared /tmp path: loading a pickle runs code, so the
+    # directory must be one only this user can write.
+    return Path(os.getenv("XDG_CACHE_HOME") or Path.home() / ".cache") / "dtcc_agent"
+
+
+CACHE_DIR = Path(os.getenv("DTCC_AGENT_CACHE_DIR") or _default_cache_dir())
 CACHE_TTL_HOURS = 168        # 7 days
 CACHE_MAX_SIZE_GB = 10
 
@@ -79,6 +89,28 @@ def canonical_params_hash(
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
+class CacheDirError(RuntimeError):
+    """The cache directory could hold pickles planted by another user."""
+
+
+def _private_dir(path: Path) -> None:
+    """Create ``path`` for this user only, or refuse one others can write."""
+    if not path.exists():
+        path.mkdir(parents=True, exist_ok=True)
+        path.chmod(0o700)
+    st = path.stat()
+    if hasattr(os, "getuid") and st.st_uid != os.getuid():
+        raise CacheDirError(
+            f"Cache directory {path} is owned by another user. Loading its "
+            "pickles would run their code; set DTCC_AGENT_CACHE_DIR to a "
+            "directory you own.")
+    if st.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        raise CacheDirError(
+            f"Cache directory {path} is writable by other users. Loading its "
+            f"pickles would run their code; run `chmod go-w {path}` or set "
+            "DTCC_AGENT_CACHE_DIR to a private directory.")
+
+
 class DiskCache:
     """Persistent disk cache with JSON index and pickle storage."""
 
@@ -87,25 +119,63 @@ class DiskCache:
         self._cache_dir = cache_dir
         self._objects_dir = cache_dir / "objects"
         self._index_path = cache_dir / "index.json"
-        self._objects_dir.mkdir(parents=True, exist_ok=True)
+        self._lock_path = cache_dir / "index.lock"
+        _private_dir(cache_dir)
+        _private_dir(self._objects_dir)
 
-        # Load or create index
-        if self._index_path.exists():
-            with open(self._index_path) as f:
-                self._index: list[dict[str, Any]] = json.load(f)
-            logger.info("Disk cache loaded: %d entries from %s",
-                        len(self._index), cache_dir)
-        else:
-            self._index = []
-            logger.info("Disk cache initialized (empty) at %s", cache_dir)
+        self._index: list[dict[str, Any]] = []
+        self._index_version: tuple[int, int] | None = None
+        with self._lock:
+            self._reload_if_changed()
+        logger.info("Disk cache at %s: %d entries", cache_dir, len(self._index))
 
         # Clean up expired entries on startup
         self.cleanup()
 
+    def _version(self) -> tuple[int, int] | None:
+        try:
+            st = self._index_path.stat()
+        except FileNotFoundError:
+            return None
+        return st.st_mtime_ns, st.st_size
+
+    def _reload_if_changed(self) -> None:
+        """Pick up entries other processes wrote. Must be called with lock held."""
+        version = self._version()
+        if version == self._index_version:
+            return
+        try:
+            with open(self._index_path) as f:
+                self._index = json.load(f)
+        except FileNotFoundError:
+            self._index = []
+        except json.JSONDecodeError:
+            logger.warning("Disk cache index %s is unreadable; starting empty",
+                           self._index_path)
+            self._index = []
+        self._index_version = version
+
     def _save_index(self) -> None:
-        """Write index to disk. Must be called with lock held."""
-        with open(self._index_path, "w") as f:
+        """Write index to disk atomically. Must be called with lock held."""
+        tmp = self._index_path.with_suffix(f".{os.getpid()}.tmp")
+        with open(tmp, "w") as f:
             json.dump(self._index, f, indent=2)
+        os.replace(tmp, self._index_path)
+        self._index_version = self._version()
+
+    @contextmanager
+    def _editing_index(self):
+        """Read-modify-write the index under a lock every process honours, so
+        one process never overwrites entries another has added."""
+        with self._lock, open(self._lock_path, "a") as lock_file:
+            fcntl.flock(lock_file, fcntl.LOCK_EX)
+            try:
+                self._index_version = None  # always re-read under the lock
+                self._reload_if_changed()
+                yield
+                self._save_index()
+            finally:
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
 
     def store(
         self,
@@ -138,9 +208,8 @@ class DiskCache:
             "object_type": object_type,
         }
 
-        with self._lock:
+        with self._editing_index():
             self._index.append(entry)
-            self._save_index()
 
         logger.info("Cached %s result %s (%.1f MB)",
                      operation, cache_id, size_bytes / 1e6)
@@ -168,6 +237,7 @@ class DiskCache:
         candidates = []
 
         with self._lock:
+            self._reload_if_changed()
             for entry in self._index:
                 if entry["operation"] != operation:
                     continue
@@ -211,6 +281,7 @@ class DiskCache:
         """
         now = datetime.now()
         with self._lock:
+            self._reload_if_changed()
             for entry in self._index:
                 if entry["operation"] != operation:
                     continue
@@ -233,7 +304,7 @@ class DiskCache:
         now = datetime.now()
         removed = 0
 
-        with self._lock:
+        with self._editing_index():
             surviving = []
             for entry in self._index:
                 cached_time = datetime.fromisoformat(entry["timestamp"])
@@ -258,7 +329,6 @@ class DiskCache:
                 removed += 1
 
             self._index = surviving
-            self._save_index()
 
         if removed:
             logger.info("Disk cache cleanup: removed %d entries", removed)

@@ -265,7 +265,13 @@ Use `inspect_object(id)` to get a detailed summary of any stored object.
 ### Disk cache
 
 Expensive operations (dataset downloads, builder computations) are
-automatically cached to disk at `/tmp/dtcc_cache/`. The cache uses:
+automatically cached to disk in `$DTCC_AGENT_CACHE_DIR`, by default
+`$XDG_CACHE_HOME/dtcc_agent` (usually `~/.cache/dtcc_agent`). Cached objects are
+pickles, and loading one runs code, so the directory must belong to the user
+running the agent and must not be writable by anyone else: a new one is created
+`0700`, and the agent refuses to start on one another user owns or can write.
+Several agent processes may share one directory; index updates are locked. The
+cache uses:
 
 - **Spatial containment** for datasets: if a cached result covers a
   larger area than requested, the cached data is reused and cropped.

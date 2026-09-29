@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from dtcc_agent.disk_cache import DiskCache
 
 
@@ -468,3 +470,70 @@ def test_get_buildings_downloads_again_when_a_larger_cached_area_cannot_be_cropp
 
     assert result["num_buildings"] == 1
     assert len(downloads) == 1
+
+
+# --- where the cache lives, and who may write it ---
+
+
+def test_the_default_cache_dir_is_per_user_not_shared_tmp(monkeypatch, tmp_path):
+    import importlib
+
+    import dtcc_agent.disk_cache as disk_cache
+
+    monkeypatch.delenv("DTCC_AGENT_CACHE_DIR", raising=False)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    try:
+        assert importlib.reload(disk_cache).CACHE_DIR == tmp_path / "xdg" / "dtcc_agent"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(disk_cache)
+
+
+def test_a_new_cache_dir_is_private(tmp_path):
+    import stat
+
+    DiskCache(cache_dir=tmp_path / "fresh")
+
+    assert stat.S_IMODE((tmp_path / "fresh").stat().st_mode) == 0o700
+
+
+def test_the_cache_refuses_a_dir_others_can_write(tmp_path):
+    """Loading a pickle runs code; anyone who can write the dir could plant one."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    shared.chmod(0o777)
+
+    with pytest.raises(CacheDirError, match="writable by other users"):
+        DiskCache(cache_dir=shared)
+
+
+def test_the_cache_refuses_a_dir_another_user_owns(monkeypatch, tmp_path):
+    import os
+
+    from dtcc_agent.disk_cache import CacheDirError
+
+    monkeypatch.setattr(os, "getuid", lambda: os.stat(tmp_path).st_uid + 1)
+
+    with pytest.raises(CacheDirError, match="owned by another user"):
+        DiskCache(cache_dir=tmp_path)
+
+
+# --- several processes sharing one cache dir ---
+
+
+def test_two_caches_on_one_dir_keep_each_others_entries(tmp_path):
+    """Each process used to rewrite index.json from its own copy, dropping
+    entries another process had added since it started."""
+    a = DiskCache(cache_dir=tmp_path)
+    b = DiskCache(cache_dir=tmp_path)
+
+    a.store(obj=1, operation="datasets.buildings", category="datasets",
+            params_hash="h", bounds=[0, 0, 10, 10], source="LM")
+    b.store(obj=2, operation="datasets.buildings", category="datasets",
+            params_hash="h", bounds=[100, 100, 110, 110], source="LM")
+
+    assert len(DiskCache(cache_dir=tmp_path)._index) == 2
+    hit = a.dataset_lookup("datasets.buildings", "LM", "h", [101, 101, 109, 109])
+    assert hit is not None and a.load(hit[0]) == 2
