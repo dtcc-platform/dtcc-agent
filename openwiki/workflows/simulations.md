@@ -3,9 +3,6 @@ type: workflow
 title: Simulations, runs and geocoding
 description: The task-shaped tools dtcc-agent exposes directly. Geocoding turns a place into EPSG:3006 bounds, get_buildings gives a building inventory, and simulations run in-process or in a remote dtcc-sim, with scenario comparison and Run bookkeeping.
 tags: [simulation, dtcc-sim, geocoding, runs, workflow]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-27T19:28:40.080Z
 sources:
   - id: openwiki-source-4fc133fdcc1bf230bdb18f76
     resource: repo://dtcc_agent/analysis.py
@@ -15,7 +12,10 @@ sources:
     resource: repo://dtcc_agent/runner.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-09-29T13:24:05.367Z
 ---
 
 # Simulations, runs and geocoding
@@ -40,7 +40,7 @@ The chatbot's system prompt asks for the 250 m default, because large boxes down
 
 ## Buildings (`get_buildings`)
 
-`runner.get_buildings` calls the Core `buildings` dataset and returns a JSON summary:
+The tool works in two steps so the download, not the answer, can be cached. `runner.fetch_buildings` downloads the Core `buildings` dataset as a `BuildingCollection`, only on a cache miss. `runner.summarize_buildings` turns the buildings of the area asked into a JSON summary on every call; a larger cached download is first cropped to that area (see [Disk cache](../concepts/disk-cache.md)). The summary holds:
 
 - the building count;
 - per-building height, ground height, footprint vertex count, and footprint area from the shoelace formula on `lod0`;
@@ -48,7 +48,7 @@ The chatbot's system prompt asks for the 250 m default, because large boxes down
 - total footprint area;
 - a `truncated` flag when the count exceeds `max_buildings`.
 
-The MCP tool checks the disk cache first, and shares a download flight with `datasets.buildings` for the same area and source. See [Disk cache](../concepts/disk-cache.md).
+The MCP tool checks the disk cache first and shares both its cache entry and its download flight with `datasets.buildings` for the same area and source. See [Disk cache](../concepts/disk-cache.md).
 
 ## Simulations (`runner.py`)
 

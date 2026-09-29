@@ -10,16 +10,18 @@ sources:
     resource: repo://pyproject.toml
   - id: openwiki-source-c0b62da1c8d12500b49cd428
     resource: repo://tests/test_catalogue_startup.py
+  - id: openwiki-source-45618922e75f513256096f36
+    resource: repo://tests/test_crop.py
   - id: openwiki-source-a4f55aeddd9f309fcd59982a
     resource: repo://tests/test_geocode.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
   - id: openwiki-source-fa7af1493a897412d61af4b0
     resource: repo://tests/test_worker_pool.py
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-27T19:28:40.080Z
+    at: 2026-09-29T13:24:05.367Z
 ---
 
 # Test suite
@@ -44,7 +46,7 @@ All tests live in `tests/` as plain pytest modules. There is no `conftest.py`; f
 | Sessions | `test_http_sessions.py`, `test_chatbot_sessions.py` | Isolation across Sessions over real HTTP, header required, LRU cap, in-flight Sessions never evicted |
 | Catalogue | `test_registry.py`, `test_core_dependency.py` | Reflection and parameter schemas; Core declared, pinned to a full SHA, loud failure without it |
 | Dispatch and storage | `test_dispatcher.py`, `test_object_store.py`, `test_serializers.py` | Reference, bounds and enum resolution; tuple storage; LRU and byte estimates; summaries |
-| Cache | `test_disk_cache.py`, `test_crop.py` | Containment, TTL, budget, hashing, cropping |
+| Cache | `test_disk_cache.py`, `test_crop.py` | Containment, TTL, budget, hashing; `get_buildings` answering a sub-area from a cached download and every cache failure path; the building crop matching Core's footprint rule with real Core buildings |
 | Domain helpers | `test_analysis.py`, `test_geocode.py`, `test_geojson_store.py` | Field statistics and comparison; hardcoded and Nominatim geocoding; GeoJSON load and query |
 | Chatbot | `test_chatbot_app.py`, `test_chatbot_config.py`, `test_chatbot_memory.py` | App with mocked Chroma and SDK; MCP config and header; session-filtered memory |
 

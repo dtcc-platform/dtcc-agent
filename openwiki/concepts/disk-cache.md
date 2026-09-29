@@ -1,11 +1,8 @@
 ---
 type: concept
 title: Disk cache
-description: The persistent pickle and JSON-index cache for dataset downloads and builder results. It reuses containing bounds and crops, keys builders by metadata fingerprints, evicts by TTL and size, and is shared across Sessions today.
+description: The persistent pickle and JSON-index cache for dataset downloads and builder results. It reuses a containing download cropped with Core's own footprint rule, keys builders by metadata fingerprints, evicts by TTL and size, and is shared across Sessions today.
 tags: [cache, disk-cache, datasets, performance, isolation]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-26T09:41:09.647Z
 sources:
   - id: openwiki-source-612afbd7ed762fbc6635cafc
     resource: repo://dtcc_agent/crop.py
@@ -15,7 +12,10 @@ sources:
     resource: repo://dtcc_agent/dispatcher.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
-generated: { by: "claude-code", at: "2026-09-26T09:41:09.647Z" }
+generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-09-29T13:24:05.367Z
 ---
 
 # Disk cache
@@ -36,7 +36,7 @@ generated: { by: "claude-code", at: "2026-09-26T09:41:09.647Z" }
 
 Only operations in `CACHE_ALLOWLIST` are cached:
 
-- **Downloads, keyed by bounds and source:** `datasets.point_cloud`, `datasets.buildings` and `get_buildings`.
+- **Downloads, keyed by bounds and source:** `datasets.point_cloud` and `datasets.buildings`. The `get_buildings` tool has no entry of its own; it shares the `datasets.buildings` download (see below).
 - **Builders over stored objects:** `builder.build_terrain_raster`, `builder.build_terrain_surface_mesh`, `builder.build_city_surface_mesh`, `builder.raster.slope_aspect` and `builder.pc_filter.classification_filter`.
 
 The dispatcher caches only single-object results (`result_id`). Tuple results such as `slope_aspect`'s `(slope, aspect)` are not written, although the operation is allowlisted.
@@ -45,15 +45,21 @@ The dispatcher caches only single-object results (`result_id`). Tuple results su
 
 ### Datasets: containment and crop
 
-`dataset_lookup(operation, source, params_hash, bounds)` matches entries on operation, source and a hash of the non-bounds parameters. Among entries whose bounds **contain** the request, it returns the one with the smallest area. The dispatcher (`_check_cache_dataset`) loads it and, if the cached bounds differ from the request, calls `crop.crop_to_bounds`:
+Two helpers in `dispatcher.py` own every dataset read and write: `load_cached_dataset(name, params, cache)` and `store_dataset(name, params, obj, cache)`. Both key an entry with `_dataset_params_hash`, a hash of the non-bounds parameters in which `source` defaults to `LM` as it does in Core, so a call that omits `source` and one that names it share an entry.
+
+`dataset_lookup(operation, source, params_hash, bounds)` matches entries on operation, source and that hash. Among entries whose bounds **contain** the request, it returns the one with the smallest area. `load_cached_dataset` loads it and, if the cached bounds differ from the request, calls `crop.crop_to_bounds`:
 
 - **Objects with a 2-D `points` array** (point clouds) keep only the points inside the bounds.
-- **Objects with a `buildings` list** (a City) keep only the buildings whose footprint centroid falls inside.
-- **Any other type** is returned uncropped.
+- **A Core `BuildingCollection`** keeps exactly the buildings a fresh Core download of those bounds would keep. Core's footprint loader keeps a footprint only when it lies wholly inside the bounds shrunk by 2 m, for LM and OSM alike, so the crop applies the same `create_bounds_filter(..., buffer=-2.0, strategy="contains")` test to each building's unsimplified LOD0 outline. Core tests a multi-part footprint whole and then splits it, so parts sharing a source feature id (`objektidentitet` for LM, `osm_id` for OSM; Core's own `Building.id` is random) are kept or dropped together. A building without an outline is dropped, as Core's size filter drops it.
+- **Any other type**, including a Core `City` (whose buildings cannot be replaced), comes back unchanged. For a larger cached area that is treated as a **miss**: reusing it whole would answer for the wrong area.
 
-One download of a large area therefore serves every neighbourhood inside it.
+One download of a large area therefore serves every neighbourhood inside it. A live check on Lindholmen (500 m cached, 200 m asked) gave the same buildings from the crop as from a fresh download: 13 of 127 on LM, 12 of 138 on OSM.
 
-`get_buildings` (the hardcoded tool) calls `dataset_lookup` directly, but on a hit it **does not crop**: it returns the cached summary dict with only its `bounds` field replaced. A hit from a larger area therefore reports that area's buildings.
+**Known gaps** (issue #49): the crop sees only what the cache holds, so it can still keep one building at the edge that a fresh download drops when a multi-part feature's tiny sibling part (under Core's 15 m² filter) crossed the bounds, or when Core repaired a malformed outline after its own bounds test.
+
+### `get_buildings`
+
+The `get_buildings` tool caches the Core building download, not its summary. It calls `load_cached_dataset("datasets.buildings", ...)`, fetches with `runner.fetch_buildings` and `store_dataset` on a miss, and builds the answer with `runner.summarize_buildings` for the bounds asked, applying `max_buildings` there. The dispatcher's `run_operation("datasets.buildings")` reads and writes the same entries.
 
 ### Builders: exact hash over fingerprints
 
@@ -63,10 +69,10 @@ One download of a large area therefore serves every neighbourhood inside it.
 
 ## Failure behaviour
 
-A cache miss, a lookup exception or a write failure never fails the operation. `_check_cache` logs a warning and returns `None`. `_populate_cache` logs and continues. `get_buildings` swallows cache errors and fetches fresh. On a hit the dispatcher stores the loaded object in the calling Session's ObjectStore under the label `(cached)` and adds `cache_hit: true` to the response.
+A cache miss, a lookup exception or a write failure never fails the operation. `_check_cache` logs a warning and returns `None`. `_populate_cache` logs and continues. `get_buildings` logs a failed lookup or write and fetches fresh. On a hit the dispatcher stores the loaded object in the calling Session's ObjectStore under the label `(cached)` and adds `cache_hit: true` to the response.
 
 ## Tests
 
-- `tests/test_disk_cache.py` covers store and load, containment preferring the smallest area, TTL expiry, budget eviction, hashing, and `get_buildings` hits.
-- `tests/test_crop.py` covers point cloud and City cropping.
+- `tests/test_disk_cache.py` covers store and load, containment preferring the smallest area, TTL expiry, budget eviction, hashing, and `get_buildings` on exact and containing hits, an entry written by the dispatcher without `source`, an uncroppable cached area, and each failure path.
+- `tests/test_crop.py` covers point cloud cropping and the building crop with real Core buildings: the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline.
 - The `TestCacheIntegration` cases in `tests/test_dispatcher.py` check that a hit skips the download.

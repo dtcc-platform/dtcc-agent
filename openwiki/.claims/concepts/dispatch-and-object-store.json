@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e99461f7b9161e132cda26f564330a31f1c9e0d3825b0acafbcc0764834e1aca",
+  "pageVersion": "sha256:40630cd21220956ef4079c92702e4f6430a7f70c653ee8b21589785bd32114dd",
   "claims": [
     {
       "id": "claim_016618e477134f7fbc3dd24c31db7db8",
@@ -77,10 +77,24 @@
           "version": "repo-lines-v1:sha256:f6839e144ea0d5acdfcab54933dc7d22fda7f99ed9a5d4c89bd011e498ca6215:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhYTZkNjJlYjg3NTUwZTkwYmYzODQ1YmU0NzAwMjk4NWI3MGYxNDY1MjkzZGZmOTI3NjI2Y2E0NDBjZTE0NTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjZmExNWFhMmY1ZDE1MDljOGU1YWUzODJmNDlmNjY2Nzc4NjJmYTBhZDMzMDY2MWVkYzAxZjZhMDE4YzJkMDUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_8365028677f84b8c88fed20ab2e0b515",
+      "statement": "The dispatcher reads and writes dataset cache entries only through load_cached_dataset and store_dataset, the same helpers the get_buildings tool uses.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L336-L353",
+          "version": "repo-lines-v1:sha256:ba8a394e1a3f9f9935f581c5a1cb8c4dac4b9286638fb2ff80037a73bf5cabdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhNGUxNDMyMjJlMjUyMzJhNDZkMWEyMzdlNTcxYThhNTE5NDY4MTFhZDAzMDUwZmE2NjkwNTRmMjY3ZGNiZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NzMzNTg0NTYxNWZkZTljMTcxNmM0YTk1YWY5ODYwMDRkZGY0OWI0Yzc3Njk5MGU2MzI0YjQ4MDAwOTZmNTQifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L395-L428",
+          "version": "repo-lines-v1:sha256:24779542cb055dd0de67a8a323471f26605cdd858eaa4b7a4af23efc4652e62f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-26T09:41:09.647Z"
+    "at": "2026-09-29T13:24:05.367Z"
   }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:caec659b39557898996f6462524b60645690e35d5e3c8cff45ae5abee8080617",
+  "pageVersion": "sha256:c2d6ed1ef03232387cabb0dd89cda8ac52928e82151a4a9817831b521b669b86",
   "claims": [
     {
       "id": "claim_5a40abeabd6f4532b7c31d8cb7e35e3d",
@@ -22,11 +22,11 @@
     },
     {
       "id": "claim_0d7a14db9eb1430991ea565420791013",
-      "statement": "Only operations in CACHE_ALLOWLIST are cached: three bounds-keyed downloads and five builder operations.",
+      "statement": "Only operations in CACHE_ALLOWLIST are cached: two bounds-keyed downloads (datasets.point_cloud, datasets.buildings) and five builder operations.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/disk_cache.py#L28-L37",
-          "version": "repo-lines-v1:sha256:5d8bb0dd8ff52b4664ef20d59c8c0ce6093d70d441147fe2565327ed06bdf182:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkNGIwYTI3M2Y3N2ZjM2IyMTU4NGVkZWM1YzRkZWQzMjUxNWZiNTUwZDVlNzczNDk2NjBjZTA2YjczZTZkNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1ODBiNzY1MThkYWU5NzlmYWViZDAyMzY3YTI5MjkyYTUwZDk3NjA5MjI1MWEzOGE2Y2UzMDg4MGJhNDI4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5NWYyMDI1MmVhZTg5NDg1ZjUzNmQwY2IxMDM0NzRlYzVhYjIyYzM5OTAxYmYxZDFmOWUwNGVmMDZmOWYzODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczOGM0MzI2OGNiYjMzNGIyNjk4NGM3Y2Y1YWZmMjMwZTIxNTZlYTIwZWJjMTQ0MjY3ZTE2NDk2OTY0MGVkYjAifQ"
+          "resource": "repo://dtcc_agent/disk_cache.py#L28-L36",
+          "version": "repo-lines-v1:sha256:3070ee72e4207c9c7e8d362e74b66288ab08d6047aee295e43a73a699b3a59d4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ0YjBhMjczZjc3ZmMzYjIxNTg0ZWRlYzVjNGRlZDMyNTE1ZmI1NTBkNWU3NzM0OTY2MGNlMDZiNzNlNmQ2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODU4MGI3NjUxOGRhZTk3OWZhZWJkMDIzNjdhMjkyOTJhNTBkOTc2MDkyMjUxYTM4YTZjZTMwODgwYmE0MjgyNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjk1ZjIwMjUyZWFlODk0ODVmNTM2ZDBjYjEwMzQ3NGVjNWFiMjJjMzk5MDFiZjFkMWY5ZTA0ZWYwNmY5ZjM4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzM4YzQzMjY4Y2JiMzM0YjI2OTg0YzdjZjVhZmYyMzBlMjE1NmVhMjBlYmMxNDQyNjdlMTY0OTY5NjQwZWRiMCJ9"
         },
         {
           "resource": "repo://dtcc_agent/dispatcher.py#L100-L118",
@@ -36,19 +36,15 @@
     },
     {
       "id": "claim_b74f0b4c709048e6ae300d4dc811d529",
-      "statement": "Dataset lookups return the smallest non-expired cached entry whose bounds contain the request, and the dispatcher crops point clouds by point position and Cities by building footprint centroid when the cached bounds are larger.",
+      "statement": "Dataset lookups return the smallest non-expired cached entry whose bounds contain the request; when the cached bounds are larger, load_cached_dataset crops it and treats an object the crop returns unchanged as a miss.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/crop.py#L14-L36",
-          "version": "repo-lines-v1:sha256:a2d7723f00fbfcb97b0621d0dc669b2abcd8b1c03032750ffcff4aadbf7b44c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmZmFhMGM3Mzg3NmI1MmFjMDM0YTJkMDAxOTIyZThjZWExZDI4MzBjMzVhY2NkZDAwNzQyYzZiYzI1ZDNmNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNjBjM2NjOGY4MzIzYTM4YjM4MTI5OGYwNGI3ODE3N2U0ZTA1ZDVjMjllMmU3MmQwZDBhYWRjZDJjMjdkNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0ZmVjZmE3ZDQzODAyNjI1N2IyYTFhYWQyZDMyNzFlMTY5ODRjOTdhZDFiOTQ4OGY1MDM3NjdjYTJmMmNhYzYifQ"
-        },
-        {
           "resource": "repo://dtcc_agent/disk_cache.py#L156-L202",
-          "version": "repo-lines-v1:sha256:738ff5223beb97644cc1e197d834a1affb9019c679e7c058e3a39664ed5d0214:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlZjk2ODhlNzk2M2U0OWQ4NjNkY2ExY2MyMTRlNzI2MGNjZTQ3NWI3Y2MyOTYyNzNiY2Y2YjY5MjlkMDZjMDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5Zjc2YjViY2M0Mzc4Y2MzMWQwODAwYWM0ZWJjNTczMjBjMzc3NmJlNjAzMmY3ZWExYmQ3MTgyNzBiOTA1ZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNzFkZjZlOTE1OGZiNjZjYmM1NmZhMTE5NWU3NTIyN2NiYzMyN2Y2Yzg5YmI1ZDBlMDg5NTk2NWUwN2Y4NzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxMjFiNzZmMDMxMDIxYTYyMTJmZTY4ZTQ4ZjNiMjkyZDE0MWI4YjBhOWMxZTcyNTI0ZmViMDIwMDRhZDVhZTcifQ"
+          "version": "repo-lines-v1:sha256:855027b8e9888f23f11b47a5d9357ec51541e5f0d3533b81ea1de26e1ccb0b1b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1YThlNDMyOWU0MTAxYjRiNDljNmQyZjg3MzI2Mjc0OTY0NTdiMzY1NTRkNDFkYTI2ZjI1MGVjM2NhOGIwZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlY2M0NDc4Y2JkZjE2NzhiYTU4ODc1OTlmYzIwODkyYmFkYzE1YmE5OWM0OTM2ZThhOWFjYzFlZjI2NjU5MGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2Y2ZjNjRlYjllMmFlMTc5OGYyMzQzOWI5MDA0OWE4MTFkZjc3NWE3NTAxODYzNzExZTE0ZTg5ZDZkZDBhYjgifQ"
         },
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L279-L306",
-          "version": "repo-lines-v1:sha256:e585f901a317b17e8a670ee86d2a3dddafe3ad058fdb44b9d2a17c82b1063420:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhNGUxNDMyMjJlMjUyMzJhNDZkMWEyMzdlNTcxYThhNTE5NDY4MTFhZDAzMDUwZmE2NjkwNTRmMjY3ZGNiZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwOGFlY2RkMTNmYzE5MzIwNmEzODJiNTVlNGE4ZWEyMGU2MWFmNWJmZjI5YzUxZWI1OWY4ZGJmZDg4YjU2NmQifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L279-L314",
+          "version": "repo-lines-v1:sha256:a4f237e33d22ea6b52d5e36eba2fa44d9835fdeffddf112fb26a77ea0376cdc6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2ZmY5NmFiN2QzYmM2YzU0Y2YwNzVkZGQxZWM0MjhhZmRhMzA3MTk5YjA3YmQ2ODMwNDlkN2MwYjY1MzdjY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNjBjM2NjOGY4MzIzYTM4YjM4MTI5OGYwNGI3ODE3N2U0ZTA1ZDVjMjllMmU3MmQwZDBhYWRjZDJjMjdkNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZGMwNjU4NGNiYjhlZTQ1NjJjMDc3ODM0Nzg1ZTQyZmU1YjQ5NWNmNWEyZjNkODhmYTYzOTcxODExMWJjZWQifQ"
         }
       ]
     },
@@ -72,11 +68,11 @@
       "evidence": [
         {
           "resource": "repo://dtcc_agent/dispatcher.py#L261-L276",
-          "version": "repo-lines-v1:sha256:725f63920a526e7bda69b29289696276d978f2b13d5c2623d8e4d97a8a643282:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1ZjE3M2YyMTkxOGViODU5NTI5NWVjYzUwYWRiNTJmNTg1MmVhOTYzZjhiNjhkODczZjc0YWI2YjY5MmMwYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYjE3MzJlNTQ2MjMzOTcwYTA1ODk3ZWExYjZhOGI1NDljYmYyODJmYjE1MzUwYTY2MmU4NGI3NzAxM2NiMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhNGMxN2Y0ODA5MTM3ZTA2NTRmYTg2ZTdiOGI3OGY4ZDRmMzdiMWMwNWE4NzgyNzkxZGM2ODI4YmNiZmMyYmMifQ"
+          "version": "repo-lines-v1:sha256:725f63920a526e7bda69b29289696276d978f2b13d5c2623d8e4d97a8a643282:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1ZjE3M2YyMTkxOGViODU5NTI5NWVjYzUwYWRiNTJmNTg1MmVhOTYzZjhiNjhkODczZjc0YWI2YjY5MmMwYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlN2M5NTdiY2I0NGZiNjczYzk4YjAwNTBhNzVkMzgwODJkYjgxZDkxOGRlMzEzYTNmMDdjMTIzNTMwNmQ3ZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYjE3MzJlNTQ2MjMzOTcwYTA1ODk3ZWExYjZhOGI1NDljYmYyODJmYjE1MzUwYTY2MmU4NGI3NzAxM2NiMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjYWEyNTUzMzI1Zjg2OWQ0NzM4NzhmY2MzMGIwMDMwNWIxZTc4Y2FlNmNkMzNjN2I1MWFmZDhhMzI3OGEzNzYifQ"
         },
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L377-L390",
-          "version": "repo-lines-v1:sha256:01a56a36e7b18d8afcb6a7e5f39e9a0fd7b7a3b6b08d628e210ff4276d604de3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMjFhMDNiNTBiNTVmN2VmMmFkZjkwNjg3ZGJkYzdiODQ0Yzc2N2ViNzY0OWMyMjA5NTExZjEyZTUzZDU3ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L395-L428",
+          "version": "repo-lines-v1:sha256:24779542cb055dd0de67a8a323471f26605cdd858eaa4b7a4af23efc4652e62f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -91,18 +87,42 @@
       ]
     },
     {
-      "id": "claim_a5ebc4a5b2da48b892fb54bb2f32d3cb",
-      "statement": "A get_buildings cache hit returns the cached summary with only its bounds field replaced, without cropping to the requested area.",
+      "id": "claim_3b1133907e5140e396d2e2e939d90c61",
+      "statement": "The building crop keeps a building only when its unsimplified LOD0 outline lies wholly inside the bounds shrunk by 2 m (Core's create_bounds_filter with strategy contains), keeping or dropping parts that share a source feature id (objektidentitet or osm_id) together and dropping buildings without an outline.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/server.py#L346-L358",
-          "version": "repo-lines-v1:sha256:1d76e37bdee55d788a6bc9339f41d518b38fcd30451bf2bf82af323338c7280b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZDM3Y2E2NGUyNjRlY2QxNjA3NjRjZDA0MDQ2NDU4NzFhNjU1OWYzMjlhYmUwNDNiYmExY2VjNGJiYTA1NDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiYzI2MGE4ODNiNDQ0OGUyMjViMjEwNmQzNDQ3Zjk5YzUxNjBmOTExN2M5NWUzYzM1MDIwNmE2ODAwMTNhOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzMjkwOWNlOTIxM2MxMmY4YzFmNmI2N2Y1ZTdhM2ViZWViZjg5ZjQxMzZmNTA1MTJiNWZjNWRiNzk4OTZkMTAifQ"
+          "resource": "repo://dtcc_agent/crop.py#L62-L121",
+          "version": "repo-lines-v1:sha256:8f7e90d5f3688f0f6c9f6b981ff2c9163b171f03888dd81dc13f2798b1e93302:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhYjkwYmYwMWZkMzdlMmEzY2RlNWJlOTY4OTRkZjgzNTk4NDYxMzI5Y2MyOGM5ZDgzODk2ZjkzNDE2ZWU2YjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjNTI4MGM2ZmViMGNlZGY3ZWQ1YzdjMzc5MGQ0NmNlNzE2OWVkMmYyMWRjZjMyOGJmYTFkNTJjNWZiMjM0MjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_88f6a5037c8c488db6a87e4f3f8566f5",
+      "statement": "Dataset cache keys hash the non-bounds parameters with source defaulting to LM, so run_operation calls that omit source share entries with get_buildings, which always names it.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L279-L285",
+          "version": "repo-lines-v1:sha256:4678215f2d9564188837dd14331076308efed0d48a0dc2cbee888d3482bf43d9:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjZmZjk2YWI3ZDNiYzZjNTRjZjA3NWRkZDFlYzQyOGFmZGEzMDcxOTliMDdiZDY4MzA0OWQ3YzBiNjUzN2NjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM2OTdiNmExMWMzNzdiODE1ZDU5ZmI1NzVhYzIxNjkxYWFlMDliZmZmNzEzMTY5NGY3MmYzZTkwNTliZjkwZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzMzZTg0ODdjODVkZmRjZjlmYTdiOTNjNzQ2Yzk0NjI1YWU0N2UxMjBjNzk3ZTc5MWU3MzdmOWVkN2ZmYzczZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGVkMTA4NTY2MWRlNTFmZjI1Njc0MmY5NDIxMzAyZmIyNGRkZmYwY2VhMDAzM2ZjNWU1ZDYzOTQ2MjI5YWI0YiJ9"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L349-L358",
+          "version": "repo-lines-v1:sha256:7bda1c9003130201512b2a45d1a75a280c86ce038b88236424ce8795725161b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2OTkzNmI2M2U4N2VkZjMwYjdiYjM2NmQ5MDhiNTRhNDBlZWU4YWYxZGMzMzhkMzkzYjNiMGJjZjY0MWRiMDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiYzI2MGE4ODNiNDQ0OGUyMjViMjEwNmQzNDQ3Zjk5YzUxNjBmOTExN2M5NWUzYzM1MDIwNmE2ODAwMTNhOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1ZDY0NWI2Y2Y3MTJlNzU3YTM3NGVmMzUxNzA0NTQzMDkyODYzYTVhZWRiMmQ3ZjExOTc4NDkwYzY4ZDQwNjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_15d3853895d240bea583bed4919e6537",
+      "statement": "get_buildings caches the Core building download under datasets.buildings, fetching and storing it only on a miss, and summarises it per request for the bounds asked with max_buildings applied at summary time.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L346-L380",
+          "version": "repo-lines-v1:sha256:bfac8b18ca428a2836a7b1dbbaed0665996c97754f81351427d3f525c2aae0a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhZTRhOWI1OWJmNDc5ZjYwYjBmNjBiOWIyZjMzMTYyNzk5ZDg5YTc0MjM4Yjk1YTQyZTBlNTFiYmQyZDRhMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMzFjODkwYWQ5M2E5OWExMWYyZTU0NTZmNmJjYTExZTViYjQwOWI0MmM2MmQ3MzIyOGI0MmRlNTk0MzRlM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwNTIxYjdkMmU0MzAyNGNhZDBjNjlmNGY1NmY3OTNlYTAyNjhkZDUyZTIyMGM4OWE4NTQ4NDgwZmY1NGFjMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4MGVkODExMGJmYTkzYjBlMDY3NTEyOWVhNDJjODQwYTA1ZjBjYmZmYjY3MTFiYTkwN2RjNTg0OWRjYWRhMDIifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-26T09:41:09.647Z"
+    "at": "2026-09-29T13:24:05.367Z"
   }
 }

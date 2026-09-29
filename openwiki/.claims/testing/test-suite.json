@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f4e7e9176479781d5f9677b08035ed9b57e0bad6ba33a8742a5bbd98c0d7d759",
+  "pageVersion": "sha256:839147545410eadce0a0a67a7f25666c745c4a125dd9980a875e9c94584acd35",
   "claims": [
     {
       "id": "claim_c31659df10d142d8a63ea6a505dd28d1",
@@ -41,8 +41,8 @@
       "statement": "Concurrency behaviour (worker-pool bound, per-Session share, single-flight downloads, cancellation) is covered by test_worker_pool.py using gated downloads rather than timing.",
       "evidence": [
         {
-          "resource": "repo://tests/test_worker_pool.py#L94-L440",
-          "version": "repo-lines-v1:sha256:ae940f3571cbdca3ed4791a5409652618511c63e719fa73a0d7b4f30edbcbd78:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQ3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhNzc0YWRlNjhjOTFkZDZiMDc5MWFiZDlhMDVkNDBmNDJiZTI5MTdjYTFjYmRhZTM4ZDU3NGJkNjQzZDU2YTNmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwZmU0ZTQ0NjY5MGIyZjU4ZmI4NTk0Y2RmZmU0MWQzZmE1YWE2ZjQ2YjhmZWNmNWZjNTAzN2FlY2Y0Mzg5NmY3In0"
+          "resource": "repo://tests/test_worker_pool.py#L94-L448",
+          "version": "repo-lines-v1:sha256:30e568547a0ec1f859f1ccc01e19aa4745f89543ba48fd173b9f491e0f900b17:eyJzZWxlY3RlZExpbmVDb3VudCI6MzU1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjVjYTc3Mzc5NGEwNmYwODIxNTY4ODA5YmViNzQ5YzA4Yzk3Mjk2MDEyMGExMWQ2ODVkMWYzMTc5NGUwYjBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
     },
@@ -55,10 +55,20 @@
           "version": "repo-lines-v1:sha256:83ae30661a343ba8a72583ef6a75051ac74d9465ce9de4744e8a1ddfddda0f19:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZDM2ZTYzMjdlMjE1MDFjMWEzZjRjMjkzZTUyMDcwZmJiZDhkZjc4YTY2ZDc2MjkyYWRjNWU3ZDNmMWM5OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlZDRlMjdjMWE3NjMyMDE4MmZmY2NkYTM1ZTc1NmYyYTg2YjM1ZWUzMTc5ZThiOGRiN2U5YmU1OTRkMzE2ZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxODE3MzgzMDQ3ZmFlYjYzY2ZmMzJjMDcxMTQzZGY3MjA3NjU1OTk1NDY3NWQ4ZGViODAwMjc2YzYwNzZkMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2ODRhMjhkNDI0MzQxNzZlZjc2OGI1MTUwN2ZlYTdkMmNhOTRmMTczMDZhNjBjMGJiOTgxYTNhZmQ2NzJhNzAifQ"
         }
       ]
+    },
+    {
+      "id": "claim_8480ea7dbad54faa96d844a7fbfff52c",
+      "statement": "The building crop is tested with real dtcc-core Building objects, covering the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_crop.py",
+          "version": "repo-file-v1:sha256:72d676f317dc8e74ae313e8aad2b0b2ae9226b5f7be5407642ab589a6acd742c"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-27T19:28:40.080Z"
+    "at": "2026-09-29T13:24:05.367Z"
   }
 }
