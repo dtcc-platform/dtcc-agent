@@ -32,10 +32,11 @@ def test_crop_returns_original_if_unknown_type():
     assert result is obj
 
 
-def _building(x, y, outline=None, id=None):
+def _building(x, y, outline=None, id=None, attributes=None):
     from dtcc_core.model import Building, GeometryType, Surface
 
     b = Building() if id is None else Building(id=id)
+    b.attributes.update(attributes or {})
     square = [[x, y], [x + 10, y], [x + 10, y + 10], [x, y + 10]]
     vertices = [[vx, vy, 0] for vx, vy in (outline or square)]
     b.add_geometry(Surface(vertices=np.array(vertices, float)), GeometryType.LOD0)
@@ -118,3 +119,20 @@ def test_crop_tests_the_footprint_unsimplified():
     city = BuildingCollection([spiked])
 
     assert crop_to_bounds(city, [0, 0, 100, 100]).buildings == []
+
+
+@pytest.mark.parametrize("source_id", ["objektidentitet", "osm_id"])
+def test_crop_groups_parts_by_the_source_feature_not_the_random_building_id(source_id):
+    """LM and OSM parts get random Building ids; the source feature id they
+    share lives in the copied properties (as a live download shows)."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    feature = {source_id: "3caf7f14"}
+    part_inside = _building(10, 10, attributes=feature)
+    part_outside = _building(500, 500, attributes=feature)
+    other = _building(30, 30, attributes={source_id: "9d01aa20"})
+    city = BuildingCollection([part_inside, part_outside, other])
+
+    cropped = crop_to_bounds(city, [0, 0, 100, 100])
+
+    assert cropped.buildings == [other]

@@ -64,6 +64,19 @@ def _crop_pointcloud(pc: Any, bounds: list[float]) -> Any:
 # lies wholly inside the bounds shrunk by this many metres.
 FOOTPRINT_EDGE_DISTANCE = 2.0
 
+# The source feature a building was split from. Core copies the feature's
+# properties onto every part, but only takes Building.id from a property
+# named "id", which neither source has, so parts get unrelated random ids.
+SOURCE_ID_ATTRIBUTES = ("objektidentitet", "osm_id")  # LM, OSM
+
+
+def _source_feature(b: Any) -> Any:
+    for name in SOURCE_ID_ATTRIBUTES:
+        value = b.attributes.get(name)
+        if value is not None:
+            return (name, value)
+    return b.id
+
 
 def _crop_city(city: Any, bounds: list[float]) -> Any:
     """Keep the buildings a fresh Core download of ``bounds`` would keep.
@@ -72,8 +85,8 @@ def _crop_city(city: Any, bounds: list[float]) -> Any:
     shrunk by FOOTPRINT_EDGE_DISTANCE, for LM and OSM alike, so a cropped
     cache hit applies the same test and counts what a fresh download counts:
     - Core tests a multi-part footprint whole, then splits it into buildings
-      sharing the source id, so parts sharing an id are kept or dropped
-      together.
+      that share the source feature's id, so parts of one feature are kept
+      or dropped together.
     - The test runs on the unsimplified LOD0 outline, as Core's does on the
       file geometry; ``footprint()`` would simplify it by 1 cm first.
     - A building without an outline is dropped, as Core's size filter
@@ -85,14 +98,15 @@ def _crop_city(city: Any, bounds: list[float]) -> Any:
     inside = create_bounds_filter(
         Bounds(*bounds), buffer=-FOOTPRINT_EDGE_DISTANCE, strategy="contains",
     )
-    whole = {}  # source id -> every part inside
+    whole = {}  # source feature -> every part inside
     for b in city.buildings:
         outline = b.flatten_geometry(GeometryType.LOD0)
         polygon = outline.to_polygon(simplify=0.0) if outline is not None else None
         ok = (polygon is not None and not polygon.is_empty
               and inside["strategy"](inside["geometry"], polygon))
-        whole[b.id] = whole.get(b.id, True) and ok
-    kept = [b for b in city.buildings if whole[b.id]]
+        feature = _source_feature(b)
+        whole[feature] = whole.get(feature, True) and ok
+    kept = [b for b in city.buildings if whole[_source_feature(b)]]
 
     # Shallow copy: callers crop a freshly loaded cache object nothing else
     # holds, so sharing its buildings is safe and skips copying geometry.
