@@ -33,7 +33,7 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 295 with #50 → 326 with #51.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51.
 
 ---
 
@@ -58,7 +58,7 @@ load and run, and two agent processes sharing the cache lost each other's entrie
   refuses to start on a cache another user could change. Docker's `/data/cache` is unaffected.
 - Several processes can share one cache without losing entries.
 
-**How we know it works:** 326 tests pass, 31 of them new, including 8 processes writing one
+**How we know it works:** 327 tests pass, 31 of them new, including 8 processes writing one
 cache at once (1600 of 1600 entries kept). A Codex adversarial review ran three rounds and a
 Claude review one; every finding was fixed.
 
