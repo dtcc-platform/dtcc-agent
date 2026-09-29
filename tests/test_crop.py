@@ -32,16 +32,17 @@ def test_crop_returns_original_if_unknown_type():
     assert result is obj
 
 
-def _building(x, y):
+def _building(x, y, outline=None, id=None):
     from dtcc_core.model import Building, GeometryType, Surface
 
-    b = Building()
-    square = [[x, y, 0], [x + 10, y, 0], [x + 10, y + 10, 0], [x, y + 10, 0]]
-    b.add_geometry(Surface(vertices=np.array(square, float)), GeometryType.LOD0)
+    b = Building() if id is None else Building(id=id)
+    square = [[x, y], [x + 10, y], [x + 10, y + 10], [x, y + 10]]
+    vertices = [[vx, vy, 0] for vx, vy in (outline or square)]
+    b.add_geometry(Surface(vertices=np.array(vertices, float)), GeometryType.LOD0)
     return b
 
 
-def test_crop_keeps_only_core_buildings_centred_in_bounds():
+def test_crop_keeps_only_core_buildings_inside_bounds():
     """What datasets.buildings returns: a Core BuildingCollection (#39)."""
     from dtcc_core.datasets.buildings import BuildingCollection
 
@@ -79,3 +80,41 @@ def test_crop_keeps_what_a_fresh_core_download_keeps():
     cropped = crop_to_bounds(city, [0, 0, 100, 100])
 
     assert cropped.buildings == [inside]
+
+
+def test_crop_returns_a_core_city_unchanged():
+    """A City's buildings cannot be replaced; returning it as-is lets the
+    cache treat a larger cached City as a miss rather than fail."""
+    from dtcc_core.model import City
+
+    city = City()
+    assert crop_to_bounds(city, [0, 0, 100, 100]) is city
+
+
+def test_crop_drops_every_part_of_a_footprint_that_crosses_the_bounds():
+    """Core tests a multi-part footprint whole, then splits it into buildings
+    that share the source id. One part outside drops them all."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    part_inside = _building(10, 10, id="feature-7")
+    part_outside = _building(500, 500, id="feature-7")
+    other = _building(30, 30)
+    city = BuildingCollection([part_inside, part_outside, other])
+
+    cropped = crop_to_bounds(city, [0, 0, 100, 100])
+
+    assert cropped.buildings == [other]
+
+
+def test_crop_tests_the_footprint_unsimplified():
+    """footprint() simplifies by 1 cm. A 5 mm spike across the 2 m margin
+    keeps the building out of a fresh download, so the crop must see it."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    spiked = _building(0, 0, outline=[
+        [90, 40], [97.995, 40], [97.995, 49.99], [98.003, 50.0],
+        [97.995, 50.01], [97.995, 60], [90, 60],
+    ])
+    city = BuildingCollection([spiked])
+
+    assert crop_to_bounds(city, [0, 0, 100, 100]).buildings == []
