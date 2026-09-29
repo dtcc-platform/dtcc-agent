@@ -269,6 +269,8 @@ automatically cached to disk at `/tmp/dtcc_cache/`. The cache uses:
 
 - **Spatial containment** for datasets: if a cached result covers a
   larger area than requested, the cached data is reused and cropped.
+  Buildings are cropped with Core's own footprint rule, so the result matches
+  a fresh download; a cached object that cannot be cropped is downloaded again.
 - **Content fingerprinting** for builders: input objects are hashed by
   their metadata (type, size, source), so the same pipeline step with
   equivalent inputs hits the cache even across sessions.
