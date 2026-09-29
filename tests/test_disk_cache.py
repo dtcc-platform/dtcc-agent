@@ -591,3 +591,59 @@ def test_load_refuses_a_cache_id_that_is_not_one(tmp_path):
 
     with pytest.raises(ValueError):
         cache.load("../../elsewhere")
+
+
+def test_missing_parents_are_created_private_whatever_the_umask(tmp_path):
+    """A fresh ~/.cache made under umask 002 was 0775 and failed the check."""
+    import os
+    import stat
+
+    old = os.umask(0o002)
+    try:
+        DiskCache(cache_dir=tmp_path / "home" / ".cache" / "dtcc_agent")
+    finally:
+        os.umask(old)
+
+    assert stat.S_IMODE((tmp_path / "home" / ".cache").stat().st_mode) == 0o700
+
+
+def test_a_symlinked_cache_dir_is_used_through_its_real_path(tmp_path):
+    """Once checked, the cache never follows the link again, so swapping it
+    cannot redirect pickle loads."""
+    real = tmp_path / "real"
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+    real.mkdir(mode=0o700)
+
+    cache = DiskCache(cache_dir=link)
+
+    assert cache._cache_dir == real.resolve()
+
+
+def test_a_private_symlink_inside_the_cache_is_accepted(tmp_path):
+    storage = tmp_path / "storage"
+    storage.mkdir(mode=0o700)
+    (tmp_path / "c").mkdir(mode=0o700)
+    (tmp_path / "c" / "objects").symlink_to(storage, target_is_directory=True)
+
+    cache = DiskCache(cache_dir=tmp_path / "c")
+
+    assert cache._objects_dir == storage.resolve()
+
+
+def test_startup_ignores_a_file_removed_while_it_scans(monkeypatch, tmp_path):
+    """Another process's cleanup or index write can remove a file mid-scan."""
+    from pathlib import Path
+
+    (tmp_path / "c").mkdir(mode=0o700)
+    ghost = tmp_path / "c" / "index.123.tmp"
+    real_iterdir = Path.iterdir
+
+    def iterdir_with_a_ghost(self):
+        yield from real_iterdir(self)
+        if self.name == "c":
+            yield ghost  # listed, then gone
+
+    monkeypatch.setattr(Path, "iterdir", iterdir_with_a_ghost)
+
+    DiskCache(cache_dir=tmp_path / "c")

@@ -114,17 +114,21 @@ def _check_owner(path: Path, st: os.stat_result, trusted: tuple[int, ...]) -> No
         _refuse(path, "owned by another user")
 
 
-def _private_dir(path: Path) -> None:
-    """Make ``path`` a directory only this user controls, or refuse it.
+def _private_dir(path: Path) -> Path:
+    """Make ``path`` a directory only this user controls, or refuse it, and
+    return its real path, which the cache then uses so a symlink swapped
+    after this check cannot redirect it.
 
-    Created 0700 in one step, so a second process never sees it open. Its
-    parents may be shared only the way /tmp is (sticky), else whoever can
-    write one could swap the cache for their own. Every file already in it
-    must be private too.
+    Missing directories are created 0700 one at a time, so no process ever
+    sees one open. Parents may be shared only the way /tmp is (sticky), else
+    whoever can write one could swap the cache for their own. Every entry
+    already in it must be private too; a symlink is judged by its target.
     """
-    path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    missing = [path, *(a for a in path.parents if not a.exists())]
+    for directory in reversed(missing):
+        directory.mkdir(mode=0o700, exist_ok=True)
     uid = os.getuid() if hasattr(os, "getuid") else None
-    real = path.resolve()
+    real = path.resolve(strict=True)
 
     for parent in real.parents:
         st = parent.stat()
@@ -133,14 +137,18 @@ def _private_dir(path: Path) -> None:
             _refuse(parent, "writable by other users")
 
     st = real.stat()
-    _check_owner(path, st, (uid,))
+    _check_owner(real, st, (uid,))
     if _others_can_write(st):
-        _refuse(path, "writable by other users")
+        _refuse(real, "writable by other users")
     for child in real.iterdir():
-        st = child.lstat()
+        try:
+            st = child.stat()  # follows a symlink to what it points at
+        except FileNotFoundError:
+            continue  # removed by another process's cleanup or index write
         _check_owner(child, st, (uid,))
         if _others_can_write(st):
             _refuse(child, "writable by other users")
+    return real
 
 
 def _open_private(path: Path, flags: int):
@@ -154,12 +162,10 @@ class DiskCache:
 
     def __init__(self, cache_dir: Path = CACHE_DIR) -> None:
         self._lock = threading.Lock()
-        self._cache_dir = cache_dir
-        self._objects_dir = cache_dir / "objects"
+        self._cache_dir = cache_dir = _private_dir(cache_dir)
+        self._objects_dir = _private_dir(cache_dir / "objects")
         self._index_path = cache_dir / "index.json"
         self._lock_path = cache_dir / "index.lock"
-        _private_dir(cache_dir)
-        _private_dir(self._objects_dir)
 
         self._index: list[dict[str, Any]] = []
         self._index_version: tuple[int, int, int] | None = None
