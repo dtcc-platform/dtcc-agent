@@ -3,9 +3,6 @@ type: concept
 title: Dispatch, object references and serialization
 description: How run_operation resolves parameters, calls a dtcc-core function or dataset, stores the result in the calling Session's ObjectStore under a short ID, and returns an LLM-sized summary, plus the object tools built on that store.
 tags: [dispatcher, object-store, serializers, references, pipelines]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
 sources:
   - id: openwiki-source-7931b878d950a1ff97af7eb8
     resource: repo://docs/adr/0010-references-are-typed-and-a-run-records-its-object.md
@@ -19,7 +16,10 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
-generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-09-29T19:33:34.851Z
 ---
 
 # Dispatch, object references and serialization
@@ -34,21 +34,22 @@ The generic dispatch path lets an LLM chain any catalogued dtcc-core Operation w
 
 The MCP tool `run_operation(name, params, label)` in `server.py` calls `dispatcher.run_operation(name, params, store=_session().objects, cache=_disk_cache)`:
 
-1. **Look up** the `OperationInfo` in the catalogue. An unknown name returns `{"error": ...}`.
-2. **Check the disk cache** if the name is in `CACHE_ALLOWLIST`. Datasets go through `load_cached_dataset`, which crops a larger cached area to the request; the `get_buildings` tool uses the same helper. A hit returns immediately with `cache_hit: true` (see [Disk cache](disk-cache.md)).
-3. **Call the Operation.**
+1. **Check literal bounds.** A `bounds` parameter given as a list or tuple must be an area: `bounds_error` refuses the wrong length, non-finite values, or a min not below its max, and the call returns `{"error": "Invalid bounds ..."}`. A stored `Bounds` object id or `None`, which some operations take, passes through to step 3.
+2. **Look up** the `OperationInfo` in the catalogue. An unknown name returns `{"error": ...}`.
+3. **Check the disk cache** if the name is in `CACHE_ALLOWLIST`. Datasets go through `load_cached_dataset`, which crops a larger cached area to the request; the `get_buildings` tool uses the same helper. A hit returns immediately with `cache_hit: true` (see [Disk cache](disk-cache.md)).
+4. **Call the Operation.**
    - *Datasets* (`_run_dataset`) are called as `ds(**params)`, with a `Bounds` object converted back to a list.
    - *Functions* (`_run_function`) resolve each declared parameter:
      - **Object references.** For a parameter whose type is a dtcc object (`is_object_param`), a string value is looked up in the Session's store. PointCloud, Mesh, VolumeMesh, Raster, City, Terrain, Surface and MultiSurface inputs are **deep-copied** first, so an in-place Core function never mutates a stored object. A string that is not a stored ID passes through unchanged.
      - **Bounds.** A 4- or 6-element list for a `Bounds`-typed parameter or a parameter named `bounds` becomes a `dtcc_core` `Bounds`.
      - **Enums.** Strings for `GeometryType` parameters become the enum member.
      - **Missing parameters.** A missing required parameter returns an error listing every missing name. Omitted optional parameters take the function's own default.
-4. **Store and summarise** (`_store_and_summarize`):
+5. **Store and summarise** (`_store_and_summarize`):
    - A **tuple** stores each element separately and returns `result_ids`.
    - A **list** of Building, Tree or Surface is stored as one object.
    - A **primitive or dict** is returned inline and not stored.
    - **Anything else** is stored and returned with its `result_id`.
-5. **Populate the disk cache** on success, datasets through `store_dataset`.
+6. **Populate the disk cache** on success, datasets through `store_dataset`.
 
 Exceptions from Core are caught and returned as `{"error": "Operation '<name>' failed: ..."}`. Tools return error payloads rather than raising, so the LLM can recover.
 
@@ -68,7 +69,8 @@ Exceptions from Core are caught and returned as `{"error": "Operation '<name>' f
 - **PointCloud:** count, bounds, classification counts, z statistics.
 - **Mesh and VolumeMesh:** vertex, face and cell counts.
 - **Raster:** shape, cell size, value statistics.
-- **Others:** City, building and tree lists, Terrain, RoadNetwork, dolfinx `Function` (via `analysis.summarize_field`), and GeoJSON FeatureCollection.
+- **Buildings:** a `BuildingCollection` (what `datasets.buildings` returns), a City and a building list report the count and height statistics. A height is Core's estimate, else its measurement (`building_height`); `Building.height` alone is only the measurement, which downloads leave empty.
+- **Others:** tree lists, Terrain, RoadNetwork, dolfinx `Function` (via `analysis.summarize_field`), and GeoJSON FeatureCollection.
 
 Generic lists show the first 10 elements. Numpy arrays are reduced to shape, dtype and statistics. `to_markdown(obj)` backs the richer `object_to_text` tool.
 

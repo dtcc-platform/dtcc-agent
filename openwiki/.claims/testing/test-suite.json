@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:839147545410eadce0a0a67a7f25666c745c4a125dd9980a875e9c94584acd35",
+  "pageVersion": "sha256:2eafb1b8866d67ee3b256c5be8e588cdfa115591f64b78f5ceb440aa602bfa21",
   "claims": [
     {
       "id": "claim_c31659df10d142d8a63ea6a505dd28d1",
@@ -58,17 +58,27 @@
     },
     {
       "id": "claim_8480ea7dbad54faa96d844a7fbfff52c",
-      "statement": "The building crop is tested with real dtcc-core Building objects, covering the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline.",
+      "statement": "The building crop is tested with real dtcc-core Building objects, covering the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline or id.",
       "evidence": [
         {
           "resource": "repo://tests/test_crop.py",
-          "version": "repo-file-v1:sha256:72d676f317dc8e74ae313e8aad2b0b2ae9226b5f7be5407642ab589a6acd742c"
+          "version": "repo-file-v1:sha256:6d31f4c3305ca95f9deb3eee296b01204eab612f0c19c59f97955ad9ea21201b"
+        }
+      ]
+    },
+    {
+      "id": "claim_5b292f7ac9994054b8ba7408db90d91b",
+      "statement": "test_buildings_summary.py covers building heights from estimated_height then measured_height, None height stats, footprint area over every building, bounds refused at every entry point, and BuildingCollection serialisation.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_buildings_summary.py",
+          "version": "repo-file-v1:sha256:547e5b5a4d4f35cac4ca0fc7f2c98cae2aacc7ad4678b773fcc8cac60a764513"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-29T13:24:05.367Z"
+    "at": "2026-09-29T19:33:34.851Z"
   }
 }

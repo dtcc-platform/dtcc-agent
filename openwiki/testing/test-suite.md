@@ -8,6 +8,8 @@ sources:
     resource: repo://.github/workflows/ci-build-tests.yml
   - id: openwiki-source-05ccef8d4cf1698187f20464
     resource: repo://pyproject.toml
+  - id: openwiki-source-1ce45006eecf563d5acf22dc
+    resource: repo://tests/test_buildings_summary.py
   - id: openwiki-source-c0b62da1c8d12500b49cd428
     resource: repo://tests/test_catalogue_startup.py
   - id: openwiki-source-45618922e75f513256096f36
@@ -18,10 +20,10 @@ sources:
     resource: repo://tests/test_server.py
   - id: openwiki-source-fa7af1493a897412d61af4b0
     resource: repo://tests/test_worker_pool.py
-generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
+    at: 2026-09-29T19:33:34.851Z
 ---
 
 # Test suite
@@ -46,7 +48,8 @@ All tests live in `tests/` as plain pytest modules. There is no `conftest.py`; f
 | Sessions | `test_http_sessions.py`, `test_chatbot_sessions.py` | Isolation across Sessions over real HTTP, header required, LRU cap, in-flight Sessions never evicted |
 | Catalogue | `test_registry.py`, `test_core_dependency.py` | Reflection and parameter schemas; Core declared, pinned to a full SHA, loud failure without it |
 | Dispatch and storage | `test_dispatcher.py`, `test_object_store.py`, `test_serializers.py` | Reference, bounds and enum resolution; tuple storage; LRU and byte estimates; summaries |
-| Cache | `test_disk_cache.py`, `test_crop.py` | Containment, TTL, budget, hashing; `get_buildings` answering a sub-area from a cached download and every cache failure path; the building crop matching Core's footprint rule with real Core buildings |
+| Cache | `test_disk_cache.py`, `test_crop.py` | Containment, TTL, budget, hashing; `get_buildings` answering a sub-area from a cached download and every cache failure path; the building crop matching Core's footprint rule with real Core buildings; the cache trust check (private creation under umask 002, refusals for other owners, writable dirs, parents and files, symlinks); two caches sharing one directory |
+| Building summaries | `test_buildings_summary.py` | Heights from Core's estimate then measurement, empty stats as `None`, area over every building, bad bounds refused at every entry point, `BuildingCollection` serialisation |
 | Domain helpers | `test_analysis.py`, `test_geocode.py`, `test_geojson_store.py` | Field statistics and comparison; hardcoded and Nominatim geocoding; GeoJSON load and query |
 | Chatbot | `test_chatbot_app.py`, `test_chatbot_config.py`, `test_chatbot_memory.py` | App with mocked Chroma and SDK; MCP config and header; session-filtered memory |
 

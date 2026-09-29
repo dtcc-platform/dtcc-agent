@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:c48817b9e290e959971b7c6c7b45c3322507ef549ddaf812ecddd9abbb72ae0b",
+  "pageVersion": "sha256:880831b317a37e7fa50816ca50a7afa7dfa21eb79aa3f397abe74f6105b8f817",
   "claims": [
     {
       "id": "claim_003015a8b19f45bd80f4e61264a2ac11",
@@ -83,14 +83,14 @@
       "statement": "get_buildings has no disk-cache entry of its own: it reads and writes the shared datasets.buildings download through load_cached_dataset and store_dataset and summarises per request.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/server.py#L346-L386",
-          "version": "repo-lines-v1:sha256:62b2e39eda0a58655f5e559ac8a7cdaea6223c2fc3223748fced523671dc0f8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhZTRhOWI1OWJmNDc5ZjYwYjBmNjBiOWIyZjMzMTYyNzk5ZDg5YTc0MjM4Yjk1YTQyZTBlNTFiYmQyZDRhMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyZmMxYzZkMzZhYjI3NGYwMzhiZWZiY2MzYTMxM2M3ZTViMTRhOTI3OWU1YThmMmE3NTEyZjRjMDA2MWJjMWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwNTIxYjdkMmU0MzAyNGNhZDBjNjlmNGY1NmY3OTNlYTAyNjhkZDUyZTIyMGM4OWE4NTQ4NDgwZmY1NGFjMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYTIyOTg3MTMzMWIzODNjYmI2Y2E4MjFlNWRjN2QwNmEwOWJmNDA2OGEwZDk5MzFkY2VlODBhMTUzOGI4MzIifQ"
+          "resource": "repo://dtcc_agent/server.py#L349-L383",
+          "version": "repo-lines-v1:sha256:825b16fea7d4524b3e38ff8732510361cf5e88d6763f42f70f28acc9a07fa5db:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMzFjODkwYWQ5M2E5OWExMWYyZTU0NTZmNmJjYTExZTViYjQwOWI0MmM2MmQ3MzIyOGI0MmRlNTk0MzRlM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiYzI2MGE4ODNiNDQ0OGUyMjViMjEwNmQzNDQ3Zjk5YzUxNjBmOTExN2M5NWUzYzM1MDIwNmE2ODAwMTNhOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4MGVkODExMGJmYTkzYjBlMDY3NTEyOWVhNDJjODQwYTA1ZjBjYmZmYjY3MTFiYTkwN2RjNTg0OWRjYWRhMDIifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-29T13:24:05.367Z"
+    "at": "2026-09-29T19:33:34.851Z"
   }
 }
