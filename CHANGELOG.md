@@ -14,6 +14,7 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-29 | Slope and aspect no longer check a cache they can never be stored in ([#53](https://github.com/dtcc-platform/dtcc-agent/pull/53), fixes [#42](https://github.com/dtcc-platform/dtcc-agent/issues/42)) | 🔍 |
 | 2026-09-29 | The wiki describes the cache as it is after #50 and #51 ([#52](https://github.com/dtcc-platform/dtcc-agent/pull/52)) | ✅ |
 | 2026-09-29 | Building heights are real, bad bounds are refused, and the disk cache can't be tampered with ([#51](https://github.com/dtcc-platform/dtcc-agent/pull/51)) | ✅ |
 | 2026-09-29 | Building counts for a smaller area inside a cached one are right, via either tool ([#50](https://github.com/dtcc-platform/dtcc-agent/pull/50), fixes [#39](https://github.com/dtcc-platform/dtcc-agent/issues/39)) | ✅ |
@@ -34,7 +35,24 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53.
+
+---
+
+## 🔍 In review
+
+### Slope and aspect no longer check a cache they can never be stored in · 2026-09-29 · [#53](https://github.com/dtcc-platform/dtcc-agent/pull/53)
+
+**Before:** `builder.raster.slope_aspect` was on the disk-cache allowlist, but it returns two
+rasters and the cache only stores single results. Every call looked the cache up, missed,
+recomputed, and stored nothing (#42).
+
+**Now:** it is off the allowlist, so it skips the lookup. Nothing it returns changes. Caching
+two-part results is left for U2 ([#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)),
+which decides whether builder results are cached at all.
+
+**How we know it works:** a new test runs a two-raster operation under that name and checks
+the cache is never touched. 328 tests pass.
 
 ---
 

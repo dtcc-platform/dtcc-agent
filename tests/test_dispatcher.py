@@ -107,3 +107,22 @@ class TestCacheIntegration:
             assert "result_id" in result
             # The dataset callable should NOT have been called
             mock_op._callable.assert_not_called()
+
+    def test_tuple_result_op_skips_cache(self):
+        """slope_aspect returns a tuple, which the cache cannot store (#42),
+        so it must not pay for a lookup that can never hit."""
+        store = ObjectStore()
+        cache = MagicMock()
+        cache.builder_lookup.return_value = None  # a miss, as today
+        mock_op = MagicMock()
+        mock_op.category = "builder"
+        mock_op.params = []
+        mock_op._callable.return_value = (np.zeros((2, 2)), np.zeros((2, 2)))
+
+        with patch("dtcc_agent.dispatcher.get_operation", return_value=mock_op):
+            result = run_operation("builder.raster.slope_aspect", {}, store, cache=cache)
+
+        assert "error" not in result
+        assert len(result["result_ids"]) == 2
+        cache.builder_lookup.assert_not_called()
+        cache.store.assert_not_called()
