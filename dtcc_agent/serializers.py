@@ -101,10 +101,26 @@ def _serialize_raster(obj: Any) -> dict:
     return result
 
 
+def building_height(b: Any) -> float | None:
+    """A building's height in metres, or None when it has none.
+
+    Core's own precedence: the modelled estimate, else the measurement. A
+    download sets only the estimate; Building.height is the measurement.
+    """
+    h = getattr(b, "estimated_height", None)
+    if h is None:
+        h = getattr(b, "measured_height", None)
+    return float(h) if h is not None and h > 0 else None
+
+
+def _heights(buildings: Any) -> list[float]:
+    return [h for b in buildings if (h := building_height(b)) is not None]
+
+
 def _serialize_city(obj: Any) -> dict:
     buildings = getattr(obj, "buildings", [])
     has_terrain = obj.has_terrain() if hasattr(obj, "has_terrain") else False
-    heights = [b.height for b in buildings if getattr(b, "height", None) and b.height > 0]
+    heights = _heights(buildings)
     height_stats = summarize_field(np.array(heights), "building_height") if heights else None
     return {
         "type": "City",
@@ -116,15 +132,15 @@ def _serialize_city(obj: Any) -> dict:
     }
 
 
-def _serialize_building_list(obj: list) -> dict:
-    heights = [b.height for b in obj if getattr(b, "height", None) and b.height > 0]
+def _serialize_building_list(obj: Any, type_name: str = "list[Building]") -> dict:
+    heights = _heights(obj)
     lods = set()
     for b in obj[:20]:
         for attr in ("lod0", "lod1", "lod2", "lod3"):
             if getattr(b, attr, None) is not None:
                 lods.add(attr.upper())
     return {
-        "type": "list[Building]",
+        "type": type_name,
         "count": len(obj),
         "height_stats": summarize_field(np.array(heights), "height") if heights else None,
         "available_lods": sorted(lods),
@@ -241,6 +257,14 @@ def _build_dispatch() -> dict[str, Any]:
     try:
         from dtcc_core.model.object.city import City
         table[City] = _serialize_city
+    except ImportError:
+        pass
+    try:
+        from dtcc_core.datasets.buildings import BuildingCollection
+        # What datasets.buildings returns: without this entry it fell through
+        # to a bare repr, with no count or heights.
+        table[BuildingCollection] = lambda obj: _serialize_building_list(
+            obj.to_list(), "BuildingCollection")
     except ImportError:
         pass
     try:

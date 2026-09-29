@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import pickle
+import re
 import stat
 import threading
 import time
@@ -93,22 +94,59 @@ class CacheDirError(RuntimeError):
     """The cache directory could hold pickles planted by another user."""
 
 
+_CACHE_ID = re.compile(r"[0-9a-f]{8}")
+_PRIVATE_FILE = 0o600
+
+
+def _others_can_write(st: os.stat_result) -> bool:
+    return bool(st.st_mode & (stat.S_IWGRP | stat.S_IWOTH))
+
+
+def _refuse(path: Path, why: str) -> None:
+    raise CacheDirError(
+        f"Cache path {path} is {why}. The cache loads pickles, which run code, "
+        "so nobody else may be able to change it: fix the permissions "
+        "(chmod go-w) or set DTCC_AGENT_CACHE_DIR to a directory you own.")
+
+
+def _check_owner(path: Path, st: os.stat_result, trusted: tuple[int, ...]) -> None:
+    if hasattr(os, "getuid") and st.st_uid not in trusted:
+        _refuse(path, "owned by another user")
+
+
 def _private_dir(path: Path) -> None:
-    """Create ``path`` for this user only, or refuse one others can write."""
-    if not path.exists():
-        path.mkdir(parents=True, exist_ok=True)
-        path.chmod(0o700)
-    st = path.stat()
-    if hasattr(os, "getuid") and st.st_uid != os.getuid():
-        raise CacheDirError(
-            f"Cache directory {path} is owned by another user. Loading its "
-            "pickles would run their code; set DTCC_AGENT_CACHE_DIR to a "
-            "directory you own.")
-    if st.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
-        raise CacheDirError(
-            f"Cache directory {path} is writable by other users. Loading its "
-            f"pickles would run their code; run `chmod go-w {path}` or set "
-            "DTCC_AGENT_CACHE_DIR to a private directory.")
+    """Make ``path`` a directory only this user controls, or refuse it.
+
+    Created 0700 in one step, so a second process never sees it open. Its
+    parents may be shared only the way /tmp is (sticky), else whoever can
+    write one could swap the cache for their own. Every file already in it
+    must be private too.
+    """
+    path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    uid = os.getuid() if hasattr(os, "getuid") else None
+    real = path.resolve()
+
+    for parent in real.parents:
+        st = parent.stat()
+        _check_owner(parent, st, (0, uid))
+        if _others_can_write(st) and not st.st_mode & stat.S_ISVTX:
+            _refuse(parent, "writable by other users")
+
+    st = real.stat()
+    _check_owner(path, st, (uid,))
+    if _others_can_write(st):
+        _refuse(path, "writable by other users")
+    for child in real.iterdir():
+        st = child.lstat()
+        _check_owner(child, st, (uid,))
+        if _others_can_write(st):
+            _refuse(child, "writable by other users")
+
+
+def _open_private(path: Path, flags: int):
+    """Open for writing as 0600 whatever the umask."""
+    fd = os.open(path, flags | os.O_WRONLY | os.O_CREAT, _PRIVATE_FILE)
+    return os.fdopen(fd, "ab" if flags & os.O_APPEND else "wb")
 
 
 class DiskCache:
@@ -124,7 +162,7 @@ class DiskCache:
         _private_dir(self._objects_dir)
 
         self._index: list[dict[str, Any]] = []
-        self._index_version: tuple[int, int] | None = None
+        self._index_version: tuple[int, int, int] | None = None
         with self._lock:
             self._reload_if_changed()
         logger.info("Disk cache at %s: %d entries", cache_dir, len(self._index))
@@ -132,12 +170,12 @@ class DiskCache:
         # Clean up expired entries on startup
         self.cleanup()
 
-    def _version(self) -> tuple[int, int] | None:
+    def _version(self) -> tuple[int, int, int] | None:
         try:
             st = self._index_path.stat()
         except FileNotFoundError:
             return None
-        return st.st_mtime_ns, st.st_size
+        return st.st_ino, st.st_mtime_ns, st.st_size  # os.replace: new inode
 
     def _reload_if_changed(self) -> None:
         """Pick up entries other processes wrote. Must be called with lock held."""
@@ -158,8 +196,8 @@ class DiskCache:
     def _save_index(self) -> None:
         """Write index to disk atomically. Must be called with lock held."""
         tmp = self._index_path.with_suffix(f".{os.getpid()}.tmp")
-        with open(tmp, "w") as f:
-            json.dump(self._index, f, indent=2)
+        with _open_private(tmp, os.O_TRUNC) as f:
+            f.write(json.dumps(self._index, indent=2).encode())
         os.replace(tmp, self._index_path)
         self._index_version = self._version()
 
@@ -167,7 +205,7 @@ class DiskCache:
     def _editing_index(self):
         """Read-modify-write the index under a lock every process honours, so
         one process never overwrites entries another has added."""
-        with self._lock, open(self._lock_path, "a") as lock_file:
+        with self._lock, _open_private(self._lock_path, os.O_APPEND) as lock_file:
             fcntl.flock(lock_file, fcntl.LOCK_EX)
             try:
                 self._index_version = None  # always re-read under the lock
@@ -191,7 +229,7 @@ class DiskCache:
         cache_id = uuid.uuid4().hex[:8]
         pkl_path = self._objects_dir / f"{cache_id}.pkl"
 
-        with open(pkl_path, "wb") as f:
+        with _open_private(pkl_path, os.O_EXCL) as f:
             pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         size_bytes = pkl_path.stat().st_size
@@ -336,6 +374,8 @@ class DiskCache:
 
     def load(self, cache_id: str) -> Any:
         """Load a pickled object by cache_id."""
+        if not _CACHE_ID.fullmatch(cache_id):
+            raise ValueError(f"Not a cache id: {cache_id!r}")
         pkl_path = self._objects_dir / f"{cache_id}.pkl"
         with open(pkl_path, "rb") as f:
             return pickle.load(f)

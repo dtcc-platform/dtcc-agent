@@ -94,3 +94,41 @@ def test_run_operation_refuses_inverted_bounds():
     result = run_operation("datasets.buildings", {"bounds": [50, 50, 10, 10]}, store=ObjectStore())
 
     assert result["error"].startswith("Invalid bounds")
+
+
+def test_run_operation_summarises_a_download_with_the_same_heights():
+    """run_operation("datasets.buildings") is summarised by the serializers;
+    it read Building.height too, so it also reported no heights."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+
+    from dtcc_agent.serializers import serialize
+
+    summary = serialize(BuildingCollection([_building(0, 0, estimated=12.0)]))
+
+    assert summary["type"] == "BuildingCollection"
+    assert summary["count"] == 1
+    assert summary["height_stats"]["max"] == 12.0
+
+
+@pytest.mark.parametrize("bounds", [None, "a1b2c3d4"])
+def test_run_operation_passes_bounds_that_are_not_a_literal_box(monkeypatch, bounds):
+    """Some operations default bounds to None or take a stored Bounds id."""
+    from unittest.mock import MagicMock
+
+    import dtcc_agent.dispatcher as dispatcher
+    from dtcc_agent.object_store import ObjectStore
+
+    op = MagicMock(category="builder", _callable=lambda **kw: None)
+    op.name = "builder.build_terrain_raster"
+    op.params = []
+    monkeypatch.setattr(dispatcher, "get_operation", lambda name: op)
+
+    result = dispatcher.run_operation(op.name, {"bounds": bounds}, store=ObjectStore())
+
+    assert not str(result.get("error", "")).startswith("Invalid bounds")
+
+
+def test_numpy_coordinates_are_a_valid_box():
+    from dtcc_agent.dispatcher import bounds_error
+
+    assert bounds_error([np.int64(0), np.float32(0), np.float64(10), 10]) is None

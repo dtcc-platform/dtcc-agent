@@ -14,6 +14,7 @@ from __future__ import annotations
 import inspect
 import logging
 import math
+import numbers
 from copy import deepcopy
 from typing import Any
 
@@ -39,7 +40,7 @@ def bounds_error(value: Any) -> str | None:
     """
     if not isinstance(value, (list, tuple)) or len(value) not in (4, 6):
         return "Invalid bounds: expected [minx, miny, maxx, maxy]."
-    if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+    if not all(isinstance(v, numbers.Real) and not isinstance(v, bool)
                and math.isfinite(v) for v in value):
         return "Invalid bounds: every value must be a finite number."
     half = len(value) // 2
@@ -119,7 +120,10 @@ def run_operation(
     summary, and label.
     """
     params = params or {}
-    if "bounds" in params and (error := bounds_error(params["bounds"])):
+    # Only a literal box is checked here: some operations take bounds as a
+    # stored Bounds object id, or default it to None.
+    literal = params.get("bounds")
+    if isinstance(literal, (list, tuple)) and (error := bounds_error(literal)):
         return {"error": error}
     try:
         op = get_operation(name)

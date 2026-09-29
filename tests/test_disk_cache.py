@@ -537,3 +537,57 @@ def test_two_caches_on_one_dir_keep_each_others_entries(tmp_path):
     assert len(DiskCache(cache_dir=tmp_path)._index) == 2
     hit = a.dataset_lookup("datasets.buildings", "LM", "h", [101, 101, 109, 109])
     assert hit is not None and a.load(hit[0]) == 2
+
+
+def test_the_cache_refuses_a_dir_whose_parent_others_can_write(tmp_path):
+    """Whoever can write the parent can swap the whole cache dir for theirs."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    parent.chmod(0o775)
+
+    with pytest.raises(CacheDirError, match="writable by other users"):
+        DiskCache(cache_dir=parent / "cache")
+
+
+def test_a_sticky_shared_parent_like_tmp_is_fine(tmp_path):
+    parent = tmp_path / "tmp"
+    parent.mkdir()
+    parent.chmod(0o1777)
+
+    DiskCache(cache_dir=parent / "cache")
+
+
+def test_the_cache_refuses_a_pickle_others_can_write(tmp_path):
+    """A private dir does not help if one of its pickles is writable."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    cache = DiskCache(cache_dir=tmp_path / "c")
+    cache_id = cache.store(obj=1, operation="op", category="builder", params_hash="h")
+    (tmp_path / "c" / "objects" / f"{cache_id}.pkl").chmod(0o666)
+
+    with pytest.raises(CacheDirError, match="writable by other users"):
+        DiskCache(cache_dir=tmp_path / "c")
+
+
+def test_cache_files_are_created_private(tmp_path):
+    import os
+    import stat
+
+    old = os.umask(0o002)
+    try:
+        cache = DiskCache(cache_dir=tmp_path / "c")
+        cache_id = cache.store(obj=1, operation="op", category="builder", params_hash="h")
+    finally:
+        os.umask(old)
+
+    for name in ("index.json", "index.lock", f"objects/{cache_id}.pkl"):
+        assert stat.S_IMODE((tmp_path / "c" / name).stat().st_mode) == 0o600, name
+
+
+def test_load_refuses_a_cache_id_that_is_not_one(tmp_path):
+    cache = DiskCache(cache_dir=tmp_path / "c")
+
+    with pytest.raises(ValueError):
+        cache.load("../../elsewhere")

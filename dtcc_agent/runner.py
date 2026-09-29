@@ -259,18 +259,6 @@ def fetch_buildings(bounds: list[float], source: str = "LM") -> Any:
     return ds(bounds=bounds, source=source)
 
 
-def _building_height(b: Any) -> float | None:
-    """A building's height in metres, or None when it has none.
-
-    Core's own precedence: the modelled estimate, else the measurement. A
-    download sets only the estimate; Building.height is the measurement.
-    """
-    h = b.estimated_height
-    if h is None:
-        h = b.measured_height
-    return float(h) if h is not None and h > 0 else None
-
-
 def summarize_buildings(
     buildings: Any,
     bounds: list[float],
@@ -298,12 +286,14 @@ def summarize_buildings(
     """
     import numpy as np
 
+    from .serializers import building_height
+
     details = []
     heights = []
     total_area = 0.0
 
     for i, b in enumerate(buildings):
-        h = _building_height(b)
+        h = building_height(b)
         if h is not None:
             heights.append(h)
 
