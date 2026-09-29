@@ -75,7 +75,7 @@ def _source_feature(b: Any) -> Any:
         value = b.attributes.get(name)
         if value is not None:
             return (name, value)
-    return b.id
+    return b.id or id(b)  # no id at all must not group unrelated buildings
 
 
 def _crop_city(city: Any, bounds: list[float]) -> Any:
