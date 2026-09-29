@@ -620,15 +620,29 @@ def test_a_symlinked_cache_dir_is_used_through_its_real_path(tmp_path):
     assert cache._cache_dir == real.resolve()
 
 
-def test_a_private_symlink_inside_the_cache_is_accepted(tmp_path):
-    storage = tmp_path / "storage"
-    storage.mkdir(mode=0o700)
+@pytest.mark.parametrize("name", ["objects", "deadbeef.pkl"])
+def test_the_cache_refuses_a_symlink_inside_it(tmp_path, name):
+    """The cache never makes links, and a link's target may sit in a
+    directory others can write, where it can be replaced after the check."""
+    from dtcc_agent.disk_cache import CacheDirError
+
+    target = tmp_path / "elsewhere"
+    target.mkdir(mode=0o700)
     (tmp_path / "c").mkdir(mode=0o700)
-    (tmp_path / "c" / "objects").symlink_to(storage, target_is_directory=True)
+    (tmp_path / "c" / name).symlink_to(target)
 
+    with pytest.raises(CacheDirError, match="a symlink"):
+        DiskCache(cache_dir=tmp_path / "c")
+
+
+def test_load_does_not_follow_a_symlinked_pickle(tmp_path):
     cache = DiskCache(cache_dir=tmp_path / "c")
+    planted = tmp_path / "planted.pkl"
+    planted.write_bytes(b"not read")
+    (tmp_path / "c" / "objects" / "deadbeef.pkl").symlink_to(planted)
 
-    assert cache._objects_dir == storage.resolve()
+    with pytest.raises(OSError):
+        cache.load("deadbeef")
 
 
 def test_startup_ignores_a_file_removed_while_it_scans(monkeypatch, tmp_path):

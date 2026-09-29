@@ -122,7 +122,8 @@ def _private_dir(path: Path) -> Path:
     Missing directories are created 0700 one at a time, so no process ever
     sees one open. Parents may be shared only the way /tmp is (sticky), else
     whoever can write one could swap the cache for their own. Every entry
-    already in it must be private too; a symlink is judged by its target.
+    already in it must be private too, and none may be a symlink: the cache
+    never makes one, and a link's target could sit where others can write.
     """
     missing = [path, *(a for a in path.parents if not a.exists())]
     for directory in reversed(missing):
@@ -142,9 +143,11 @@ def _private_dir(path: Path) -> Path:
         _refuse(real, "writable by other users")
     for child in real.iterdir():
         try:
-            st = child.stat()  # follows a symlink to what it points at
+            st = child.lstat()
         except FileNotFoundError:
             continue  # removed by another process's cleanup or index write
+        if stat.S_ISLNK(st.st_mode):
+            _refuse(child, "a symlink")
         _check_owner(child, st, (uid,))
         if _others_can_write(st):
             _refuse(child, "writable by other users")
@@ -383,5 +386,6 @@ class DiskCache:
         if not _CACHE_ID.fullmatch(cache_id):
             raise ValueError(f"Not a cache id: {cache_id!r}")
         pkl_path = self._objects_dir / f"{cache_id}.pkl"
-        with open(pkl_path, "rb") as f:
+        fd = os.open(pkl_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        with os.fdopen(fd, "rb") as f:
             return pickle.load(f)

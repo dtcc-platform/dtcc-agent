@@ -271,7 +271,8 @@ pickles, and loading one runs code, so nobody else may be able to change the
 cache: a new directory is created `0700` and its files `0600`, and the agent
 refuses to start if the directory or any file in it belongs to another user or is
 group- or world-writable, or if a parent directory is writable by others without
-the sticky bit (as `/tmp` has). Several agent processes may share one directory;
+the sticky bit (as `/tmp` has), or if anything inside it is a symlink. Several
+agent processes may share one directory;
 index updates are locked. The cache uses:
 
 - **Spatial containment** for datasets: if a cached result covers a
