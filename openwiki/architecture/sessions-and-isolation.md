@@ -19,7 +19,7 @@ sources:
 generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
+    at: 2026-09-29T19:33:34.851Z
 ---
 
 # Sessions and isolation

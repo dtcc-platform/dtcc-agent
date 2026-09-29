@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:40630cd21220956ef4079c92702e4f6430a7f70c653ee8b21589785bd32114dd",
+  "pageVersion": "sha256:a222e6097c15c6728611cab2dd11ab3728b8f00198d2ab740b56c8589d036682",
   "claims": [
     {
       "id": "claim_016618e477134f7fbc3dd24c31db7db8",
       "statement": "The run_operation MCP tool dispatches into the calling Session's ObjectStore with the shared disk cache, and the dispatcher checks the cache before executing and populates it after success for allowlisted operations.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L68-L121",
-          "version": "repo-lines-v1:sha256:86720eb75b46bc6593db0f9a1a24bbf10b46b67f571d17af83c66d43a92302d4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkNGM0MzUwYWJmYmRiZjIxZWEwNzhhNTJhYWYxNWM5ZDA1NTc2MWEwOGY1NGNiNTA5NjQzMjY5YzEzNTQyNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1NTcxNjk2OTczNDVhNzFmY2JiZDI0NmZlMGM0ZGUzZGYxNmRkNmNkMTdiOGQ3MDQ5NjhkOTdlZmFhNjY3MGEifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L92-L150",
+          "version": "repo-lines-v1:sha256:18235a69557479a0765d8585cf3a9f9bf9f6bb196084b6721c4c9690bacb8966:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkNGM0MzUwYWJmYmRiZjIxZWEwNzhhNTJhYWYxNWM5ZDA1NTc2MWEwOGY1NGNiNTA5NjQzMjY5YzEzNTQyNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1NTcxNjk2OTczNDVhNzFmY2JiZDI0NmZlMGM0ZGUzZGYxNmRkNmNkMTdiOGQ3MDQ5NjhkOTdlZmFhNjY3MGEifQ"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L733-L771",
-          "version": "repo-lines-v1:sha256:0cc16751e8e162286a03218cfcf0a21a57026a42bd641d417fdb7e6cfad88728:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NTM3MjAyMTNiYWIzNmIwYzI4NTAwODJlODNjM2E0OWQ3MjFlODhkODJjYTUxNTdmODRhNDRhZDM4ZDA1NWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNTBmN2Q5MGJlZjg0MDNhZTA0N2U3ZmRkMmVlN2E4MjRlYjg3YWIxZjdiNDlhZTgwZWI0ZDhlYWE1N2YyMGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkMWI5YzhjYTg0YmFhZDIzODI1M2M4MDU2NjEwZjM5YTg4YWJjMjYzZWFlYjNhYWM5NzI3ZTQ1OTI0ODBiNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkZmMxYmFmNzhlNTg3NzlhZTExNjllNTYwZWJkOWJjYzgzOTAxNzA3NDEzNTI2OWIxNjFmYTVjZjFkMTIyZWQifQ"
+          "resource": "repo://dtcc_agent/server.py#L738-L776",
+          "version": "repo-lines-v1:sha256:31949814c2e7ae4475b2f434a4d99725af8275e562b92fa1361cfe8f684013d2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzODE2YmRiMjE3YzcwZTM5ZjZkYTNjYmE2NGVkODg5MjgxNDgwZTg3MzZhM2NiOTBjMzkxYWJlNzc1NjIxZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyODdmODliMDcwYWEzZmRjMWNmYTgxYmU5MmUzOGM2NzlmMTdkYWY0MTJlOGIzNTVlNjAzMjBiNmRiNmNlZDAifQ"
         }
       ]
     },
@@ -91,10 +91,38 @@
           "version": "repo-lines-v1:sha256:24779542cb055dd0de67a8a323471f26605cdd858eaa4b7a4af23efc4652e62f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_93f38d2ebdd349ffa6aaf882b4aaa42a",
+      "statement": "run_operation refuses a literal list or tuple bounds that is not an area (wrong length, non-finite, or min not below max) before looking up the operation, and passes other bounds values such as a stored object id or None through.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L122-L128",
+          "version": "repo-lines-v1:sha256:b3f11e9e9a23ead43e55ab2033ca9a1b71f32724b774db3702bfcc4893c61f5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTk3NmQ0ZjUxOWNhMTE2ZjQyYTU2ODU0NDVkYWQyNWU4ZTU4YzlmZTA4Njc3MjE3MzAwMWRhOTliOWMxZjU0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDAxNWZmYWRjMWU2MzY1MzRjYmQ2ZDk1NTA5NjZmOGI5OGJiNTIyMWU3NzQ3ZGM5YmQxOWU4MzdjZGJkN2RjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzMxZmMzZDdlYjdmOGNhODEzYzIzMzdkMDc5NDI2OTg2NTk5NjAxNDFiNjVmYjQxMzRhOTJjOGVjNjM0OTA3OCJ9"
+        },
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L33-L55",
+          "version": "repo-lines-v1:sha256:db7ba5b65711a9073698f72e7dfac6ba6dee89a4fa3df3e083272674bb0db59c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4NGYwZDc0OTk4ZmZlNDk0MDFkNmQ3NTcyMmM2ZWI1MjM3OGY5YTcyOTQ0NDIzYzExMzMwYzdiMTA2NzFjOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MGQzYWIyOTk2YTg2MmY0YmM1YjUxYTZiYjBkMzk4ZGM0ZTQ0Mjg4ZjkxMTg3Mjk3MDViNzgzNGE1MzdlMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxNGIzNGVkMjRiZTIzZTE5YTkzYzNmYTgxNDc0MjQwY2RmNzk0NDU2ZThjZmQxMDI1ZjExYWMxMmQ2NDkyYjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_22002465b2674290afdf54cceaed5064",
+      "statement": "Building summaries in the serializer take a height from Core's estimated_height, else measured_height, and a BuildingCollection is summarised with its count and height statistics.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/serializers.py#L104-L118",
+          "version": "repo-lines-v1:sha256:6d03648f8d6bf79944da51bd0b9c2ebbf8eadef2e71bbe167ed8a6981e0c0087:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YTAzYWMyYTJiNzk2YTkwNTY2YWFkNThkMmExNWMwZGNlZWI3NjE2OWQ3ZDg3OTllNzYyYzk0OGY4MWEyZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1MzI3NTg1OTk3YTBmYmMyNmNkOTBjMWE2ZTRhMTcyMmZlMjNjMzg5MjE3YzE4M2QyNDkyMTcwOGY2MDI3NzEifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/serializers.py#L260-L270",
+          "version": "repo-lines-v1:sha256:eb6b82268896edc655560cf48ba6861d941d8391eee0c7a2dec9991a7d3e8fde:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViM2NkYWQxZjM3ODk2MjNlNjc2NWU5ZWE2NjY1ZjZkNjkwMGE1YWY3ZDY0Y2QzNzZkMmU0OWJmMTNkNDE0MTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYTVjNjZlMTdiMTQ1Mzk3ODM0YjhjODU0ZGM0MTkzZTIxMjUxODBhODk5NmExNGMzMTg4MzMyNmIyZWZiY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ODAzNzFkYzRiNTQzYTZkZWIwNGFkZjc4YTk4MzU0NmFlN2NlYzdjNGE5MmVjMDllYjk1NzhmYzM3Nzk0ZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNGQ4YmJmYzFlZWYxYWI1NjIyNmQ4YWY1MzcwMmRhM2VlNTU4NmRhOGE0ZGNjZjQyYWQxOGZlOWRjOGFlNzIifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-29T13:24:05.367Z"
+    "at": "2026-09-29T19:33:34.851Z"
   }
 }

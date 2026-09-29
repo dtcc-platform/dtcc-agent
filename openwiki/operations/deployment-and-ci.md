@@ -22,14 +22,16 @@ sources:
     resource: repo://docker-compose.yml
   - id: openwiki-source-bb1ebe868e35e9e500714501
     resource: repo://Dockerfile
+  - id: openwiki-source-052f7c9f16ee5a8169a3fb7d
+    resource: repo://dtcc_agent/disk_cache.py
   - id: openwiki-source-4163f0ea9e6726ccca521458
     resource: repo://dtcc_agent/registry.py
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
+    at: 2026-09-29T19:33:34.851Z
 ---
 
 # Deployment, configuration and CI
@@ -44,6 +46,7 @@ verified:
 - **`docker-compose.yml`**
   - One `dtcc-agent` service on port `8050`, platform `linux/amd64` by default.
   - Mounts `${DTCC_AGENT_DATA:-./data/agent}:/data` (logs, memory, cache) and dtcc-sim's shared results at `/shared/results`.
+  - The cache at `/data/cache` must pass the disk cache's trust check: owned by the container user (uid `APP_UID`, default 1000), not group- or world-writable, no symlinks inside. On a fresh data dir the agent creates it `0700` itself. If the host pre-creates it group-writable (for example `chmod 777` to paper over a uid mismatch), the agent refuses to start and names the fix. See [Disk cache](../concepts/disk-cache.md).
   - Healthcheck: `GET /health`.
 - **`build_docker.sh`** exports the image, tag, platform, Core ref and UID/GID defaults, then runs `docker compose build dtcc-agent`.
 
@@ -64,7 +67,7 @@ Set either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. On macOS the Claude
 | `DTCC_MCP_WORKERS` | `4` | `runtime` | Process-wide tool worker pool; must be an integer ≥ 1 |
 | `DTCC_SIM_SERVICE_URL` | none | `runner`, `registry` | Single dtcc-sim service; takes precedence. Its datasets join the catalogue from a background retrier, never at startup |
 | `DTCC_REMOTE_SERVICES` | none | `runner` | Comma-separated dtcc-sim services |
-| `DTCC_AGENT_CACHE_DIR` | `/tmp/dtcc_cache` | `disk_cache` | Persistent cache location |
+| `DTCC_AGENT_CACHE_DIR` | `$XDG_CACHE_HOME/dtcc_agent` (usually `~/.cache/dtcc_agent`) | `disk_cache` | Persistent cache location; must be private to the agent's user |
 | `DTCC_MCP_URL` | none | `chatbot.config` | Connect the chatbot to an HTTP MCP server |
 | `DTCC_AGENT_PYTHON` | current interpreter | `chatbot.config` | Interpreter for the stdio MCP child process |
 | `DTCC_AGENT_HOST`, `DTCC_AGENT_PORT` | `0.0.0.0`, `8050` | `chatbot.config` | Chatbot bind address (for `python -m chatbot`) |

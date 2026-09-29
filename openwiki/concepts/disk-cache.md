@@ -12,25 +12,40 @@ sources:
     resource: repo://dtcc_agent/dispatcher.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
-generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
+    at: 2026-09-29T19:33:34.851Z
 ---
 
 # Disk cache
 
-`dtcc_agent/disk_cache.py` keeps expensive results across processes and Sessions. It stores each object as a pickle under `<cache_dir>/objects/<cache_id>.pkl`, with metadata in `<cache_dir>/index.json`. One process-wide instance, `_disk_cache = DiskCache()`, lives in `server.py`. A `threading.Lock` guards the in-memory index and every index write.
+`dtcc_agent/disk_cache.py` keeps expensive results across processes and Sessions. It stores each object as a pickle under `<cache_dir>/objects/<cache_id>.pkl`, with metadata in `<cache_dir>/index.json`. One process-wide instance, `_disk_cache = DiskCache()`, lives in `server.py`, and is built when the module is imported, so a cache the trust check refuses stops the process there.
 
 ## Configuration
 
 | Setting | Value | Source |
 |---|---|---|
-| Directory | `DTCC_AGENT_CACHE_DIR`, default `/tmp/dtcc_cache` (Docker sets `/data/cache`) | `CACHE_DIR` |
+| Directory | `DTCC_AGENT_CACHE_DIR`, default `$XDG_CACHE_HOME/dtcc_agent`, usually `~/.cache/dtcc_agent` (Docker sets `/data/cache`) | `CACHE_DIR` |
 | TTL | 168 hours (7 days) | `CACHE_TTL_HOURS` |
 | Disk budget | 10 GB, oldest first | `CACHE_MAX_SIZE_GB` |
 
 `cleanup()` runs once in `DiskCache.__init__`. It deletes expired entries and then evicts the oldest entries until the total is under budget. Lookups also skip expired entries, so a long-running process never serves one; their files are only deleted at the next startup.
+
+## Trust: who may change the cache
+
+Loading a pickle runs code, so the cache must be one nobody else can change. `_private_dir` enforces that for the cache dir and `objects/` when `DiskCache` is built, and raises `CacheDirError` (the process does not start) otherwise:
+
+- Missing directories are created `0700` one at a time, so another process never sees one open. Pickles, `index.json` and `index.lock` are created `0600` whatever the umask.
+- The dir and every entry in it must belong to the current user and not be group- or world-writable. No entry may be a symlink: the cache never makes one, and a link's target could live where others can write.
+- Every parent must belong to root or the user, and may be writable by others only if it is sticky, as `/tmp` is. Otherwise whoever can write a parent could swap the whole cache.
+- The cache then uses the **real** path it checked, so a symlinked `DTCC_AGENT_CACHE_DIR` swapped later cannot redirect it. `load()` accepts only an 8-hex-digit cache id and opens pickles with `O_NOFOLLOW`.
+
+The old default, `/tmp/dtcc_cache`, was a directory any local user could create first or write (#51).
+
+## Several processes, one cache
+
+Each process keeps the index in memory. Every edit (`store`, `cleanup`) takes an `flock` on `index.lock`, re-reads `index.json`, changes it and writes it back through a temp file and `os.replace`, so one process never drops entries another has added. Lookups reload the index when its (inode, mtime, size) has changed since they last read it; `os.replace` always installs a new inode. A test with eight processes storing at once kept all 1,600 entries.
 
 ## What gets cached
 

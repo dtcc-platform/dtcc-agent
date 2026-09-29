@@ -10,12 +10,14 @@ sources:
     resource: repo://dtcc_agent/geocode.py
   - id: openwiki-source-32c33c58f635fb0708a0e8c6
     resource: repo://dtcc_agent/runner.py
+  - id: openwiki-source-3cb4a6487d73410befc45a84
+    resource: repo://dtcc_agent/serializers.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
-generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
+    at: 2026-09-29T19:33:34.851Z
 ---
 
 # Simulations, runs and geocoding
@@ -44,9 +46,13 @@ The tool works in two steps so the download, not the answer, can be cached. `run
 
 - the building count;
 - per-building height, ground height, footprint vertex count, and footprint area from the shoelace formula on `lod0`;
-- height statistics over buildings with a positive height;
-- total footprint area;
+- height statistics over buildings with a positive height, each `None` when no building has one;
+- total footprint area over every building, not only the `max_buildings` listed;
 - a `truncated` flag when the count exceeds `max_buildings`.
+
+A height is Core's `estimated_height`, else its `measured_height` (`serializers.building_height`, the same precedence Core's own meshing uses). `Building.height` is only the measurement, which a download leaves empty, so reading it reported every building as 0 m until #51. Live on Lindholmen the heights are 3.0 to 28.5 m.
+
+`get_buildings`, `run_simulation` and `compare_scenarios` first check their bounds with `dispatcher.bounds_error` and return `{"error": "Invalid bounds ..."}` for a box with no area (inverted, zero-size, the wrong length or not finite), before any download or run.
 
 The MCP tool checks the disk cache first and shares both its cache entry and its download flight with `datasets.buildings` for the same area and source. See [Disk cache](../concepts/disk-cache.md).
 
