@@ -74,6 +74,10 @@ session-keyed.**
 > *Update 2026-09-29 (#39):* `get_buildings` no longer has its own entry. It caches the
 > `datasets.buildings` download and summarises per request, so the shared set is
 > `datasets.point_cloud` and `datasets.buildings`.
+>
+> *Update 2026-09-29 (#42):* `builder.raster.slope_aspect` left `CACHE_ALLOWLIST`. It returns
+> two rasters, which the cache never stored, so every call paid for a lookup that could not hit.
+> Four session-local builders remain.
 
 So the isolation unit is the Session for *state*, and the bounds-and-parameters tuple for *public
 derived data*. Both are properties of the object, which preserves this ADR's original reason for

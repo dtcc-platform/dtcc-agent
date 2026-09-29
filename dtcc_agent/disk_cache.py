@@ -42,7 +42,6 @@ CACHE_ALLOWLIST = frozenset({
     "builder.build_terrain_raster",
     "builder.build_terrain_surface_mesh",
     "builder.build_city_surface_mesh",
-    "builder.raster.slope_aspect",
     "builder.pc_filter.classification_filter",
 })
 
