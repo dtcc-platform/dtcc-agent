@@ -793,7 +793,7 @@ Every remedy below is **unapproved**. Two decisions were answered this review (D
 into M1a); nothing else was accepted, because the request was to report for amendment.
 
 - **U1 (X1/T15)** — how far the path boundary goes: all 16 path-taking operations, an allowlist, or a sandboxed root.
-- **U2 (X3+X4/T18)** — fix the cache keys, or disable builder caching until they are correct.
+- **U2 (X3+X4/T18)** — fix the cache keys, or disable builder caching until they are correct. *Decided 2026-09-30: disabled, and each builder call recorded to measure whether provenance keys (T-001) are worth building.*
 - **U3 (X7/T17)** — where process-scoped init lives once lifespan is ruled out.
 - **U4 (X5/T19)** — what accuracy the byte budget must reach, and what happens to an oversized result.
 - **U5 (X2/T23)** — which component owns conversation memory.

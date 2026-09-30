@@ -56,54 +56,18 @@ def _core_build() -> str:
 # starts cold. Bump "schema" when the entry format or cached payloads change.
 CACHE_STAMP = {"schema": 1, "core": _core_build()}
 
+# Only downloads keyed by their bounds and parameters. Builder results are not
+# cached until their keys are correct (U2, #11): see builder_calls.
 CACHE_ALLOWLIST = frozenset({
     "datasets.point_cloud",
     "datasets.buildings",
-    "builder.build_terrain_raster",
-    "builder.build_terrain_surface_mesh",
-    "builder.build_city_surface_mesh",
-    "builder.pc_filter.classification_filter",
 })
 
 
-def content_fingerprint(obj_metadata: dict) -> str:
-    """Compute a stable fingerprint from ObjectStore metadata.
-
-    Used to generate cache keys for builder operations where
-    input objects are referenced by transient IDs.
-    """
-    key_parts = {
-        "type": obj_metadata.get("type", ""),
-        "source_op": obj_metadata.get("source_op", ""),
-        "nbytes": obj_metadata.get("nbytes", 0),
-        "label": obj_metadata.get("label", ""),
-    }
-    canonical = json.dumps(key_parts, sort_keys=True)
-    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
-
-
-def canonical_params_hash(
-    operation: str,
-    params: dict,
-    object_fingerprints: dict = None,
-) -> str:
-    """Compute a stable hash for operation parameters.
-
-    For builder operations, object-ref params are replaced with
-    their content fingerprints. Bounds are excluded (handled
-    separately for datasets via containment).
-    """
-    canonical = dict(sorted(params.items()))
-
-    # Replace object-ref param values with fingerprints
-    if object_fingerprints:
-        for key, fingerprint in object_fingerprints.items():
-            if key in canonical:
-                canonical[key] = f"__fp:{fingerprint}"
-
-    # Remove bounds (handled by containment for datasets)
-    canonical.pop("bounds", None)
-
+def canonical_params_hash(operation: str, params: dict) -> str:
+    """A stable hash of a dataset download's parameters. Bounds are excluded:
+    a download is found by containment of its bounds instead."""
+    canonical = {k: v for k, v in sorted(params.items()) if k != "bounds"}
     payload = json.dumps({"op": operation, "params": canonical},
                          sort_keys=True, default=str)
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
@@ -349,32 +313,6 @@ class DiskCache:
         logger.info("Disk cache hit: %s, cache_id=%s, cached_bounds=%s",
                     operation, best[1], best[2])
         return best[1], best[2]
-
-    def builder_lookup(
-        self,
-        operation: str,
-        params_hash: str,
-    ) -> str | None:
-        """Find a cached builder result by exact operation + params hash.
-
-        Returns cache_id or None.
-        """
-        now = datetime.now()
-        with self._lock:
-            self._reload_if_changed()
-            for entry in self._index:
-                if not _fresh(entry, now):
-                    continue
-                if entry.get("operation") != operation:
-                    continue
-                if entry.get("params_hash") != params_hash:
-                    continue
-
-                logger.info("Disk cache hit: %s, cache_id=%s", operation, entry["cache_id"])
-                return entry["cache_id"]
-
-        logger.debug("Disk cache miss: %s (no matching hash)", operation)
-        return None
 
     def cleanup(self) -> int:
         """Remove entries that may not be served (expired, another stamp,

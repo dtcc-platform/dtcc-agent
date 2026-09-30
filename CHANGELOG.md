@@ -14,6 +14,7 @@ Last updated: 2026-09-30.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | 🔍 |
 | 2026-09-30 | The wiki describes typed references, the cache version stamp and Core's registration fixes ([#60](https://github.com/dtcc-platform/dtcc-agent/pull/60)) | ✅ |
 | 2026-09-30 | dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone ([#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)) | ✅ |
 | 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | ✅ |
@@ -42,7 +43,30 @@ Last updated: 2026-09-30.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62.
+
+---
+
+## 🔍 In review
+
+### Builder results are no longer cached, so a cache can't hand back the wrong geometry · 2026-09-30 · [#62](https://github.com/dtcc-platform/dtcc-agent/pull/62)
+
+**Before:** four builders (terrain raster, terrain mesh, city mesh, classification filter) had
+their results cached on disk under a key that described each input only by its type, size,
+source and label, and ignored the area asked for. Two different point clouds of the same size,
+or the same point cloud with two different areas, got the same key, so a builder could be
+answered with another input's or another area's geometry, with no warning (U2, #11).
+
+**Now:** only the two downloads, point clouds and buildings, are cached. Every builder call
+runs for real, and each one is recorded in `builder_calls.jsonl` in the log folder with how
+long it took and the key a correct cache would have matched. A few weeks of real use tells us
+how often the same builder call repeats and how many seconds a cache would save. That decides
+whether to build provenance keys (`TODOS.md` T-001). The unused builder cache code is removed.
+
+**How we know it works:** new tests check that only the downloads are cached, that a builder
+call writes a record and nothing to the cache, that the recorded key tells two areas apart and
+matches the same inputs across sessions, and that nothing is written without a log folder.
+344 tests pass.
 
 ---
 
@@ -521,7 +545,7 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 | U3: where once-per-process startup lives ([#12](https://github.com/dtcc-platform/dtcc-agent/issues/12)) | T8, T10, T11 | ✅ Decided 2026-09-24: at process startup, not in FastMCP's per-session hook |
 | U6: who owns a simulation result, the run or the stored object (rebuild plan) | T9 | ✅ Decided 2026-09-30: the stored object owns it; the run keeps its reference (ADR-0010, #57) |
 | U1: how far the filesystem boundary goes ([#10](https://github.com/dtcc-platform/dtcc-agent/issues/10)) | T7 | ⏳ |
-| U2: fix the cache keys, or turn builder caching off ([#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | T6 | ⏳ |
+| U2: fix the cache keys, or turn builder caching off ([#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | T6 | ✅ Decided 2026-09-30: off for now, and builder calls recorded to measure whether provenance keys (T-001) are worth it |
 | U4: how accurate the memory budget must be ([#13](https://github.com/dtcc-platform/dtcc-agent/issues/13)) | T11 | ⏳ |
 | U10: which dtcc-core install wins in the container ([#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | T13 | ⏳ |
 | U11: which network interface the MCP server listens on, and who may connect ([#15](https://github.com/dtcc-platform/dtcc-agent/issues/15)) | T13 | ⏳ |

@@ -78,6 +78,11 @@ session-keyed.**
 > *Update 2026-09-29 (#42):* `builder.raster.slope_aspect` left `CACHE_ALLOWLIST`. It returns
 > two rasters, which the cache never stored, so every call paid for a lookup that could not hit.
 > Four session-local builders remain.
+>
+> *Update 2026-09-30 (U2, #11):* builder results are no longer cached at all, so the shared
+> cache holds only the two bounds-keyed downloads and there is nothing session-local left in
+> it. Builder caching returns only with correct keys: provenance keys (`TODOS.md` T-001) would
+> be safe to share across Sessions, because equal provenance means equal public inputs.
 
 So the isolation unit is the Session for *state*, and the bounds-and-parameters tuple for *public
 derived data*. Both are properties of the object, which preserves this ADR's original reason for
