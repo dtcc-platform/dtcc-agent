@@ -22,11 +22,12 @@ dependencies = [
   # .github/workflows/dtcc-core-contract.yml tests a candidate Core against
   # this package first.
   #
-  # 9b4e9b9 is the revision this package's suite is green against (133
-  # operations; any section failing to register stops startup, #22).
+  # bb95f2f is the revision this package's suite is green against (133
+  # operations; any section failing to register stops startup, #22). It
+  # carries dtcc-core#126, #128 and #132, which dtcc-agent relies on (#59).
   # dtcc-sim pins an older Core; the two repos are deliberately not
   # required to match.
-  "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@9b4e9b937bf4ae906832626bc63e5831e0bb151c",
+  "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@bb95f2f8c338e6433a1e6a48375cf634710ff421",
   # Upper bound is load-bearing: mcp 2.x removed mcp.server.fastmcp, which
   # server.py imports. Without it a fresh install resolves 2.x and the package
   # cannot start. See the import smoke test in tests/test_server_import.py.

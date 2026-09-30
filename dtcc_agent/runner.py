@@ -15,17 +15,13 @@ Usage:
 
 from __future__ import annotations
 
-import logging
 import os
-import threading
 from dataclasses import asdict, dataclass
 from typing import Any
 
 # Names of datasets that are simulations (as opposed to data fetchers
 # like "buildings", "point_cloud", etc.). We tag them explicitly so
 # the LLM only sees runnable simulations in the list_simulations tool.
-logger = logging.getLogger(__name__)
-
 _SIMULATION_NAMES = {
     "urban_heat_simulation",
     "air_quality_field",
@@ -53,9 +49,6 @@ class RemoteSimulationResult:
 
 
 _REGISTERED_REMOTE_SERVICES: set[str] = set()
-# One registration at a time: _repair_registry compares Core's registry before
-# and after a call, which another thread's registration would confuse.
-_REGISTER_LOCK = threading.Lock()
 
 
 def _remote_services() -> list[str]:
@@ -78,52 +71,18 @@ def _remote_base_url() -> str | None:
 
 
 def _ensure_remote_services_registered() -> None:
-    """Register configured remote services using dtcc-core's shared protocol."""
-    from dtcc_core.datasets import register_remote_service
-    from dtcc_core.datasets.registry import list_datasets
+    """Register configured remote services using dtcc-core's shared protocol.
 
-    with _REGISTER_LOCK:
-        for url in _remote_services():
-            if url in _REGISTERED_REMOTE_SERVICES:
-                continue
-            before = list_datasets()
-            registered = register_remote_service(url)
-            _repair_registry(url, before, succeeded=bool(registered))
-            if registered:
-                _REGISTERED_REMOTE_SERVICES.add(url)
-
-
-def _repair_registry(url: str, before: dict[str, Any], succeeded: bool) -> None:
-    """Undo what registering ``url`` changed in Core's registry that must not stand.
-
-    Core's register() replaces a dataset of the same name, so a service
-    advertising `point_cloud` would take over Core's: put Core's back (#45).
-    And Core registers a service's entries one at a time, returning [] when a
-    later one is malformed, so each retry of a half-broken service would leave
-    another copy of the earlier ones: after a failed discovery, undo all of it
-    (#44). The real fixes are dtcc-core#128 and #132.
+    Core registers a service all or nothing and never lets it replace a local
+    dataset of the same name (dtcc-core#128, #132), so nothing needs undoing.
     """
-    from dtcc_core.datasets.registry import list_datasets, register, unregister
+    from dtcc_core.datasets import register_remote_service
 
-    from .registry import _is_core_dataset
-
-    discarded = []
-    for name, ds in list_datasets().items():
-        old = before.get(name)
-        if ds is old:
+    for url in _remote_services():
+        if url in _REGISTERED_REMOTE_SERVICES:
             continue
-        if old is not None and _is_core_dataset(old):
-            register(name, old)
-            logger.warning(f"Left out dataset {name} from {url}: "
-                           f"Core already has a dataset by that name")
-        elif not succeeded:
-            unregister(name)
-            if old is not None:
-                register(name, old)
-            discarded.append(name)
-    if discarded:
-        logger.warning(f"Discarded dataset(s) {', '.join(sorted(discarded))} that a failed "
-                       f"discovery of {url} registered; it will be asked again")
+        if register_remote_service(url):
+            _REGISTERED_REMOTE_SERVICES.add(url)
 
 
 def _list_all_remote():
