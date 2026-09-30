@@ -35,21 +35,18 @@ _Avoid_: object_id, result_id, obj_id.
 One execution of a simulation, together with the parameters it was given. Distinct from an
 Object: a Run is an event, an Object is a value. **A Run yields exactly one Object and records
 its Object reference** — the two are separate entities with an explicit link, not one entity
-under two names.
+under two names. The Object owns the result; the Run keeps only what was run.
 
 **Run reference**
 The identifier that names a Run. A Run reference and an Object reference are never
 interchangeable.
 _Avoid_: run_id.
 
-> **Conflict with the code, not yet resolved there.** Four names are in use across three
-> concepts, and the three are indistinguishable by format — `object_store.py:63` and
-> `disk_cache.py:122` both mint `uuid4().hex[:8]`, `server.py:54` mints `str(uuid4())[:8]`, and
-> all three are eight hexadecimal characters. So nothing in a reference says which store it
-> belongs to. The Run/Object link is worse: `server.py:52-65` stores one result twice, under a
-> Run reference and a separate Object reference, linked only by a human-readable `label` that
-> nothing ever queries, and `get_run_summary` returns no Object reference at all. Both are
-> resolved in the rebuild's first milestone, while the surface is being replaced anyway.
+> **Resolved 2026-09-30 by T9 (#57).** Object references are `obj_` plus 8 hex characters and
+> Run references `run_` plus 8, minted in `dtcc_agent/refs.py`; a reference of the wrong kind is
+> refused as such. Tools take and return `object_ref` and `run_ref`. A Run holds its Object
+> reference and no copy of the result: the Object owns it (U6), so when the Object is evicted
+> the Run says its result is gone.
 
 **Field**
 Named values defined on a geometry — a temperature, a wind speed. A Field is what makes a

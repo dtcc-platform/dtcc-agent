@@ -34,21 +34,21 @@ datasets.buildings — Download 3D buildings (LoD1).
   params: bounds (list[float], required), source (str) = "LM"
 
 builder.build_terrain_raster — Rasterize point cloud into DEM raster.
-  params: pc (object_id, required), cell_size (float, required), \
+  params: pc (object_ref, required), cell_size (float, required), \
 bounds = None, ground_only (bool) = true
 
 builder.raster.slope_aspect — Compute slope and aspect from DEM. Returns tuple (slope, aspect).
-  params: dem (object_id, required)
+  params: dem (object_ref, required)
 
 builder.build_terrain_surface_mesh — Triangular mesh from terrain data.
-  params: data (object_id: PointCloud or Raster, required), \
+  params: data (object_ref: PointCloud or Raster, required), \
 max_mesh_size (float) = 10, ground_points_only (bool) = true
 
 builder.build_city_surface_mesh — 3D mesh from city buildings.
-  params: city (object_id, required), max_mesh_size (float) = 10
+  params: city (object_ref, required), max_mesh_size (float) = 10
 
 builder.pc_filter.classification_filter — Filter point cloud by classification.
-  params: pc (object_id, required), classes (int|list[int], required), keep (bool) = false\
+  params: pc (object_ref, required), classes (int|list[int], required), keep (bool) = false\
 """
 
 # Default port for the chatbot web server

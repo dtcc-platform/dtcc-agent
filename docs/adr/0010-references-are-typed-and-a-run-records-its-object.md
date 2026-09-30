@@ -47,3 +47,14 @@ merely tidy.
 
 Cache identity stays internal and never crosses the tool boundary, so it gains no term in the
 glossary and no prefix requirement.
+
+*Update 2026-09-30 (T9, #57):* implemented. References are minted in `dtcc_agent/refs.py`;
+object tools, `get_run_summary` and `run_operation` refuse a reference of the wrong kind; tools
+take and return `object_ref` / `run_ref` (and `run_operation` returns `object_ref`, no longer
+`result_id`). **U6 decided (sarmatas00, 2026-09-30):** the Object owns a Run's result. The Run
+keeps its simulation, bounds, parameters, timestamp and Object reference, never a second copy,
+so the ObjectStore's budget governs simulation results and evicting the Object frees the
+memory. A Run whose Object was evicted reports that and asks for a re-run. Rejected: the Run
+owning the result (a second LRU that must stay in step with the first), and pinning Objects
+while their Run exists (needs Run eviction, T11, first). The M0 characterisation tests were
+flipped to this ADR's contract (U8 for T9).

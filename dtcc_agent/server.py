@@ -16,7 +16,6 @@ import logging
 import os
 import threading
 import time
-import uuid
 from collections import OrderedDict
 from collections.abc import Hashable
 from contextlib import asynccontextmanager
@@ -29,7 +28,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.lowlevel.server import request_ctx
 
-from . import runtime
+from . import refs, runtime
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
 from .object_store import ObjectStore
@@ -67,7 +66,7 @@ class _Session:
 
     # dtcc-core objects (PointCloud, Mesh, Raster, etc.)
     objects: ObjectStore = field(default_factory=_new_session_objects)
-    # Simulation results, keyed by run_id, so the agent can refer back to them.
+    # Simulation results, keyed by run_ref, so the agent can refer back to them.
     results: dict[str, dict[str, Any]] = field(default_factory=dict)
     # Tool calls running in this Session; it is never evicted while nonzero.
     in_flight: int = 0
@@ -250,18 +249,54 @@ def _fmt(data: Any) -> str:
 
 
 def _store_result(name: str, bounds: list[float], parameters: dict, result: Any) -> str:
-    """Store a simulation result and return a run_id."""
-    run_id = str(uuid.uuid4())[:8]
-    _session().results[run_id] = {
+    """Store a simulation result and return its Run reference.
+
+    The result is an Object, so it can feed pipelines, and the Object owns it
+    (U6): the Run records what was run and the Object's reference, never a
+    second copy, so evicting the Object frees the memory.
+    """
+    run_ref = refs.new(refs.RUN)
+    object_ref = _session().objects.store(result, source_op=f"simulation.{name}",
+                                          label=run_ref)
+    _session().results[run_ref] = {
         "simulation": name,
         "bounds": bounds,
         "parameters": parameters,
-        "result": result,
+        "object_ref": object_ref,
         "timestamp": time.time(),
     }
-    # Also store in the object store so simulation results can feed pipelines
-    _session().objects.store(result, source_op=f"simulation.{name}", label=run_id)
-    return run_id
+    return run_ref
+
+
+def _object(object_ref: str) -> tuple[Any, str | None]:
+    """The Object ``object_ref`` names, or an error payload: a Run reference is
+    refused as the wrong kind, an unknown reference is reported not found."""
+    if error := refs.wrong_kind(object_ref, refs.OBJECT):
+        return None, _fmt({"error": error})
+    try:
+        return _session().objects.get(object_ref), None
+    except KeyError:
+        return None, _fmt({"error": f"Object '{object_ref}' not found. "
+                                    "Use list_objects() to see available objects."})
+
+
+def _run_record(run_ref: str) -> tuple[dict[str, Any] | None, str | None]:
+    """The Run ``run_ref`` names, or an error payload, as _object does."""
+    if error := refs.wrong_kind(run_ref, refs.RUN):
+        return None, _fmt({"error": error})
+    info = _session().results.get(run_ref)
+    if info is None:
+        return None, _fmt({"error": f"Run {run_ref} not found. "
+                                    "Use list_past_runs() to see available runs."})
+    return info, None
+
+
+def _run_result(info: dict[str, Any]) -> Any | None:
+    """A Run's result, or None once its Object is evicted or deleted."""
+    try:
+        return _session().objects.get(info["object_ref"])
+    except KeyError:
+        return None
 
 
 # -- Flight keys -------------------------------------------------------------
@@ -433,7 +468,7 @@ def run_simulation(
     This calls the simulation directly in-process. For urban_heat_simulation,
     expect ~1–5 minutes depending on domain size and mesh resolution.
 
-    The result is stored in memory with a run_id so you can reference it
+    The result is stored in memory with a run_ref so you can reference it
     later in compare_scenarios().
 
     Args:
@@ -444,7 +479,7 @@ def run_simulation(
         label: Optional human-readable label for this run (e.g. "baseline",
             "heatwave"). Used in comparison output.
 
-    Returns a JSON object with run_id, simulation metadata, and summary
+    Returns a JSON object with run_ref, simulation metadata, and summary
     statistics (min, max, mean, std, median, percentiles).
     """
     from .dispatcher import bounds_error
@@ -460,11 +495,12 @@ def run_simulation(
         return _fmt({"error": f"Simulation failed: {exc}"})
 
     if getattr(result, "remote", False):
-        run_id = _store_result(simulation_name, bounds, params, result)
+        run_ref = _store_result(simulation_name, bounds, params, result)
         remote_result = result.as_dict()
         return _fmt({
-            "run_id": run_id,
-            "label": label or run_id,
+            "run_ref": run_ref,
+            "object_ref": _session().results[run_ref]["object_ref"],
+            "label": label or run_ref,
             "simulation": simulation_name,
             "bounds": bounds,
             "parameters_used": params,
@@ -491,12 +527,13 @@ def run_simulation(
             )
         })
 
-    run_id = _store_result(simulation_name, bounds, params, result)
+    run_ref = _store_result(simulation_name, bounds, params, result)
     summary = summarize_field(values, field_name)
 
     return _fmt({
-        "run_id": run_id,
-        "label": label or run_id,
+        "run_ref": run_ref,
+        "object_ref": _session().results[run_ref]["object_ref"],
+        "label": label or run_ref,
         "simulation": simulation_name,
         "bounds": bounds,
         "parameters_used": params,
@@ -551,13 +588,13 @@ def compare_scenarios(
         return _fmt({"error": f"Scenario B ({label_b}) failed: {exc}"})
 
     if getattr(result_a, "remote", False) or getattr(result_b, "remote", False):
-        run_id_a = _store_result(simulation_name, bounds, scenario_a_parameters, result_a)
-        run_id_b = _store_result(simulation_name, bounds, scenario_b_parameters, result_b)
+        run_ref_a = _store_result(simulation_name, bounds, scenario_a_parameters, result_a)
+        run_ref_b = _store_result(simulation_name, bounds, scenario_b_parameters, result_b)
         return _fmt({
             "simulation": simulation_name,
             "bounds": bounds,
-            "run_id_a": run_id_a,
-            "run_id_b": run_id_b,
+            "run_ref_a": run_ref_a,
+            "run_ref_b": run_ref_b,
             "parameters_a": scenario_a_parameters,
             "parameters_b": scenario_b_parameters,
             "summary": {
@@ -587,8 +624,8 @@ def compare_scenarios(
     field_name = _infer_field_name(simulation_name)
 
     # Store both
-    run_id_a = _store_result(simulation_name, bounds, scenario_a_parameters, result_a)
-    run_id_b = _store_result(simulation_name, bounds, scenario_b_parameters, result_b)
+    run_ref_a = _store_result(simulation_name, bounds, scenario_a_parameters, result_a)
+    run_ref_b = _store_result(simulation_name, bounds, scenario_b_parameters, result_b)
 
     comparison = compare_fields(
         values_a, values_b,
@@ -600,8 +637,8 @@ def compare_scenarios(
     return _fmt({
         "simulation": simulation_name,
         "bounds": bounds,
-        "run_id_a": run_id_a,
-        "run_id_b": run_id_b,
+        "run_ref_a": run_ref_a,
+        "run_ref_b": run_ref_b,
         "parameters_a": scenario_a_parameters,
         "parameters_b": scenario_b_parameters,
         **comparison,
@@ -617,21 +654,24 @@ def list_past_runs(limit: int = 10) -> str:
     Args:
         limit: Maximum number of runs to return (most recent first).
 
-    Returns a JSON array of past runs with run_id, simulation name,
+    Returns a JSON array of past runs with run_ref, simulation name,
     bounds, parameters, and summary stats.
     """
     runs = sorted(_session().results.items(), key=lambda kv: kv[1]["timestamp"], reverse=True)
     output = []
-    for run_id, info in runs[:limit]:
+    for run_ref, info in runs[:limit]:
         entry = {
-            "run_id": run_id,
+            "run_ref": run_ref,
+            "object_ref": info["object_ref"],
             "simulation": info["simulation"],
             "bounds": info["bounds"],
             "parameters": info["parameters"],
         }
         # Add summary if we can extract values
-        result = info["result"]
-        if hasattr(result, "x") and hasattr(result.x, "array"):
+        result = _run_result(info)
+        if result is None:
+            entry["evicted"] = True
+        elif hasattr(result, "x") and hasattr(result.x, "array"):
             field_name = _infer_field_name(info["simulation"])
             entry["summary"] = summarize_field(result.x.array, field_name)
         elif getattr(result, "remote", False):
@@ -641,23 +681,27 @@ def list_past_runs(limit: int = 10) -> str:
 
 
 @tool
-def get_run_summary(run_id: str) -> str:
+def get_run_summary(run_ref: str) -> str:
     """Get summary statistics for a previous simulation run.
 
     Args:
-        run_id: The run_id returned by run_simulation() or compare_scenarios().
+        run_ref: The run_ref returned by run_simulation() or compare_scenarios().
 
     Returns the full summary statistics for that run.
     """
-    if run_id not in _session().results:
-        return _fmt({"error": f"Run {run_id} not found. Use list_past_runs() to see available runs."})
-
-    info = _session().results[run_id]
-    result = info["result"]
+    info, error = _run_record(run_ref)
+    if error:
+        return error
+    result = _run_result(info)
+    if result is None:
+        return _fmt({"error": (
+            f"Run {run_ref}'s result ({info['object_ref']}) is no longer in memory: "
+            "it was evicted or deleted. Call run_simulation again to recompute it.")})
 
     if getattr(result, "remote", False):
         return _fmt({
-            "run_id": run_id,
+            "run_ref": run_ref,
+            "object_ref": info["object_ref"],
             "simulation": info["simulation"],
             "bounds": info["bounds"],
             "parameters": info["parameters"],
@@ -671,7 +715,8 @@ def get_run_summary(run_id: str) -> str:
     summary = summarize_field(result.x.array, field_name)
 
     return _fmt({
-        "run_id": run_id,
+        "run_ref": run_ref,
+        "object_ref": info["object_ref"],
         "simulation": info["simulation"],
         "bounds": info["bounds"],
         "parameters": info["parameters"],
@@ -744,20 +789,20 @@ def run_operation(
 
     Runs any registered operation (builder function, dataset download,
     IO operation, etc.). Results are stored in the object store and can
-    be referenced by ID in subsequent operations.
+    be referenced by their object_ref (obj_…) in subsequent operations.
 
     For parameters that accept dtcc-core objects (marked is_object_ref
-    in describe_operation), pass the object ID string from a previous
+    in describe_operation), pass the object_ref string from a previous
     run_operation result.
 
     Args:
         name: Operation name (e.g. "builder.build_terrain_raster",
             "datasets.point_cloud").
         params: Parameters as a JSON object. Object-reference params
-            should use the ID string from a previous result.
+            should use the object_ref string from a previous result.
         label: Optional human-readable label for this result.
 
-    Returns a JSON object with result_id(s), operation name, and a
+    Returns a JSON object with object_ref (object_refs for several results), operation name, and a
     summary of the result (statistics, counts — never raw data).
     """
     from .dispatcher import run_operation as _dispatch
@@ -780,13 +825,13 @@ def list_objects(limit: int = 20) -> str:
     """List objects stored in memory from previous operations.
 
     Shows all dtcc-core objects (PointCloud, Mesh, Raster, etc.) that
-    have been created by run_operation(). Use object IDs to pass
+    have been created by run_operation(). Use their object_ref to pass
     results between operations in multi-step pipelines.
 
     Args:
         limit: Maximum number of objects to return (most recent first).
 
-    Returns a JSON array of stored objects with id, type, source
+    Returns a JSON array of stored objects with object_ref, type, source
     operation, label, and memory size.
     """
     objects = _session().objects.list(limit=limit)
@@ -798,7 +843,7 @@ def list_objects(limit: int = 20) -> str:
 
 
 @tool
-def inspect_object(object_id: str) -> str:
+def inspect_object(object_ref: str) -> str:
     """Get a detailed summary of a stored object.
 
     Returns type-specific statistics: point counts, mesh info,
@@ -806,17 +851,16 @@ def inspect_object(object_id: str) -> str:
     array data — only human-readable summaries.
 
     Args:
-        object_id: The object ID from run_operation() or list_objects().
+        object_ref: The Object reference (obj_…) from run_operation() or list_objects().
 
     Returns a JSON summary of the object's contents.
     """
-    try:
-        obj = _session().objects.get(object_id)
-    except KeyError:
-        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+    obj, error = _object(object_ref)
+    if error:
+        return error
 
     summary = serialize(obj)
-    summary["object_id"] = object_id
+    summary["object_ref"] = object_ref
     return _fmt(summary)
 
 
@@ -826,7 +870,7 @@ def inspect_object(object_id: str) -> str:
 # aborts the process.
 @tool(main_thread=True)
 def render_object(
-    object_id: str,
+    object_ref: str,
     width: int = 1200,
     height: int = 800,
 ) -> str:
@@ -840,7 +884,7 @@ def render_object(
     MultiLineString, and lists of Buildings.
 
     Args:
-        object_id: The object ID from run_operation() or list_objects().
+        object_ref: The Object reference (obj_…) from run_operation() or list_objects().
         width: Image width in pixels (default 1200).
         height: Image height in pixels (default 800).
 
@@ -848,10 +892,9 @@ def render_object(
     """
     from .renderer import render_to_file, SUPPORTED_TYPES
 
-    try:
-        obj = _session().objects.get(object_id)
-    except KeyError:
-        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+    obj, error = _object(object_ref)
+    if error:
+        return error
 
     type_name = type(obj).__name__
     if type_name not in SUPPORTED_TYPES and not isinstance(obj, list):
@@ -863,7 +906,7 @@ def render_object(
     image_path = render_to_file(
         obj=obj,
         type_name=type_name,
-        label=object_id,
+        label=object_ref,
         width=width,
         height=height,
     )
@@ -872,7 +915,7 @@ def render_object(
         return _fmt({"error": "Rendering failed. Check that dtcc-viewer is installed and the object has geometry."})
 
     return _fmt({
-        "object_id": object_id,
+        "object_ref": object_ref,
         "type": type_name,
         "image_path": image_path,
         "width": width,
@@ -883,46 +926,47 @@ def render_object(
 # -- Object management -------------------------------------------------------
 
 @tool
-def delete_object(object_id: str) -> str:
+def delete_object(object_ref: str) -> str:
     """Delete a stored object from memory.
 
     Frees the memory used by the object. Use list_objects() to see what's
     stored before deleting.
 
     Args:
-        object_id: The object ID to delete.
+        object_ref: The Object reference (obj_…) to delete.
 
     Returns confirmation with the deleted object's type and label,
     or an error if not found.
     """
     # One locked step: tools run concurrently, so a check-then-delete could race.
-    entry = _session().objects.delete(object_id)
+    if error := refs.wrong_kind(object_ref, refs.OBJECT):
+        return _fmt({"error": error})
+    entry = _session().objects.delete(object_ref)
     if entry is None:
-        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+        return _fmt({"error": f"Object '{object_ref}' not found. Use list_objects() to see available objects."})
 
     return _fmt({
-        "deleted": object_id,
+        "deleted": object_ref,
         "type": entry["type"],
         "label": entry["label"],
     })
 
 
 @tool
-def get_field_names(object_id: str) -> str:
+def get_field_names(object_ref: str) -> str:
     """Get available field/data names from a stored object.
 
     Useful for discovering what data is attached to an object before
     running spatial queries or exports.
 
     Args:
-        object_id: The object ID from run_operation() or list_objects().
+        object_ref: The Object reference (obj_…) from run_operation() or list_objects().
 
     Returns a JSON object with field names, units, and counts.
     """
-    try:
-        obj = _session().objects.get(object_id)
-    except KeyError:
-        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+    obj, error = _object(object_ref)
+    if error:
+        return error
 
     type_name = type(obj).__name__
     fields: list[dict[str, Any]] = []
@@ -970,7 +1014,7 @@ def get_field_names(object_id: str) -> str:
                 "count": len(f.values) if hasattr(f.values, "__len__") else 0,
             })
 
-    return _fmt({"object_id": object_id, "type": type_name, "fields": fields})
+    return _fmt({"object_ref": object_ref, "type": type_name, "fields": fields})
 
 
 # -- Export ------------------------------------------------------------------
@@ -987,7 +1031,7 @@ _EXPORT_DISPATCH = {
 
 @tool
 def export_object(
-    object_id: str,
+    object_ref: str,
     format: str,
     filepath: str | None = None,
 ) -> str:
@@ -1002,18 +1046,17 @@ def export_object(
     - SensorCollection: csv
 
     Args:
-        object_id: The object ID from run_operation() or list_objects().
+        object_ref: The Object reference (obj_…) from run_operation() or list_objects().
         format: Output format (e.g. "csv", "obj", "ply", "json").
         filepath: Optional output file path. If omitted, saves to
-            /tmp/dtcc_exports/<object_id>.<format>.
+            /tmp/dtcc_exports/<object_ref>.<format>.
 
     Returns a JSON object with the exported file path, or an error.
     """
 
-    try:
-        obj = _session().objects.get(object_id)
-    except KeyError:
-        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+    obj, error = _object(object_ref)
+    if error:
+        return error
 
     type_name = type(obj).__name__
     fmt = format.lower().lstrip(".")
@@ -1027,7 +1070,7 @@ def export_object(
 
         if filepath is None:
             os.makedirs("/tmp/dtcc_exports", exist_ok=True)
-            filepath = f"/tmp/dtcc_exports/{object_id}.csv"
+            filepath = f"/tmp/dtcc_exports/{object_ref}.csv"
 
         with open(filepath, "w", newline="") as fh:
             writer = csv_mod.writer(fh)
@@ -1044,7 +1087,7 @@ def export_object(
                             field.name, val, field.unit,
                         ])
 
-        return _fmt({"object_id": object_id, "type": type_name, "format": fmt, "filepath": filepath})
+        return _fmt({"object_ref": object_ref, "type": type_name, "format": fmt, "filepath": filepath})
 
     # Standard dtcc-core types
     if type_name not in _EXPORT_DISPATCH:
@@ -1060,7 +1103,7 @@ def export_object(
 
     if filepath is None:
         os.makedirs("/tmp/dtcc_exports", exist_ok=True)
-        filepath = f"/tmp/dtcc_exports/{object_id}.{fmt}"
+        filepath = f"/tmp/dtcc_exports/{object_ref}.{fmt}"
 
     from dtcc_core import io as dtcc_io
 
@@ -1071,13 +1114,13 @@ def export_object(
     except Exception as exc:
         return _fmt({"error": f"Export failed: {exc}"})
 
-    return _fmt({"object_id": object_id, "type": type_name, "format": fmt, "filepath": filepath})
+    return _fmt({"object_ref": object_ref, "type": type_name, "format": fmt, "filepath": filepath})
 
 
 # -- Rich text output --------------------------------------------------------
 
 @tool
-def object_to_text(object_id: str, format: str = "markdown") -> str:
+def object_to_text(object_ref: str, format: str = "markdown") -> str:
     """Get a rich text representation of a stored object.
 
     Returns formatted markdown with tables and statistics, suitable
@@ -1085,7 +1128,7 @@ def object_to_text(object_id: str, format: str = "markdown") -> str:
     this produces human-readable formatted text.
 
     Args:
-        object_id: The object ID from run_operation() or list_objects().
+        object_ref: The Object reference (obj_…) from run_operation() or list_objects().
         format: Output format — currently only "markdown" is supported.
 
     Returns a markdown-formatted string (not JSON-wrapped).
@@ -1093,10 +1136,9 @@ def object_to_text(object_id: str, format: str = "markdown") -> str:
     if format != "markdown":
         return _fmt({"error": f"Unsupported format '{format}'. Only 'markdown' is supported."})
 
-    try:
-        obj = _session().objects.get(object_id)
-    except KeyError:
-        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+    obj, error = _object(object_ref)
+    if error:
+        return error
 
     from .serializers import to_markdown
 
@@ -1107,7 +1149,7 @@ def object_to_text(object_id: str, format: str = "markdown") -> str:
 
 @tool
 def spatial_query(
-    object_id: str,
+    object_ref: str,
     query_type: str,
     params: dict[str, Any],
 ) -> str:
@@ -1128,7 +1170,7 @@ def spatial_query(
       Applies to: City
 
     Args:
-        object_id: The object ID from run_operation() or list_objects().
+        object_ref: The Object reference (obj_…) from run_operation() or list_objects().
         query_type: Type of spatial query (see above).
         params: Query-specific parameters.
 
@@ -1137,10 +1179,9 @@ def spatial_query(
     """
     import numpy as np
 
-    try:
-        obj = _session().objects.get(object_id)
-    except KeyError:
-        return _fmt({"error": f"Object '{object_id}' not found. Use list_objects() to see available objects."})
+    obj, error = _object(object_ref)
+    if error:
+        return error
 
     type_name = type(obj).__name__
 
@@ -1165,10 +1206,10 @@ def spatial_query(
                         break
             new_id = _session().objects.store(
                 filtered, source_op="spatial_query.filter_by_bounds",
-                label=f"filtered from {object_id}",
+                label=f"filtered from {object_ref}",
             )
             return _fmt({
-                "new_object_id": new_id, "type": "SensorCollection",
+                "new_object_ref": new_id, "type": "SensorCollection",
                 "count": count, "query": "filter_by_bounds", "bounds": bounds,
             })
 
@@ -1188,10 +1229,10 @@ def spatial_query(
                     setattr(filtered, attr, arr[mask])
             new_id = _session().objects.store(
                 filtered, source_op="spatial_query.filter_by_bounds",
-                label=f"filtered from {object_id}",
+                label=f"filtered from {object_ref}",
             )
             return _fmt({
-                "new_object_id": new_id, "type": "PointCloud",
+                "new_object_ref": new_id, "type": "PointCloud",
                 "count": int(mask.sum()), "original_count": len(pts),
                 "query": "filter_by_bounds", "bounds": bounds,
             })
@@ -1239,10 +1280,10 @@ def spatial_query(
 
         new_id = _session().objects.store(
             filtered, source_op="spatial_query.filter_by_value",
-            label=f"filtered from {object_id}",
+            label=f"filtered from {object_ref}",
         )
         return _fmt({
-            "new_object_id": new_id, "type": "SensorCollection",
+            "new_object_ref": new_id, "type": "SensorCollection",
             "count": count, "query": "filter_by_value",
             "field": field_name, "op": op, "value": value,
         })
@@ -1303,10 +1344,10 @@ def spatial_query(
 
         new_id = _session().objects.store(
             filtered, source_op="spatial_query.buildings_by_height",
-            label=f"filtered from {object_id}",
+            label=f"filtered from {object_ref}",
         )
         return _fmt({
-            "new_object_id": new_id, "type": "list[Building]",
+            "new_object_ref": new_id, "type": "list[Building]",
             "count": len(filtered), "original_count": len(buildings),
             "query": "buildings_by_height",
             "min_height": min_h,
@@ -1333,7 +1374,7 @@ def load_geojson(file_path: str) -> str:
     Args:
         file_path: Absolute path to the .geojson file on disk.
 
-    Returns a JSON string with summary and an object_id for use with
+    Returns a JSON string with summary and an object_ref for use with
     query_geojson and summarize_geojson_property.
     """
     result = _load_geojson(file_path)
@@ -1344,12 +1385,12 @@ def load_geojson(file_path: str) -> str:
     obj_id = _session().objects.store(
         geojson, source_op="geojson.load", label=result["summary"]["file"],
     )
-    return _fmt({"object_id": obj_id, **result["summary"]})
+    return _fmt({"object_ref": obj_id, **result["summary"]})
 
 
 @tool
 def query_geojson(
-    object_id: str,
+    object_ref: str,
     property_name: str,
     operator: str,
     value: str | int | float,
@@ -1359,18 +1400,18 @@ def query_geojson(
     The filtered result is stored as a new object for further chaining.
 
     Args:
-        object_id: ID from a previous load_geojson call.
+        object_ref: ID from a previous load_geojson call.
         property_name: The feature property to filter on.
         operator: Comparison operator (==, !=, >, <, >=, <=, contains).
         value: The value to compare against.
 
-    Returns matching features and a new object_id for the filtered set.
+    Returns matching features and a new object_ref for the filtered set.
     """
-    geojson = _session().objects.get(object_id)
-    if geojson is None:
-        return _fmt({"error": f"Object '{object_id}' not found in store"})
+    geojson, error = _object(object_ref)
+    if error:
+        return error
     if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
-        return _fmt({"error": f"Object '{object_id}' is not a GeoJSON FeatureCollection"})
+        return _fmt({"error": f"Object '{object_ref}' is not a GeoJSON FeatureCollection"})
 
     result = _query_geojson(geojson, property_name, operator, value)
     if "error" in result:
@@ -1380,25 +1421,25 @@ def query_geojson(
         result["geojson"], source_op="geojson.query",
         label=f"{property_name} {operator} {value}",
     )
-    return _fmt({"new_object_id": new_id, **result["result"]})
+    return _fmt({"new_object_ref": new_id, **result["result"]})
 
 
 @tool
-def summarize_geojson_property(object_id: str, property_name: str) -> str:
+def summarize_geojson_property(object_ref: str, property_name: str) -> str:
     """Compute statistics for a property across all features in a stored GeoJSON.
 
     For numeric properties: min, max, mean, std, median, count.
     For categorical properties: unique value counts sorted by frequency.
 
     Args:
-        object_id: ID from a previous load_geojson or query_geojson call.
+        object_ref: ID from a previous load_geojson or query_geojson call.
         property_name: The feature property to summarize.
     """
-    geojson = _session().objects.get(object_id)
-    if geojson is None:
-        return _fmt({"error": f"Object '{object_id}' not found in store"})
+    geojson, error = _object(object_ref)
+    if error:
+        return error
     if not isinstance(geojson, dict) or geojson.get("type") != "FeatureCollection":
-        return _fmt({"error": f"Object '{object_id}' is not a GeoJSON FeatureCollection"})
+        return _fmt({"error": f"Object '{object_ref}' is not a GeoJSON FeatureCollection"})
 
     return _fmt(_summarize_geojson_property(geojson, property_name))
 

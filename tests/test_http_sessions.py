@@ -111,7 +111,7 @@ def test_objects_are_invisible_to_another_session(server_url, geojson_file):
     created = _ok(server_url, "session-a", "load_geojson", {"file_path": geojson_file})
 
     assert _ok(server_url, "session-b", "list_objects")["num_objects"] == 0
-    other = _ok(server_url, "session-b", "inspect_object", {"object_id": created["object_id"]})
+    other = _ok(server_url, "session-b", "inspect_object", {"object_ref": created["object_ref"]})
     assert "error" in other
 
 
@@ -122,7 +122,7 @@ def test_objects_survive_into_the_next_connection_of_the_same_session(
 
     # A fresh MCP connection, as the chatbot opens for its next message.
     listed = _ok(server_url, "session-c", "list_objects")
-    assert [o["id"] for o in listed["objects"]] == [created["object_id"]]
+    assert [o["object_ref"] for o in listed["objects"]] == [created["object_ref"]]
 
 
 def test_a_tool_call_without_a_session_is_refused(server_url):
@@ -161,7 +161,7 @@ def test_the_http_transport_keeps_no_per_connection_state(server_url):
 
 def test_render_object_resolves_the_calling_session(server_url, geojson_file):
     created = _ok(server_url, "session-r", "load_geojson", {"file_path": geojson_file})
-    args = {"object_id": created["object_id"]}
+    args = {"object_ref": created["object_ref"]}
 
     # Found (a GeoJSON dict is not renderable), not "not found".
     own = _ok(server_url, "session-r", "render_object", args)
@@ -180,7 +180,7 @@ def test_stdio_serves_one_local_session_without_a_header(geojson_file):
             return json.loads(created.content[0].text), json.loads(listed.content[0].text)
 
     created, listed = anyio.run(run)
-    assert [o["id"] for o in listed["objects"]] == [created["object_id"]]
+    assert [o["object_ref"] for o in listed["objects"]] == [created["object_ref"]]
 
 
 def test_an_http_call_with_no_request_is_refused_not_given_the_local_session(monkeypatch):
@@ -219,17 +219,17 @@ def test_runs_are_invisible_to_another_session():
     a, b = server._Session(), server._Session()
     token = server._current_session.set(a)
     try:
-        run_id = server._store_result("sim", [0, 0, 1, 1], {}, {"values": [1.0]})
+        run_ref = server._store_result("sim", [0, 0, 1, 1], {}, {"values": [1.0]})
     finally:
         server._current_session.reset(token)
 
     token = server._current_session.set(b)
     try:
         assert json.loads(server.list_past_runs()) == []
-        assert "error" in json.loads(server.get_run_summary(run_id))
+        assert "error" in json.loads(server.get_run_summary(run_ref))
     finally:
         server._current_session.reset(token)
-    assert run_id in a.results
+    assert run_ref in a.results
 
 
 def test_a_session_with_a_tool_in_flight_is_never_evicted(monkeypatch):

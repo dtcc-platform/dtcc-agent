@@ -41,10 +41,10 @@ def test_render_object_runs_on_the_main_thread(monkeypatch):
 
     monkeypatch.setattr(renderer, "render_to_file", fake_render_to_file)
     monkeypatch.setattr(server, "_local_session", server._Session())
-    object_id = server._session().objects.store([], source_op="test")
+    object_ref = server._session().objects.store([], source_op="test")
 
     content, _ = asyncio.run(
-        server.mcp.call_tool("render_object", {"object_id": object_id})
+        server.mcp.call_tool("render_object", {"object_ref": object_ref})
     )
 
     assert "error" not in json.loads(content[0].text)
@@ -58,7 +58,7 @@ def test_a_tool_whose_core_call_uses_asyncio_run_succeeds_under_uvloop(monkeypat
         # Stand-in for a Core download: a nested asyncio.run() on the calling thread.
         calls["result"] = asyncio.run(asyncio.sleep(0, result="downloaded"))
         calls["thread"] = threading.current_thread()
-        return {"result_id": "x", "summary": calls["result"]}
+        return {"object_ref": "x", "summary": calls["result"]}
 
     monkeypatch.setattr(dispatcher, "run_operation", fake_dispatch)
 
