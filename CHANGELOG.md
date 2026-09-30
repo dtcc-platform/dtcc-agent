@@ -14,7 +14,9 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | 🔍 |
+| 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | ✅ |
+| 2026-09-30 | References say what they name (`obj_…`, `run_…`), a wrong one is refused, and a run hands back its result's reference ([#57](https://github.com/dtcc-platform/dtcc-agent/pull/57), T9, fixes [#26](https://github.com/dtcc-platform/dtcc-agent/issues/26)) | ✅ |
+| 2026-09-30 | After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects ([#56](https://github.com/dtcc-platform/dtcc-agent/pull/56), T12, fixes [#27](https://github.com/dtcc-platform/dtcc-agent/issues/27)) | ✅ |
 | 2026-09-29 | A dtcc-sim service can no longer replace a Core dataset by reusing its name ([#55](https://github.com/dtcc-platform/dtcc-agent/pull/55), fixes [#45](https://github.com/dtcc-platform/dtcc-agent/issues/45)) | ✅ |
 | 2026-09-29 | The README's token check works: it no longer runs a `verify_auth.py` that never existed ([#54](https://github.com/dtcc-platform/dtcc-agent/pull/54), fixes [#40](https://github.com/dtcc-platform/dtcc-agent/issues/40)) | ✅ |
 | 2026-09-29 | Slope and aspect no longer check a cache they can never be stored in ([#53](https://github.com/dtcc-platform/dtcc-agent/pull/53), fixes [#42](https://github.com/dtcc-platform/dtcc-agent/issues/42)) | ✅ |
@@ -38,11 +40,11 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 331 with #58.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
 ### A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry · 2026-09-30 · [#58](https://github.com/dtcc-platform/dtcc-agent/pull/58)
 
@@ -59,11 +61,48 @@ restore of Core datasets into one repair step. The real fix is in Core
 ([dtcc-core#128](https://github.com/dtcc-platform/dtcc-core/issues/128)).
 
 **How we know it works:** eight retries of a half-broken service leave no copy behind, and a
-dataset it replaced is put back. Both tests fail without the fix. 331 tests pass.
+dataset it replaced is put back. Both tests fail without the fix. 344 tests pass.
 
----
+### References say what they name, a wrong one is refused, and a run hands back its result's reference · 2026-09-30 · [#57](https://github.com/dtcc-platform/dtcc-agent/pull/57)
 
-## ✅ Merged
+**Before:** runs and stored objects both had ids of 8 hex characters, so nothing could tell
+them apart. Passing a run's id to an object tool said "not found" and pointed at
+`list_objects()`, where it would never appear. A run kept a second copy of its result that was
+never evicted, and `get_run_summary` gave no way to reach the stored result. Two GeoJSON tools
+crashed on an unknown id instead of reporting it (T9, #26).
+
+**Now:**
+- Object references are `obj_…` and run references are `run_…`. Tools take and return
+  `object_ref` and `run_ref`; `run_operation` returns `object_ref` instead of `result_id`.
+- A run reference passed where an object is expected (or the reverse, or as an operation
+  parameter) is refused with a message naming the right tool.
+- A run records its result's `object_ref` and keeps no copy: the stored object owns the result
+  (U6, decided 2026-09-30), so the memory budget covers simulation results. When the object has
+  been evicted, `get_run_summary` says so and asks for a re-run.
+- `query_geojson` and `summarize_geojson_property` report an unknown reference as an error.
+
+**How we know it works:** the four M0 tests that pinned the old behaviour were flipped to
+ADR-0010's contract, and nine new tests cover the prefixes, the run→object link, refusals in
+both directions and through `run_operation`, an evicted result, and the GeoJSON tools. 342 tests
+pass.
+
+### After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects · 2026-09-30 · [#56](https://github.com/dtcc-platform/dtcc-agent/pull/56)
+
+**Before:** the disk cache keeps Core objects for 7 days and, since #51, survives restarts in
+`~/.cache/dtcc_agent`. Nothing recorded which Core wrote an entry. After a Core upgrade the
+agent would load objects saved by the old Core, which could crash the request or quietly give
+a wrong answer. An index in an older or unexpected format could also crash a lookup (T12, #27).
+
+**Now:**
+- Every entry records the cache format and the dtcc-core commit that wrote it.
+- An entry from another Core or format, or one with missing or broken fields, is never served,
+  and startup removes it with its file. After an upgrade the cache simply starts cold.
+- One check decides whether an entry may be served, used by both lookups and cleanup.
+
+**How we know it works:** six new tests: entries carry the stamp; a restart on a newer Core
+starts cold and deletes the old files; another Core's entries in a shared folder are never
+served; an index written before stamps, one with broken entries, and one that is not a list
+each start cold and keep working. 335 tests pass.
 
 ### A dtcc-sim service can no longer replace a Core dataset by reusing its name · 2026-09-29 · [#55](https://github.com/dtcc-platform/dtcc-agent/pull/55)
 

@@ -104,7 +104,7 @@ class TestCacheIntegration:
 
             assert "error" not in result
             assert result.get("cache_hit") is True
-            assert "result_id" in result
+            assert "object_ref" in result
             # The dataset callable should NOT have been called
             mock_op._callable.assert_not_called()
 
@@ -123,6 +123,6 @@ class TestCacheIntegration:
             result = run_operation("builder.raster.slope_aspect", {}, store, cache=cache)
 
         assert "error" not in result
-        assert len(result["result_ids"]) == 2
+        assert len(result["object_refs"]) == 2
         cache.builder_lookup.assert_not_called()
         cache.store.assert_not_called()
