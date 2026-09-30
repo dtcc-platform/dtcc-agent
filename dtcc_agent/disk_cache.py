@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
+import importlib.metadata
 import json
 import logging
 import os
@@ -35,6 +36,25 @@ def _default_cache_dir() -> Path:
 CACHE_DIR = Path(os.getenv("DTCC_AGENT_CACHE_DIR") or _default_cache_dir())
 CACHE_TTL_HOURS = 168        # 7 days
 CACHE_MAX_SIZE_GB = 10
+
+
+
+def _core_build() -> str:
+    """The installed dtcc-core: the commit pip installed it from, as the
+    contract workflow checks, else its version (an editable or local install,
+    whose edits this cannot see)."""
+    dist = importlib.metadata.distribution("dtcc-core")
+    try:
+        return json.loads(dist.read_text("direct_url.json") or "{}")["vcs_info"]["commit_id"]
+    except (KeyError, TypeError, json.JSONDecodeError):
+        return dist.version
+
+
+# Every entry records what wrote it. Pickles of Core objects need the Core that
+# made them, and entry fields change with this module, so an entry with another
+# stamp is never served and cleanup removes it: after an upgrade the cache
+# starts cold. Bump "schema" when the entry format or cached payloads change.
+CACHE_STAMP = {"schema": 1, "core": _core_build()}
 
 CACHE_ALLOWLIST = frozenset({
     "datasets.point_cloud",
@@ -95,6 +115,18 @@ class CacheDirError(RuntimeError):
 
 _CACHE_ID = re.compile(r"[0-9a-f]{8}")
 _PRIVATE_FILE = 0o600
+
+
+def _fresh(entry: Any, now: datetime) -> bool:
+    """Whether an index entry may be served: written by this schema and Core,
+    well formed, and younger than the TTL. Anything else is a cold miss."""
+    try:
+        age = now - datetime.fromisoformat(entry["timestamp"])
+        return (entry.get("stamp") == CACHE_STAMP
+                and bool(_CACHE_ID.fullmatch(entry["cache_id"]))
+                and age.total_seconds() / 3600 <= CACHE_TTL_HOURS)
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return False
 
 
 def _others_can_write(st: os.stat_result) -> bool:
@@ -199,6 +231,10 @@ class DiskCache:
             logger.warning("Disk cache index %s is unreadable; starting empty",
                            self._index_path)
             self._index = []
+        if not isinstance(self._index, list):
+            logger.warning("Disk cache index %s is not a list; starting empty",
+                           self._index_path)
+            self._index = []
         self._index_version = version
 
     def _save_index(self) -> None:
@@ -252,6 +288,7 @@ class DiskCache:
             "timestamp": datetime.now().isoformat(),
             "size_bytes": size_bytes,
             "object_type": object_type,
+            "stamp": CACHE_STAMP,
         }
 
         with self._editing_index():
@@ -285,18 +322,15 @@ class DiskCache:
         with self._lock:
             self._reload_if_changed()
             for entry in self._index:
-                if entry["operation"] != operation:
+                if not _fresh(entry, now):
+                    continue
+                if entry.get("operation") != operation:
                     continue
                 if entry.get("source") != source:
                     continue
-                if entry["params_hash"] != params_hash:
+                if entry.get("params_hash") != params_hash:
                     continue
                 if entry.get("bounds") is None:
-                    continue
-                # TTL check
-                cached_time = datetime.fromisoformat(entry["timestamp"])
-                age_hours = (now - cached_time).total_seconds() / 3600
-                if age_hours > CACHE_TTL_HOURS:
                     continue
                 # Containment check
                 if self._bounds_contain(entry["bounds"], requested_bounds):
@@ -329,14 +363,11 @@ class DiskCache:
         with self._lock:
             self._reload_if_changed()
             for entry in self._index:
-                if entry["operation"] != operation:
+                if not _fresh(entry, now):
                     continue
-                if entry["params_hash"] != params_hash:
+                if entry.get("operation") != operation:
                     continue
-                # TTL check
-                cached_time = datetime.fromisoformat(entry["timestamp"])
-                age_hours = (now - cached_time).total_seconds() / 3600
-                if age_hours > CACHE_TTL_HOURS:
+                if entry.get("params_hash") != params_hash:
                     continue
 
                 logger.info("Disk cache hit: %s, cache_id=%s", operation, entry["cache_id"])
@@ -346,22 +377,21 @@ class DiskCache:
         return None
 
     def cleanup(self) -> int:
-        """Remove expired entries and enforce disk budget. Returns count removed."""
+        """Remove entries that may not be served (expired, another stamp,
+        malformed) and enforce the disk budget. Returns count removed."""
         now = datetime.now()
         removed = 0
 
         with self._editing_index():
             surviving = []
             for entry in self._index:
-                cached_time = datetime.fromisoformat(entry["timestamp"])
-                age_hours = (now - cached_time).total_seconds() / 3600
-                if age_hours > CACHE_TTL_HOURS:
-                    # Delete pickle file
-                    pkl_path = self._objects_dir / f"{entry['cache_id']}.pkl"
-                    pkl_path.unlink(missing_ok=True)
-                    removed += 1
-                else:
+                if _fresh(entry, now):
                     surviving.append(entry)
+                    continue
+                cache_id = entry.get("cache_id") if isinstance(entry, dict) else None
+                if isinstance(cache_id, str) and _CACHE_ID.fullmatch(cache_id):
+                    (self._objects_dir / f"{cache_id}.pkl").unlink(missing_ok=True)
+                removed += 1
 
             # Enforce disk budget: evict oldest first
             total_bytes = sum(e.get("size_bytes", 0) for e in surviving)

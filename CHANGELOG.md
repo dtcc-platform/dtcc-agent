@@ -14,6 +14,7 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-30 | After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects ([#56](https://github.com/dtcc-platform/dtcc-agent/pull/56), T12, fixes [#27](https://github.com/dtcc-platform/dtcc-agent/issues/27)) | 🔍 |
 | 2026-09-29 | A dtcc-sim service can no longer replace a Core dataset by reusing its name ([#55](https://github.com/dtcc-platform/dtcc-agent/pull/55), fixes [#45](https://github.com/dtcc-platform/dtcc-agent/issues/45)) | ✅ |
 | 2026-09-29 | The README's token check works: it no longer runs a `verify_auth.py` that never existed ([#54](https://github.com/dtcc-platform/dtcc-agent/pull/54), fixes [#40](https://github.com/dtcc-platform/dtcc-agent/issues/40)) | ✅ |
 | 2026-09-29 | Slope and aspect no longer check a cache they can never be stored in ([#53](https://github.com/dtcc-platform/dtcc-agent/pull/53), fixes [#42](https://github.com/dtcc-platform/dtcc-agent/issues/42)) | ✅ |
@@ -37,7 +38,29 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56.
+
+---
+
+## 🔍 In review
+
+### After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects · 2026-09-30 · [#56](https://github.com/dtcc-platform/dtcc-agent/pull/56)
+
+**Before:** the disk cache keeps Core objects for 7 days and, since #51, survives restarts in
+`~/.cache/dtcc_agent`. Nothing recorded which Core wrote an entry. After a Core upgrade the
+agent would load objects saved by the old Core, which could crash the request or quietly give
+a wrong answer. An index in an older or unexpected format could also crash a lookup (T12, #27).
+
+**Now:**
+- Every entry records the cache format and the dtcc-core commit that wrote it.
+- An entry from another Core or format, or one with missing or broken fields, is never served,
+  and startup removes it with its file. After an upgrade the cache simply starts cold.
+- One check decides whether an entry may be served, used by both lookups and cleanup.
+
+**How we know it works:** six new tests: entries carry the stamp; a restart on a newer Core
+starts cold and deletes the old files; another Core's entries in a shared folder are never
+served; an index written before stamps, one with broken entries, and one that is not a list
+each start cold and keep working. 335 tests pass.
 
 ---
 
