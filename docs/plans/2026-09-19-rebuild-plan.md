@@ -478,7 +478,7 @@ parallel mechanism.
 
 | # | Sev | Conf | Location | Finding |
 |---|---|---|---|---|
-| A1 | P1 | 9/10 | `Dockerfile:3,28` + `docker-compose.yml` | `DTCC_CORE_REF` defaults to the floating `develop` branch and Core is installed at line 28, before `pip install -e .` at line 29. The container either bypasses M0's SHA pin or silently ignores its own build arg. Which one wins is **unverified** (needs a container build); both outcomes are defects. T13 edits this file |
+| A1 | P1 | 9/10 | `Dockerfile:3,28` + `docker-compose.yml` | `DTCC_CORE_REF` defaults to the floating `develop` branch and Core is installed at line 28, before `pip install -e .` at line 29. The container either bypasses M0's SHA pin or silently ignores its own build arg. Which one wins is **unverified** (needs a container build); both outcomes are defects. T13 edits this file. *Verified 2026-09-30: the build arg wins (`direct_url.json` in the image says `requested_revision: develop`), so the image bypassed the pin. Fixed by #61: the separate install is gone and the build fails unless the pinned commit is installed (U10 decided, #41).* |
 | A2 | P1 | 9/10 | anyio limiter, `dispatcher.py:149-150,61-65`, `object_store.py:55` | anyio's default thread limiter is 40. T4 raises peak concurrent Core execution from 1 to 40, each deep-copying heavy geometry against a 2 GiB budget. Resolved by R1/D2 |
 | A3 | P1 | 9/10 | mcp 1.26.0 | No session expiry, so sessions live for process lifetime. Per-session stores (T5) make the *number* of sessions an unbounded growth path. T11 caps each session, not the count |
 | A5 | P2 | 8/10 | M1a vs T14 | M1a opens an HTTP MCP surface with no admission control until M2. `docker-compose.yml` already sets `DTCC_AGENT_HOST=0.0.0.0` |
