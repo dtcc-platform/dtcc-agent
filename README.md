@@ -278,7 +278,7 @@ Use `inspect_object(id)` to get a detailed summary of any stored object.
 
 ### Disk cache
 
-Expensive operations (dataset downloads, builder computations) are
+Dataset downloads (`datasets.point_cloud`, `datasets.buildings`) are
 automatically cached to disk in `$DTCC_AGENT_CACHE_DIR`, by default
 `$XDG_CACHE_HOME/dtcc_agent` (usually `~/.cache/dtcc_agent`). Cached objects are
 pickles, and loading one runs code, so nobody else may be able to change the
@@ -293,9 +293,11 @@ uses:
   larger area than requested, the cached data is reused and cropped.
   Buildings are cropped with Core's own footprint rule, so the result matches
   a fresh download; a cached object that cannot be cropped is downloaded again.
-- **Content fingerprinting** for builders: input objects are hashed by
-  their metadata (type, size, source), so the same pipeline step with
-  equivalent inputs hits the cache even across sessions.
+- **No builder results.** Builder computations are not cached until their cache
+  keys are correct (U2, #11). Each builder call is recorded instead, in
+  `$DTCC_AGENT_LOG_DIR/builder_calls.jsonl` when that is set (Docker: `/data/logs`),
+  with its duration and the key a cache would have matched, to show how often one
+  would have hit.
 - **TTL eviction** (7 days) and a **disk budget** (10 GB) with
   oldest-first eviction.
 - **Version stamp:** each entry records the cache format and the dtcc-core commit

@@ -128,40 +128,6 @@ def test_dataset_lookup_miss_on_different_source():
         assert result is None
 
 
-def test_builder_lookup_hit_on_matching_hash():
-    with tempfile.TemporaryDirectory() as td:
-        cache = DiskCache(cache_dir=Path(td))
-        cache.store(
-            obj="fake_raster",
-            operation="builder.build_terrain_raster",
-            category="builder",
-            params_hash="hash-abc",
-            object_type="Raster",
-        )
-        result = cache.builder_lookup(
-            operation="builder.build_terrain_raster",
-            params_hash="hash-abc",
-        )
-        assert result is not None
-
-
-def test_builder_lookup_miss_on_different_hash():
-    with tempfile.TemporaryDirectory() as td:
-        cache = DiskCache(cache_dir=Path(td))
-        cache.store(
-            obj="fake_raster",
-            operation="builder.build_terrain_raster",
-            category="builder",
-            params_hash="hash-abc",
-            object_type="Raster",
-        )
-        result = cache.builder_lookup(
-            operation="builder.build_terrain_raster",
-            params_hash="hash-xyz",
-        )
-        assert result is None
-
-
 def test_dataset_lookup_miss_when_expired():
     with tempfile.TemporaryDirectory() as td:
         cache = DiskCache(cache_dir=Path(td))
@@ -211,44 +177,22 @@ def test_cleanup_removes_expired_entries():
         assert len(cache._index) == 0
 
 
-# --- Content fingerprinting helpers ---
+# --- Dataset parameter hash ---
 
-from dtcc_agent.disk_cache import content_fingerprint, canonical_params_hash
-
-
-def test_content_fingerprint_stable_for_same_metadata():
-    meta_a = {"type": "PointCloud", "source_op": "datasets.point_cloud",
-              "nbytes": 1000, "label": "test"}
-    meta_b = {"type": "PointCloud", "source_op": "datasets.point_cloud",
-              "nbytes": 1000, "label": "test"}
-    assert content_fingerprint(meta_a) == content_fingerprint(meta_b)
+from dtcc_agent.disk_cache import canonical_params_hash
 
 
-def test_content_fingerprint_differs_for_different_metadata():
-    meta_a = {"type": "PointCloud", "source_op": "datasets.point_cloud",
-              "nbytes": 1000, "label": "area_a"}
-    meta_b = {"type": "PointCloud", "source_op": "datasets.point_cloud",
-              "nbytes": 2000, "label": "area_b"}
-    assert content_fingerprint(meta_a) != content_fingerprint(meta_b)
-
-
-def test_canonical_params_hash_stable():
-    h1 = canonical_params_hash("builder.build_terrain_raster",
-                                {"cell_size": 2.0, "ground_only": True})
-    h2 = canonical_params_hash("builder.build_terrain_raster",
-                                {"ground_only": True, "cell_size": 2.0})
+def test_canonical_params_hash_is_stable_across_key_order():
+    h1 = canonical_params_hash("datasets.point_cloud", {"source": "LM", "classifications": "all"})
+    h2 = canonical_params_hash("datasets.point_cloud", {"classifications": "all", "source": "LM"})
     assert h1 == h2
 
 
-def test_canonical_params_hash_replaces_fingerprints():
-    h1 = canonical_params_hash("builder.build_terrain_raster",
-                                {"pc": "obj-id-1", "cell_size": 2.0},
-                                {"pc": "fp-abc"})
-    h2 = canonical_params_hash("builder.build_terrain_raster",
-                                {"pc": "obj-id-2", "cell_size": 2.0},
-                                {"pc": "fp-abc"})
-    # Same fingerprint, different obj IDs — should produce same hash
+def test_canonical_params_hash_leaves_bounds_to_containment():
+    h1 = canonical_params_hash("datasets.point_cloud", {"source": "LM", "bounds": [0, 0, 1, 1]})
+    h2 = canonical_params_hash("datasets.point_cloud", {"source": "LM", "bounds": [5, 5, 9, 9]})
     assert h1 == h2
+
 
 
 def test_cache_survives_restart():
@@ -438,7 +382,7 @@ def test_get_buildings_reuses_a_download_the_dispatcher_cached(monkeypatch, tmp_
     downloaded = BuildingCollection([_core_building(0, 0, 10.0), _core_building(500, 500, 30.0)])
     object_ref = store.store(downloaded, source_op="datasets.buildings")
     dispatcher._populate_cache(
-        "datasets.buildings", "datasets", {"bounds": [-100, -100, 600, 600]},
+        "datasets.buildings", {"bounds": [-100, -100, 600, 600]},
         {"object_ref": object_ref}, store, cache,
     )
 
@@ -675,8 +619,7 @@ def _store_point_cloud(cache):
 
 
 def _misses(cache):
-    return (cache.dataset_lookup("datasets.point_cloud", "LM", "src-LM", _LINDHOLMEN) is None
-            and cache.builder_lookup("datasets.point_cloud", "src-LM") is None)
+    return cache.dataset_lookup("datasets.point_cloud", "LM", "src-LM", _LINDHOLMEN) is None
 
 
 def test_entries_carry_the_schema_and_core_build_that_wrote_them(tmp_path):

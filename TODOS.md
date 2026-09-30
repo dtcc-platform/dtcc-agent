@@ -6,35 +6,36 @@ is for work whose shape is already known.
 
 ---
 
-## T-001 — Make `content_fingerprint` hash contents, so builder caches can be shared again
+## T-001 — Provenance keys, so builder results can be cached (and shared) correctly
 
-**What.** Replace the metadata-only fingerprint in `disk_cache.py:40-53` with one derived
-from the object's actual contents.
+**What.** Key a builder result by how its inputs were made, not by what they look like.
+Each stored Object records its provenance: a download its operation, parameters (bounds
+included), source and Core commit; a builder result its operation, parameters and its
+inputs' provenance. The cache key is a hash of that. Objects with no reproducible origin
+(loaded files, GeoJSON, filter-tool output, simulations) get none and are never cached.
 
-**Why.** The eng review of 2026-09-19 made four `CACHE_ALLOWLIST` entries session-local —
-`builder.build_terrain_surface_mesh`, `builder.build_city_surface_mesh`,
-`builder.raster.slope_aspect` (removed from the allowlist by #42: it returns two rasters,
-which the cache does not store), `builder.pc_filter.classification_filter` — because their
-cache key hashes only `type`, `source_op`, `nbytes` and `label`, never the contents. Two
-sessions whose inputs share those four attributes collide and can be served each other's
-derived results. Making them session-local closed that, and cost cross-session reuse of
-the most expensive derived geometry in the system. Fixing the fingerprint is the only
-safe path back to sharing them.
+**Why.** U2 (#11), decided 2026-09-30, switched builder caching off: the old key described
+an input by `type`, `source_op`, `nbytes` and `label` only, so different inputs collided,
+and it dropped `bounds`, so different areas did. A provenance key is exact without hashing
+multi-gigabyte point clouds, survives restarts, and is safe to share across Sessions,
+since equal provenance means equal public inputs. That also makes most of T6's cache split
+unnecessary.
 
-**Pros.** Recovers the largest remaining cache win. Makes the function's name true.
-Removes a collision class that can also serve a session its own wrong result.
+**Pros.** Recovers builder caching, the most expensive derived geometry in the system, for
+everyone. No content hashing.
 
-**Cons.** Hashing a multi-gigabyte point cloud on every lookup is its own performance
-problem — which is exactly why the metadata shortcut exists. Probably needs a cheap
-structural digest rather than a full content hash, and getting that right is real work.
+**Cons.** About 2-3 days: a provenance field set by the dispatcher (downloads, cache hits
+and crops, builders), the key, and tests. It relies on Core builders being deterministic
+and stored Objects never being mutated (heavy inputs are deep-copied already). A cropped
+cached download carries #49's rare edge difference into anything built from it.
 
-**Where to start.** `content_fingerprint` is called from `canonical_params_hash` to key
-builder operations whose inputs are Objects referenced by transient ids. `test_disk_cache.py`
-has 21 tests covering containment, TTL and eviction, so there is a safety net. **Measure
-first**: time a full hash of a realistic Gothenburg point cloud before assuming it is too
-slow. The assumption that it is has never been tested.
+**Where to start. Measure first.** `dtcc_agent/builder_calls.py` records every builder call
+with its duration and the key the old cache would have matched (bounds kept). Count repeated
+keys and the seconds they cost in `builder_calls.jsonl` from real use. Equal keys are an
+upper bound on the hits a provenance cache would get. Build this only if that number is
+worth it.
 
-**Depends on / blocked by.** Nothing. Unblocks re-sharing the four builder entries.
+**Depends on / blocked by.** Usage data from `builder_calls.jsonl`.
 
 ---
 

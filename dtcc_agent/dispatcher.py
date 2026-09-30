@@ -15,16 +15,17 @@ import inspect
 import logging
 import math
 import numbers
+import time
 from copy import deepcopy
 from typing import Any
 
-from . import refs
+from . import builder_calls, refs
 from .object_store import ObjectStore
 from .registry import get_operation, OperationInfo
 from .serializers import serialize
 from .disk_cache import (
     DiskCache, CACHE_ALLOWLIST,
-    content_fingerprint, canonical_params_hash,
+    canonical_params_hash,
 )
 from .crop import crop_to_bounds
 
@@ -136,7 +137,7 @@ def run_operation(
 
     # --- Disk cache check ---
     if cache and name in CACHE_ALLOWLIST:
-        hit = _check_cache(name, op.category, params, store, cache)
+        hit = _check_cache(name, params, store, cache)
         if hit is not None:
             hit["cache_hit"] = True
             return hit
@@ -145,11 +146,15 @@ def run_operation(
     if op.category == "datasets":
         result = _run_dataset(op, params, store, label)
     else:
+        started = time.monotonic()
         result = _run_function(op, params, store, label)
+        if op.category == "builder":
+            builder_calls.record(name, params, store, time.monotonic() - started,
+                                 ok="error" not in result)
 
     # --- Store in disk cache on success ---
     if cache and name in CACHE_ALLOWLIST and "error" not in result:
-        _populate_cache(name, op.category, params, result, store, cache)
+        _populate_cache(name, params, result, store, cache)
 
     return result
 
@@ -293,17 +298,14 @@ def _store_and_summarize(
 
 def _check_cache(
     name: str,
-    category: str,
     params: dict[str, Any],
     store: ObjectStore,
     cache: DiskCache,
 ) -> dict[str, Any] | None:
-    """Check disk cache. Returns dispatcher-format response or None."""
+    """Check the disk cache for a dataset download. Returns a dispatcher-format
+    response, or None on a miss or a failed lookup."""
     try:
-        if category == "datasets":
-            return _check_cache_dataset(name, params, store, cache)
-        else:
-            return _check_cache_builder(name, params, store, cache)
+        return _check_cache_dataset(name, params, store, cache)
     except Exception:
         logger.warning("Disk cache lookup failed for %s", name, exc_info=True)
         return None
@@ -385,55 +387,14 @@ def _check_cache_dataset(
     }
 
 
-def _check_cache_builder(
-    name: str,
-    params: dict[str, Any],
-    store: ObjectStore,
-    cache: DiskCache,
-) -> dict[str, Any] | None:
-    """Check disk cache for a builder operation."""
-    fingerprints = _compute_fingerprints(params, store)
-    ph = canonical_params_hash(name, params, fingerprints)
-    cache_id = cache.builder_lookup(name, ph)
-    if cache_id is None:
-        return None
-    obj = cache.load(cache_id)
-    obj_id = store.store(obj, source_op=name, label="(cached)")
-    return {
-        "operation": name,
-        "object_ref": obj_id,
-        "label": "(cached)",
-        "summary": serialize(obj),
-    }
-
-
-def _compute_fingerprints(
-    params: dict[str, Any],
-    store: ObjectStore,
-) -> dict[str, str]:
-    """Compute content fingerprints for object-ref params."""
-    fingerprints = {}
-    for key, value in params.items():
-        if isinstance(value, str) and value in store:
-            meta = None
-            for entry in store.list(limit=500):
-                if entry["object_ref"] == value:
-                    meta = entry
-                    break
-            if meta:
-                fingerprints[key] = content_fingerprint(meta)
-    return fingerprints
-
-
 def _populate_cache(
     name: str,
-    category: str,
     params: dict[str, Any],
     result: dict[str, Any],
     store: ObjectStore,
     cache: DiskCache,
 ) -> None:
-    """Store a successful operation result in the disk cache."""
+    """Store a successful dataset download in the disk cache."""
     object_ref = result.get("object_ref")
     if not object_ref:
         return  # tuple/primitive results — skip for v1
@@ -443,19 +404,7 @@ def _populate_cache(
         return
 
     try:
-        if category == "datasets":
-            store_dataset(name, params, obj, cache)
-        else:
-            fingerprints = _compute_fingerprints(params, store)
-            cache.store(
-                obj=obj,
-                operation=name,
-                category=category,
-                params_hash=canonical_params_hash(name, params, fingerprints),
-                bounds=None,
-                source=None,
-                object_type=type(obj).__name__,
-            )
+        store_dataset(name, params, obj, cache)
     except Exception:
         logger.warning("Failed to store %s result in disk cache", name,
                         exc_info=True)
