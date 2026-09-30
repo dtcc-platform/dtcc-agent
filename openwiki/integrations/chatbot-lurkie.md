@@ -3,9 +3,6 @@ type: integration
 title: Lurkie chatbot
 description: The chatbot package covers the FastAPI app and its WebSocket /chat protocol, the Claude Agent SDK loop with resume and retry, the system prompt, how it connects to the MCP server, ChromaDB conversation memory, and the render-serving gap.
 tags: [chatbot, lurkie, websocket, claude-agent-sdk, memory, ui]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-27T19:28:40.080Z
 sources:
   - id: openwiki-source-d82fbc21a9f74516f7bfd0f8
     resource: repo://chatbot/app.py
@@ -22,6 +19,9 @@ sources:
   - id: openwiki-source-c0b62da1c8d12500b49cd428
     resource: repo://tests/test_catalogue_startup.py
 generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Lurkie chatbot

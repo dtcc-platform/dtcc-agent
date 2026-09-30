@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:665cfb74de8ae47e0ca976c8251e9b763df551ab46fb11f71e55e76380b5e6e4",
+  "pageVersion": "sha256:bfd9d62b1e097e15da97db9d2ef1dbdfd374e2ffadad938a603053f0ecc64b2b",
   "claims": [
     {
       "id": "claim_b19ba07e1e2842748016f689ceb73672",
@@ -16,7 +16,7 @@
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:9bc33fd259df30f29ca0b9b01b1484968f791792ffeb8d7a8bd5b8a75ed9c52a"
+          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
         }
       ]
     },
@@ -40,7 +40,7 @@
         },
         {
           "resource": "repo://dtcc_agent/runner.py#L54-L123",
-          "version": "repo-lines-v1:sha256:a51723855ae5fb59bbd00d5af237b0c7c223678fdac8a937de75236f75a66e92:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MTYyMGYyOTZmOWU0ZjU4MDY4Mzk5Y2MwMmY1MmY0Njg2OTY2YmI1OGZkNjBkMTAwOGI5NGE2MDFiNDQ4YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5MmExYmQ5NjE5ZGI4M2YxMDhlZWY1M2Q1YmIwMjgyNmQyNTJlMjY5NzBhNmQ3MWE2N2Q1ZDZkNjBjNWZkMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4NDlkMWFjZjJiNThmMmE0NjBlM2EyNDY4NjAxYzFiZWFlODIyYmQ2NzY0OWVmZGE0MTE4MDY0N2ZhNjNiMWYifQ"
+          "version": "repo-lines-v1:sha256:6c269e77f662f2512713fab4871523704edfbcc290d1551416094614d2033828:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MTYyMGYyOTZmOWU0ZjU4MDY4Mzk5Y2MwMmY1MmY0Njg2OTY2YmI1OGZkNjBkMTAwOGI5NGE2MDFiNDQ4YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5MmExYmQ5NjE5ZGI4M2YxMDhlZWY1M2Q1YmIwMjgyNmQyNTJlMjY5NzBhNmQ3MWE2N2Q1ZDZkNjBjNWZkMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4NDlkMWFjZjJiNThmMmE0NjBlM2EyNDY4NjAxYzFiZWFlODIyYmQ2NzY0OWVmZGE0MTE4MDY0N2ZhNjNiMWYifQ"
         }
       ]
     },
@@ -57,6 +57,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-27T19:28:40.080Z"
+    "at": "2026-09-30T14:41:08.402Z"
   }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2eafb1b8866d67ee3b256c5be8e588cdfa115591f64b78f5ceb440aa602bfa21",
+  "pageVersion": "sha256:e005b2626170c42d2dd72abe774ddd876b5a175029c77485bac04a592ed3b62c",
   "claims": [
     {
       "id": "claim_c31659df10d142d8a63ea6a505dd28d1",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:9bc33fd259df30f29ca0b9b01b1484968f791792ffeb8d7a8bd5b8a75ed9c52a"
+          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
         },
         {
           "resource": "repo://tests/test_geocode.py#L45-L60",
@@ -28,11 +28,15 @@
     },
     {
       "id": "claim_c8b2ae919d4d4aceb8d5a07bab1aad58",
-      "statement": "test_server.py pins the tool surface to exactly 22 tools and characterises that run ids and object ids are indistinguishable and misrouted ids are missed rather than refused.",
+      "statement": "test_server.py pins the tool surface to exactly 22 tools and covers typed references: obj_/run_ prefixes, refusal of the wrong kind, a Run's link to its Object, and an evicted result.",
       "evidence": [
         {
-          "resource": "repo://tests/test_server.py#L75-L228",
-          "version": "repo-lines-v1:sha256:65d25e746cb4e515daf36eed45928d6f6a8931e63071bfabf3b8bc79fc7fc123:eyJzZWxlY3RlZExpbmVDb3VudCI6MTU0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0NWIzYzVkNTZkZWY0MjFiNmE2NTEwOWJmN2JmN2M2ODlmODE0Yzg5ZTRhZjU4MjZkOGY5YjZiMjU5YjYyYTY1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5M2VhZGY2NzU1OWNiMjgyMDJmMDdhMTA3MGVjYjMwZThkODY4NTE5ZTFhMTQxZmViMzBjNDAwZTQ2MzJlOTZhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4Y2ZhMTVhYTJmNWQxNTA5YzhlNWFlMzgyZjQ5ZjY2Njc3ODYyZmEwYWQzMzA2NjFlZGMwMWY2YTAxOGMyZDA1In0"
+          "resource": "repo://tests/test_server.py#L176-L245",
+          "version": "repo-lines-v1:sha256:0547ed2cb2bc5a07c644ebeb46d7f57823976de54ff996a72933c5e200264424:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ODdjMzkwZTYzMzA3ZWRmMzBhN2ZhMmZhN2Y2ZmE0MDI4NTI4YWUxODVhOWI5MjE2ZGZjN2RjNmM0MGU4MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmZTJmOTk4NmU4ZjA3NWIzZjRmMGYzN2Y5Y2M5MDFmYzIyNWU3MDQyNjRlZDdkMWE2ZDVlYzg0OGQ2YWNjMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4NzhiN2I5ZjA3ZjI0NzEzZjg0NTI1ZDlmNmY2MjExMTJhZTdlOWVmYmIyNTFmZWZiZWUxNmIwZGE3YzEwOTQifQ"
+        },
+        {
+          "resource": "repo://tests/test_server.py#L75-L82",
+          "version": "repo-lines-v1:sha256:d2362807cdc4464d47d7fe1d563d7d55bd5bb3545bad6363628945dafc6a8a8c:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDViM2M1ZDU2ZGVmNDIxYjZhNjUxMDliZjdiZjdjNjg5ZjgxNGM4OWU0YWY1ODI2ZDhmOWI2YjI1OWI2MmE2NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTNlYWRmNjc1NTljYjI4MjAyZjA3YTEwNzBlY2IzMGU4ZDg2ODUxOWUxYTE0MWZlYjMwYzQwMGU0NjMyZTk2YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODM1MTVhZGRhNTAyOTI3OWVkMTI3M2ZiY2YzN2Y2Yzk3MDBkYTcxZTc2Yjk3MThlMTMyN2Y5MzA3MDNlZjQ0ZCJ9"
         }
       ]
     },
@@ -42,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://tests/test_worker_pool.py#L94-L448",
-          "version": "repo-lines-v1:sha256:30e568547a0ec1f859f1ccc01e19aa4745f89543ba48fd173b9f491e0f900b17:eyJzZWxlY3RlZExpbmVDb3VudCI6MzU1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjVjYTc3Mzc5NGEwNmYwODIxNTY4ODA5YmViNzQ5YzA4Yzk3Mjk2MDEyMGExMWQ2ODVkMWYzMTc5NGUwYjBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "version": "repo-lines-v1:sha256:a15a14d0fcb094d8a1e76af32e450c76e8c37455508eabc79d5197c87f8c79cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzU1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjVjYTc3Mzc5NGEwNmYwODIxNTY4ODA5YmViNzQ5YzA4Yzk3Mjk2MDEyMGExMWQ2ODVkMWYzMTc5NGUwYjBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
     },
@@ -79,6 +83,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-29T19:33:34.851Z"
+    "at": "2026-09-30T14:41:08.402Z"
   }
 }

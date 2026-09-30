@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:770030ff0fe0b2aaeada86fbacb87be9090303a7260915b2cba1d0dcaafe9560",
+  "pageVersion": "sha256:4e1266b93fc9dec742fadc2c1c97a757095120d501d5aa94bc5632be955e8ff0",
   "claims": [
     {
       "id": "claim_548542bb861e4fc5ace823d8124d1385",
@@ -50,7 +50,7 @@
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:9bc33fd259df30f29ca0b9b01b1484968f791792ffeb8d7a8bd5b8a75ed9c52a"
+          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
         },
         {
           "resource": "repo://tests/test_core_dependency.py#L27-L47",
@@ -113,10 +113,28 @@
           "version": "repo-lines-v1:sha256:0d4bf77b9950821f99b2907d999fc25ab135c61ea942316221141479ad916d0b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlYmFkNzZjZTRkN2ZlZGQ1Mzg3NGJiNWU0MzgyMGYwNjlhYzRlZGVjZmNlODk5NjA0Yzk2YzFkZDIxYmU5ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwYzk0ZGFkNTFkOGRlNjkzZjY5ZTI4MDU5NjEwOWQ2NDZjNDg2NDYzNmYyOWVkYzFhMTk1MGFiMDFiODJlNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhNjhiNTkzOTgyZTg3ODJkYmE5N2Q0MzAzZTQxMzUzOGM2MGE0MDJkNDY1NGZlOWViNjk3ODNiNGJhOTU5NzUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_ac87d7f206714a10959c828b236a9d01",
+      "statement": "dtcc-sim services are registered through Core's register_remote_service, which at the pinned Core registers a service all or nothing and never lets a remote dataset replace a non-remote one of the same name; the suite drives that real function with only the HTTP reply faked.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/runner.py#L73-L85",
+          "version": "repo-lines-v1:sha256:8629f6d6e4814503c61399ff6c76bda3ac1a3936b7d7e74aad06028855c68bfc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0OTExMzIxNWMxYWU5MzA0MTQ4MGU0MGM1NzYzN2E3OWNkMTQyNWNiZDNjODAzYmU4NTUxNGMyNmZhYzU3ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3MThmZTljNTFmOGQ5NzgzMmFkZTIyNWYwNTNjZTJmNjFhZGUyZmYxMWRkODZlYzg1MzQ3YzJlMTUzYzM5MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMWM3M2M4NWM3OTYzZDM0ZDQ0MzU5MDJhNmU1Y2YxMzQ3M2RiM2IzZjAxYTAyNWQzODIwN2EyNDExZjc1NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhZmU5N2I4OTA0ZmU4MmMyYzM0NjMyODlmNjY1N2ViMTQzMWJhY2QwYWEwMzJhZmIzYmYyZDEzM2RlOTUyOTgifQ"
+        },
+        {
+          "resource": "repo://pyproject.toml",
+          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
+        },
+        {
+          "resource": "repo://tests/test_catalogue_startup.py#L763-L834",
+          "version": "repo-lines-v1:sha256:79bee0d9409b51498ed2ea7a9bdc2f3ef7ee3d3736dbb46d8e6908aa2d6ad574:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ODU5ZmFhZGI4ZTI3OWJiZmI5OGVmNDdmOWM3NDE4Mjc3ZjNmYmFmZGRmNThkMGYxZTg1MWVlNGZkY2Y1NjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NDVhMjZhYmRjYzE4NDQ1YWQ1NWVmZmI1NzhiYjRjNzIyMzM5YjBiZjliZTdlMDU1NDQ2ZmJjMTY3NzVjMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-27T19:28:40.080Z"
+    "at": "2026-09-30T14:46:38.690Z"
   }
 }

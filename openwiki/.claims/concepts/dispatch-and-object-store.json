@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a222e6097c15c6728611cab2dd11ab3728b8f00198d2ab740b56c8589d036682",
+  "pageVersion": "sha256:28d3c18711257dddc4eb5ed156c522abe65d18b073d3a05a5426d951cf7e8535",
   "claims": [
     {
       "id": "claim_016618e477134f7fbc3dd24c31db7db8",
       "statement": "The run_operation MCP tool dispatches into the calling Session's ObjectStore with the shared disk cache, and the dispatcher checks the cache before executing and populates it after success for allowlisted operations.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L92-L150",
-          "version": "repo-lines-v1:sha256:18235a69557479a0765d8585cf3a9f9bf9f6bb196084b6721c4c9690bacb8966:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkNGM0MzUwYWJmYmRiZjIxZWEwNzhhNTJhYWYxNWM5ZDA1NTc2MWEwOGY1NGNiNTA5NjQzMjY5YzEzNTQyNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1NTcxNjk2OTczNDVhNzFmY2JiZDI0NmZlMGM0ZGUzZGYxNmRkNmNkMTdiOGQ3MDQ5NjhkOTdlZmFhNjY3MGEifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L93-L155",
+          "version": "repo-lines-v1:sha256:aa9fb56f3a2f65349df064bbf94451af33e1ba6330c4301c03c7da84883651ba:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkNGM0MzUwYWJmYmRiZjIxZWEwNzhhNTJhYWYxNWM5ZDA1NTc2MWEwOGY1NGNiNTA5NjQzMjY5YzEzNTQyNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlNDUxNTdjMjAxNzE1M2Q5NzhkNmY1MzIwYzQ0NDY5MTJhMzI2NWU3NmUwZTE2YWQ5MzgwYzc5NGUxMjUwNDUifQ"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L738-L776",
-          "version": "repo-lines-v1:sha256:31949814c2e7ae4475b2f434a4d99725af8275e562b92fa1361cfe8f684013d2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzODE2YmRiMjE3YzcwZTM5ZjZkYTNjYmE2NGVkODg5MjgxNDgwZTg3MzZhM2NiOTBjMzkxYWJlNzc1NjIxZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyODdmODliMDcwYWEzZmRjMWNmYTgxYmU5MmUzOGM2NzlmMTdkYWY0MTJlOGIzNTVlNjAzMjBiNmRiNmNlZDAifQ"
+          "resource": "repo://dtcc_agent/server.py#L783-L822",
+          "version": "repo-lines-v1:sha256:d97ada6e20880b94f5f2534e28d9abe11615d6cfb63297c4ae7d5a1072bf73de:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzODE2YmRiMjE3YzcwZTM5ZjZkYTNjYmE2NGVkODg5MjgxNDgwZTg3MzZhM2NiOTBjMzkxYWJlNzc1NjIxZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5M2NmMDljZTJkMmIxMGU3NjJjMjBjMGZjYmFmNzU0YjNjZTE2YjM2ZTBjNGU0MzZiNzQ0MmEzOWJkYjNhNmIifQ"
         }
       ]
     },
@@ -32,25 +32,29 @@
     },
     {
       "id": "claim_ba5b67e00ce5441983c3af04fcb17c6c",
-      "statement": "Tuple results are stored element by element and returned as result_ids, lists of Building/Tree/Surface are stored as one object, and primitives and dicts are returned inline without being stored.",
+      "statement": "Tuple results are stored element by element and returned as object_refs, lists of Building/Tree/Surface are stored as one object, and primitives and dicts are returned inline without being stored.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L204-L256",
-          "version": "repo-lines-v1:sha256:07be1eccb3e7f1fa1cfe385096ff46250e47f48cfe313addee9b19fc962d292b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyNGE2YzQ0Zjc5NGU1MDY2MDk3YjJhZWRjYmRiYjg2Y2RkMjU1MzBlNTA0NWYxYzNhYmM5ZjQ4YjNlNmEyYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwOGVjN2E5ZWI0M2UxZDkyMWVlNWEyYjZmNWI5YTk2NzY2ZTJkNmIyNTFlNTY1M2QyZGFmNGZmNTg0ZjM1MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxY2Q3YWMzZDc3ODc1ZmU5MjYxY2UzMjJjMWJkZTM2YzA0ODAwOTIyMzcyOGFjOWY2ZWUxMGEzMzE0ZDI1YTgifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L237-L291",
+          "version": "repo-lines-v1:sha256:703caf5832b8be083a294006c05c6288fb7f81895a867167b6e49c56d7923ea7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyNGE2YzQ0Zjc5NGU1MDY2MDk3YjJhZWRjYmRiYjg2Y2RkMjU1MzBlNTA0NWYxYzNhYmM5ZjQ4YjNlNmEyYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwOGVjN2E5ZWI0M2UxZDkyMWVlNWEyYjZmNWI5YTk2NzY2ZTJkNmIyNTFlNTY1M2QyZGFmNGZmNTg0ZjM1MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkMjM2NTFhOTgyNzE4OGE2NDlhNDkwOWM4YjYxMmMxMzViNmQ4NmIzZDU0ZTQ2YmJlYjIwMWM4ZWNiNmFlYTkifQ"
         }
       ]
     },
     {
       "id": "claim_2d7ce5660ae54e12b32288a5ef721ab7",
-      "statement": "ObjectStore issues 8-hex-character ids, estimates object size from known numpy attributes recursively, and evicts least-recently-accessed entries when its byte budget is exceeded.",
+      "statement": "ObjectStore issues Object references (obj_ plus 8 hex characters), estimates object size from known numpy attributes recursively, and evicts least-recently-accessed entries when its byte budget is exceeded.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/object_store.py#L126-L136",
-          "version": "repo-lines-v1:sha256:6f6f94d5ae3b25865d09b0c4f1607bebc9dfeded888a1ab9deef24d8ed389f0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNGU4MTgzY2ExZjM3YjI5MzdkMDQ0ZDIxOTNkNjdlYWFlMTQxZTRkNTg0YjlmODU1OWFkNWVjNDhkYjZlNjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMjkwMjJjNjM3Njc2YjM5MzNlNGIzZjhkYTIzM2I4NzViYjEyMTFkN2Q2MjRkOWQ2N2Q4MWJjY2Q2MmI5ZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4NzRlYzVmZTVhMmZlNjc0ZjU2Njk5YTYxZGYzMzRlM2VhNjVmMThkOWI5ZmYwMDMzNTVmZWI4NzhkZmM4ZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://dtcc_agent/object_store.py#L128-L136",
+          "version": "repo-lines-v1:sha256:f3ac5f600b172f1ab2c57ec8b8379bab85dcce3addad84b747b751ab341f932f:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI0ZTgxODNjYTFmMzdiMjkzN2QwNDRkMjE5M2Q2N2VhYWUxNDFlNGQ1ODRiOWY4NTU5YWQ1ZWM0OGRiNmU2MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTUwMzJlOTY0ZDA5MzIzNTFlNWQxODUyNjkyODFiMTcxYTNhMDliMDhiMjg2ZTY2MWVhNDcwMzIzYzgyZWI0ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzg3NGVjNWZlNWEyZmU2NzRmNTY2OTlhNjFkZjMzNGUzZWE2NWYxOGQ5YjlmZjAwMzM1NWZlYjg3OGRmYzhkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzFjZDAwNGZjMTgzZjEwNWYzNGZiYjc4MzY0N2M3ZTA0N2ZhY2ViMzA1MjMxOWUxNzc4N2FkZDg4YzAwMjIzYiJ9"
         },
         {
-          "resource": "repo://dtcc_agent/object_store.py#L18-L78",
-          "version": "repo-lines-v1:sha256:202218c2908cae13207952a277f59a1e107af81e2c768be0a185018f9682cff0:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3OTFiMDA5ODk1YjlkMzRhMjhhNzJhNWFmZmIwMDQ2ODA5NTM2MDEyMGJhMGVkNmQ4NTQ1YTNlMTYyMDYwMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1M2EzMzFkMTVkMTM0NWE5ZmZiNGE4Njc5ZjM4NmJmOWJhODViZWU0ZGVmNzMxMWQ0YWFlYzgxOWY3ZTA3YzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1ODI1MzliN2FjMDg3ZDhkMDY3NGEzMzNjOWZkNGZkMDUzMjIyNWE3N2NiNjRkYTViZGUwYzZhMTkwZTg2ODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlZWE1NWY3MmZjOGQwNzY0NTI3MTJlZThiOTY2YzYxYzUzZjZiNzg4MzFlMjI2ZDY4MDA3ZmQ0NjQ0YjBmZTgifQ"
+          "resource": "repo://dtcc_agent/object_store.py#L20-L85",
+          "version": "repo-lines-v1:sha256:acd2e6b00eb59cbf3bf331ebd0da6f1df33e19024f535dbab9b4f11cebcfb198:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3OTFiMDA5ODk1YjlkMzRhMjhhNzJhNWFmZmIwMDQ2ODA5NTM2MDEyMGJhMGVkNmQ4NTQ1YTNlMTYyMDYwMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkZGMwOTUwY2YzZDVlMGEzNzY0NjI5NTNhOWQyZjQ2Mjk1NTZmMWZiYjJmODc2M2M2YTZiODc5MzA4MzQ5Y2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczZGRlYjk1OThhOTI4YjcwM2I1MDAxZjg2NDljMTdkYTUxODY5ZDFiMmZiMGM5OThkMDlhNWY4ZDk4NWFlMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4OWQyOGYwYmZkNjdlMzhlZDYxY2E0YTdkY2Y0ZTM0YTllNzc1MGVhYTc2MzNlZjJlOWM5NTY0OGY3MzAzMDcifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/refs.py",
+          "version": "repo-file-v1:sha256:316651d35af7a0538378cd7465617f9caa2b5bfd8cbc7286718ee720fd449c23"
         }
       ]
     },
@@ -65,30 +69,16 @@
       ]
     },
     {
-      "id": "claim_d3154445325a43e7b8ac2a60db5bbe18",
-      "statement": "Run ids and object ids are currently indistinguishable 8-hex strings, so a run id passed to an object tool is missed rather than refused; ADR-0010 decides references will carry their kind and a Run will record its Object reference.",
-      "evidence": [
-        {
-          "resource": "repo://docs/adr/0010-references-are-typed-and-a-run-records-its-object.md#L1-L25",
-          "version": "repo-lines-v1:sha256:9694b5e321d3569e9c04ba9801fb10f22fb387087e38c32f05fd5b1ca0759b2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlMTU1YzA3YTk3YjdlMjFlMmMyMmI3ZmQ5ZDg1ZjZjZTE2YmJkZDM0NGI4NzkwZTNhZTViMGZiNzQ1YTRiNTIifQ"
-        },
-        {
-          "resource": "repo://tests/test_server.py#L165-L228",
-          "version": "repo-lines-v1:sha256:f6839e144ea0d5acdfcab54933dc7d22fda7f99ed9a5d4c89bd011e498ca6215:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhYTZkNjJlYjg3NTUwZTkwYmYzODQ1YmU0NzAwMjk4NWI3MGYxNDY1MjkzZGZmOTI3NjI2Y2E0NDBjZTE0NTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjZmExNWFhMmY1ZDE1MDljOGU1YWUzODJmNDlmNjY2Nzc4NjJmYTBhZDMzMDY2MWVkYzAxZjZhMDE4YzJkMDUifQ"
-        }
-      ]
-    },
-    {
       "id": "claim_8365028677f84b8c88fed20ab2e0b515",
       "statement": "The dispatcher reads and writes dataset cache entries only through load_cached_dataset and store_dataset, the same helpers the get_buildings tool uses.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L336-L353",
-          "version": "repo-lines-v1:sha256:ba8a394e1a3f9f9935f581c5a1cb8c4dac4b9286638fb2ff80037a73bf5cabdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhNGUxNDMyMjJlMjUyMzJhNDZkMWEyMzdlNTcxYThhNTE5NDY4MTFhZDAzMDUwZmE2NjkwNTRmMjY3ZGNiZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NzMzNTg0NTYxNWZkZTljMTcxNmM0YTk1YWY5ODYwMDRkZGY0OWI0Yzc3Njk5MGU2MzI0YjQ4MDAwOTZmNTQifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L321-L386",
+          "version": "repo-lines-v1:sha256:c8af4918f621be6ca17976bd278a7598eee8fec6667123e725c620eccab4c9a1:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5OTJiOWNiOGRmMDQxYmRlN2I2ODZhZjlmY2Q3NWRiMmJkMjgyMzgzMDgwZTA1MTkwYjU0ZWQ1ZmIwYmMzYzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhYTcwODA3MTY5OGI4Y2Y5YTA3YzQxNTk4MmI3N2RjMTc4MTMzN2EzYzE3ZWFiNDYzMWY3YmU3OWVlMzllYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NzMzNTg0NTYxNWZkZTljMTcxNmM0YTk1YWY5ODYwMDRkZGY0OWI0Yzc3Njk5MGU2MzI0YjQ4MDAwOTZmNTQifQ"
         },
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L395-L428",
-          "version": "repo-lines-v1:sha256:24779542cb055dd0de67a8a323471f26605cdd858eaa4b7a4af23efc4652e62f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L428-L461",
+          "version": "repo-lines-v1:sha256:a8035af3c20d604776fdaf15bad453495116d9b649fc614d659ea11d10c00b01:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -97,12 +87,12 @@
       "statement": "run_operation refuses a literal list or tuple bounds that is not an area (wrong length, non-finite, or min not below max) before looking up the operation, and passes other bounds values such as a stored object id or None through.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L122-L128",
-          "version": "repo-lines-v1:sha256:b3f11e9e9a23ead43e55ab2033ca9a1b71f32724b774db3702bfcc4893c61f5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTk3NmQ0ZjUxOWNhMTE2ZjQyYTU2ODU0NDVkYWQyNWU4ZTU4YzlmZTA4Njc3MjE3MzAwMWRhOTliOWMxZjU0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDAxNWZmYWRjMWU2MzY1MzRjYmQ2ZDk1NTA5NjZmOGI5OGJiNTIyMWU3NzQ3ZGM5YmQxOWU4MzdjZGJkN2RjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzMxZmMzZDdlYjdmOGNhODEzYzIzMzdkMDc5NDI2OTg2NTk5NjAxNDFiNjVmYjQxMzRhOTJjOGVjNjM0OTA3OCJ9"
+          "resource": "repo://dtcc_agent/dispatcher.py#L126-L131",
+          "version": "repo-lines-v1:sha256:573d9324245b1ce8f8565faf74dfd772189a04f4cb73610dbfdba62bc8608113:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTM5YWQwMDg1NTdiMjE5NDgwMzY2NDJhYzA5ZjE2YTg4YTQ3ODQxYTg4MGE3NDRiMjYwZDIyZjdkNzU0N2Q2NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2EwMTk0ZGMxNWU4ZTliNDAwNTY4MjVlZGU3NmE0MDJmMzM4OGNhNTg2NDI2ODI5YmY1MjJhYzIyYmVkZTNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTQyMTIyNGQ5MWNmNjZhYmQ1ODdmMmQ2YWY5ZjlkMzkwMmRiNTE1YjRlYjQ0NmM1NjAzYzViZGZlZjJmYTEyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWU2MzBhNjEzZDk4Y2U1ODcwNmI3YTEwYWM4Y2ZiNDQwMWU0ZDUwZThiM2Q3OGQxMDBmZDg3ODdlMWUzOWUyYiJ9"
         },
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L33-L55",
-          "version": "repo-lines-v1:sha256:db7ba5b65711a9073698f72e7dfac6ba6dee89a4fa3df3e083272674bb0db59c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4NGYwZDc0OTk4ZmZlNDk0MDFkNmQ3NTcyMmM2ZWI1MjM3OGY5YTcyOTQ0NDIzYzExMzMwYzdiMTA2NzFjOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MGQzYWIyOTk2YTg2MmY0YmM1YjUxYTZiYjBkMzk4ZGM0ZTQ0Mjg4ZjkxMTg3Mjk3MDViNzgzNGE1MzdlMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxNGIzNGVkMjRiZTIzZTE5YTkzYzNmYTgxNDc0MjQwY2RmNzk0NDU2ZThjZmQxMDI1ZjExYWMxMmQ2NDkyYjAifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L34-L55",
+          "version": "repo-lines-v1:sha256:59b48e0e3fc4002d0384a0bfe241b0d089756782a2add3b05c9f773b8732df58:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4NGYwZDc0OTk4ZmZlNDk0MDFkNmQ3NTcyMmM2ZWI1MjM3OGY5YTcyOTQ0NDIzYzExMzMwYzdiMTA2NzFjOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwODg0MTA1NmM3MWM5ZGMzMmIzZDRhYmQ0MzhhMDYxYmNmZTk4YmQ0YmRhZjk1OWU0ZGQ1ZjhmYjI4ZjAzMzEifQ"
         }
       ]
     },
@@ -119,10 +109,42 @@
           "version": "repo-lines-v1:sha256:eb6b82268896edc655560cf48ba6861d941d8391eee0c7a2dec9991a7d3e8fde:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViM2NkYWQxZjM3ODk2MjNlNjc2NWU5ZWE2NjY1ZjZkNjkwMGE1YWY3ZDY0Y2QzNzZkMmU0OWJmMTNkNDE0MTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYTVjNjZlMTdiMTQ1Mzk3ODM0YjhjODU0ZGM0MTkzZTIxMjUxODBhODk5NmExNGMzMTg4MzMyNmIyZWZiY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ODAzNzFkYzRiNTQzYTZkZWIwNGFkZjc4YTk4MzU0NmFlN2NlYzdjNGE5MmVjMDllYjk1NzhmYzM3Nzk0ZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNGQ4YmJmYzFlZWYxYWI1NjIyNmQ4YWY1MzcwMmRhM2VlNTU4NmRhOGE0ZGNjZjQyYWQxOGZlOWRjOGFlNzIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_b47c37e4f3fd41e190aeee975884766e",
+      "statement": "References carry their kind: refs.py mints obj_ and run_ references of 8 hex characters, and a value with exactly the other kind's shape is refused as the wrong kind, both by run_operation for any parameter and by the object and run tools, instead of being reported not found.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L122-L125",
+          "version": "repo-lines-v1:sha256:7ef0227d9c2bd543cea2f2899f27fa7ed6ca020fba19c1f1164f0426ae3562ac:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZhNzE1MjU3MmVlODRmMTA5MDZjNzRiOWYyYTkyNDM0ZGRhYjBlM2M0MjgxM2IwNGU1OTdlZmNlYzk1MWIyNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGMxZjBlMGY4ZmY1ZmFkNzYyMjc3MmQ2YmE0YzM5NTJkN2JmZDk0ZmM2NjRmYWVjZGZkNjhiOTQ4Y2M0Y2VkNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODUzZTI2ZmIwOWI3ODM3MjhjN2JhOTA2NmU3Mjc5N2JiZDFiNmMwYmFmMmExMTc0NGQyNjU1ODNhNTNhNzhkNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzhkYWFjNTg5N2Q1OTQ0MjMzOWUwMTBjYTNiZTc2Y2IzYmQzOGE2MzU4YjRkODgxZjlhNjFlYmFjMmFjZjlmMSJ9"
+        },
+        {
+          "resource": "repo://dtcc_agent/refs.py",
+          "version": "repo-file-v1:sha256:316651d35af7a0538378cd7465617f9caa2b5bfd8cbc7286718ee720fd449c23"
+        },
+        {
+          "resource": "repo://tests/test_server.py#L183-L235",
+          "version": "repo-lines-v1:sha256:c7383aee1c684c44d7c2979db8ccbbc8a730b13f0adcc671a57d750fda7024c6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMzEyODIyY2Y1NDEyYTIwZGRhZTkzYmY3YWZjN2UxODk5NDU5NmNlMzUwNWRjOWViZWUwOTdmMmY5Y2EyZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMTdmMDQ2NDYxNjk5NjNhZGZhMzEwYThmMzc0YThhYTQ5NTIxNTAwMjc4MDA0MmVmOGE2MWVkYTE3YjhkYjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_89fa1a544d164d239e6c662febd88742",
+      "statement": "query_geojson and summarize_geojson_property report an unknown Object reference as an error payload rather than raising KeyError.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L271-L281",
+          "version": "repo-lines-v1:sha256:24abcc70e2857a75b070338e57efc9f225b8dbaa8067ddf3879deb16bdbcec2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMDYzNDc5YzM4NTgwOGVkNDNiZjc0OTkxMjcxNTIwMTM3NWFlMzBkYzJiNTFjYzE2NWE2MWI1MWYwMGIxYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiMDliNTI2M2RmMzllNTZmMTg2YzdhZDRiOGJjYTdlZTBiN2FjYTY0YWNjNWU4OGU1OWIxZjc0MjY5N2QxYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyYTU3ZDU0MWM3NjM5YWQ5YmY5NGQzOGM4NGFmZTk3MTJiZWVhMjljNTBlNDgzMTg2ZjI4M2IzNzIyZTY2ODYifQ"
+        },
+        {
+          "resource": "repo://tests/test_server.py#L147-L155",
+          "version": "repo-lines-v1:sha256:ac2e54ecb5a4778f9b46672ef9a80791ba9756be694395fee708103dfd13e38b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWNhODYxYjc1ZDljMmYzMWZiYzYyZWQ2ZWYxMmMwNjIxMThiMmUwYTUzOWZkNTU0MWRiOGJlYzZjMmIxOTBlZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA2MmNjZThkYTAxYmQxNjVkMmM1ZWYzNTU0ZjY2MDBhYWMwNDQ5NGViNWY2YTA2YjA2ZjU1Y2E0OGJmMTM5MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTMzMWY1MTZmZDdiZDAyMzk0NmI5NTI5YmVkZTQ1MjFkZmE3NzZiNzgyM2VlYWQ5MGNmNTI5MWFmMzc2YjlhYSJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-29T19:33:34.851Z"
+    "at": "2026-09-30T14:41:08.402Z"
   }
 }

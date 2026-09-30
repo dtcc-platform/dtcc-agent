@@ -10,16 +10,18 @@ sources:
     resource: repo://docs/adr/0007-agent-keeps-its-own-generic-dispatch.md
   - id: openwiki-source-4163f0ea9e6726ccca521458
     resource: repo://dtcc_agent/registry.py
+  - id: openwiki-source-32c33c58f635fb0708a0e8c6
+    resource: repo://dtcc_agent/runner.py
   - id: openwiki-source-05ccef8d4cf1698187f20464
     resource: repo://pyproject.toml
   - id: openwiki-source-c0b62da1c8d12500b49cd428
     resource: repo://tests/test_catalogue_startup.py
   - id: openwiki-source-2eddb37f6f7db2fd16d2a3c2
     resource: repo://tests/test_core_dependency.py
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-27T19:28:40.080Z
+    at: 2026-09-30T14:46:38.690Z
 ---
 
 # Operation catalogue
@@ -77,7 +79,7 @@ When `DTCC_SIM_SERVICE_URL` (or `DTCC_REMOTE_SERVICES`) is set, its services' da
 - **Pending lookups.** While a configured service hasn't answered, `get_operation("datasets.<x>")` for a missing name says dtcc-sim hasn't answered yet (and still points at `list_operations()`), instead of a plain not found. Other names keep the plain message.
 - **The runner's own paths.** `list_simulations`, `get_simulation_schema` and simulation runs call the runner directly and register services synchronously; the next catalogue read merges them without a network call.
 
-Known limits, tracked as issues: a half-broken discovery reply leaves stray descriptors in Core and its valid datasets never reach the catalogue (#44); a remote dataset can replace a Core dataset of the same name (#45); merged dtcc-sim datasets are never refreshed after a redeploy (#46).
+Registration itself is Core's `register_remote_service`, which since the pin move to `bb95f2f` (#59) registers a service all or nothing (dtcc-core#128) and skips, with a warning, any dataset whose name already belongs to a non-remote dataset, so a service cannot replace Core's `point_cloud` or `buildings` (dtcc-core#132). That closed #44 and #45; the agent's own repair step for them was removed. Merged dtcc-sim datasets are still never refreshed after a redeploy: restart the agent after redeploying dtcc-sim (#46).
 
 ## The Core pin
 

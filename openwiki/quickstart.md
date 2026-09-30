@@ -20,10 +20,10 @@ sources:
     resource: repo://pyproject.toml
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Quickstart
@@ -57,7 +57,7 @@ dtcc-core is pinned to a commit in `pyproject.toml`. Do not move the pin by hand
 | Add or change an MCP tool, or debug concurrency, hangs or "event loop" errors | [MCP server and tool execution](architecture/mcp-server-and-tool-execution.md) |
 | Reason about multi-user safety or what one user can see | [Sessions and isolation](architecture/sessions-and-isolation.md) |
 | Find out why an operation is missing, or pick up a new Core | [Operation catalogue](concepts/operation-catalogue.md) |
-| Understand `run_operation`, object IDs and result summaries | [Dispatch, object references and serialization](concepts/dispatch-and-object-store.md) |
+| Understand `run_operation`, typed references (`obj_…`, `run_…`) and result summaries | [Dispatch, object references and serialization](concepts/dispatch-and-object-store.md) |
 | Debug stale, wrong or slow cached results | [Disk cache](concepts/disk-cache.md) |
 | Work on heat or air-quality simulations, geocoding or scenario comparison | [Simulations, runs and geocoding](workflows/simulations.md) |
 | Change the chatbot, prompt, memory or UI | [Lurkie chatbot](integrations/chatbot-lurkie.md) |

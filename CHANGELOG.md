@@ -14,6 +14,7 @@ Last updated: 2026-09-30.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-30 | The wiki describes typed references, the cache version stamp and Core's registration fixes ([#60](https://github.com/dtcc-platform/dtcc-agent/pull/60)) | ✅ |
 | 2026-09-30 | dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone ([#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)) | ✅ |
 | 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | ✅ |
 | 2026-09-30 | References say what they name (`obj_…`, `run_…`), a wrong one is refused, and a run hands back its result's reference ([#57](https://github.com/dtcc-platform/dtcc-agent/pull/57), T9, fixes [#26](https://github.com/dtcc-platform/dtcc-agent/issues/26)) | ✅ |

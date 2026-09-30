@@ -12,10 +12,12 @@ sources:
     resource: repo://dtcc_agent/dispatcher.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
-generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
+  - id: openwiki-source-116206fc13aadd444daea62c
+    resource: repo://tests/test_disk_cache.py
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T19:33:34.851Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Disk cache
@@ -29,8 +31,15 @@ verified:
 | Directory | `DTCC_AGENT_CACHE_DIR`, default `$XDG_CACHE_HOME/dtcc_agent`, usually `~/.cache/dtcc_agent` (Docker sets `/data/cache`) | `CACHE_DIR` |
 | TTL | 168 hours (7 days) | `CACHE_TTL_HOURS` |
 | Disk budget | 10 GB, oldest first | `CACHE_MAX_SIZE_GB` |
+| Version stamp | cache schema `1` plus the installed dtcc-core commit | `CACHE_STAMP` |
 
-`cleanup()` runs once in `DiskCache.__init__`. It deletes expired entries and then evicts the oldest entries until the total is under budget. Lookups also skip expired entries, so a long-running process never serves one; their files are only deleted at the next startup.
+`cleanup()` runs once in `DiskCache.__init__`. It deletes every entry that may not be served (see the version stamp below) and then evicts the oldest entries until the total is under budget. Lookups apply the same test, so a long-running process never serves such an entry; its file is only deleted at the next startup.
+
+## Version stamp: a cold start after a Core upgrade
+
+The cache pickles Core objects, and a pickle needs the Core that wrote it. So every entry records `CACHE_STAMP`: a cache `schema` number, bumped when the entry format or cached payloads change, and the installed dtcc-core commit. `_core_build()` reads the commit from pip's `direct_url.json`, the same field the contract workflow checks. For a local or editable install without VCS information it falls back to Core's version, which cannot see local edits.
+
+One function, `_fresh(entry, now)`, decides whether an entry may be served: its stamp equals the current one, its fields parse, its cache id is valid, and it is younger than the TTL. Both lookups and `cleanup()` use it, and an entry missing a field is simply not fresh. So after a Core upgrade, or with an index written before stamps existed, the cache starts cold and startup deletes the old files, instead of unpickling objects from another Core. An `index.json` that is not a JSON list is treated as empty. Two processes on different Core commits sharing one directory never serve each other's entries, and each deletes the other's at startup (#56, T12).
 
 ## Trust: who may change the cache
 
@@ -52,9 +61,9 @@ Each process keeps the index in memory. Every edit (`store`, `cleanup`) takes an
 Only operations in `CACHE_ALLOWLIST` are cached:
 
 - **Downloads, keyed by bounds and source:** `datasets.point_cloud` and `datasets.buildings`. The `get_buildings` tool has no entry of its own; it shares the `datasets.buildings` download (see below).
-- **Builders over stored objects:** `builder.build_terrain_raster`, `builder.build_terrain_surface_mesh`, `builder.build_city_surface_mesh`, `builder.raster.slope_aspect` and `builder.pc_filter.classification_filter`.
+- **Builders over stored objects:** `builder.build_terrain_raster`, `builder.build_terrain_surface_mesh`, `builder.build_city_surface_mesh` and `builder.pc_filter.classification_filter`.
 
-The dispatcher caches only single-object results (`result_id`). Tuple results such as `slope_aspect`'s `(slope, aspect)` are not written, although the operation is allowlisted.
+The dispatcher caches only single-object results (an `object_ref`). `builder.raster.slope_aspect` returns two rasters, so it was never written and every call paid for a lookup that could not hit; it left the allowlist in #53. Caching several-part results waits on U2 (#11), which decides whether builder results are cached at all.
 
 ## Two lookup strategies
 
@@ -88,6 +97,6 @@ A cache miss, a lookup exception or a write failure never fails the operation. `
 
 ## Tests
 
-- `tests/test_disk_cache.py` covers store and load, containment preferring the smallest area, TTL expiry, budget eviction, hashing, and `get_buildings` on exact and containing hits, an entry written by the dispatcher without `source`, an uncroppable cached area, and each failure path.
+- `tests/test_disk_cache.py` covers the version stamp (entries carry it; a restart on a newer Core starts cold and deletes old files; another Core's entries are never served; an unstamped, malformed or non-list index starts cold), store and load, containment preferring the smallest area, TTL expiry, budget eviction, hashing, and `get_buildings` on exact and containing hits, an entry written by the dispatcher without `source`, an uncroppable cached area, and each failure path.
 - `tests/test_crop.py` covers point cloud cropping and the building crop with real Core buildings: the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline.
-- The `TestCacheIntegration` cases in `tests/test_dispatcher.py` check that a hit skips the download.
+- The `TestCacheIntegration` cases in `tests/test_dispatcher.py` check that a hit skips the download and that a two-raster operation never touches the cache.
