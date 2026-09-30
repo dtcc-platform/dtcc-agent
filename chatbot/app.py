@@ -100,6 +100,10 @@ def _artifact_frame(session_id: str, content: object) -> dict | None:
         )
     try:
         result = json.loads(content) if isinstance(content, str) else None
+        # FastMCP's structured output wraps a tool's returned string as
+        # {"result": "<that string>"}, and the CLI passes that form on.
+        if isinstance(result, dict) and isinstance(result.get("result"), str):
+            result = json.loads(result["result"])
     except json.JSONDecodeError:
         return None
     found = result.get("artifact") if isinstance(result, dict) else None

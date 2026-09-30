@@ -162,8 +162,18 @@ def test_a_tool_result_with_a_file_artifact_becomes_a_download_frame(artifact_ro
     }
 
 
+def test_an_artifact_inside_fastmcps_structured_result_is_found(artifact_root):
+    # The shape the Claude CLI actually delivers (seen end to end).
+    path = _artifact("s1", "obj_1", ".png")
+    tool_text = json.dumps({"object_ref": "obj_1", "artifact": artifacts.describe(path)})
+
+    frame = app_module._artifact_frame("s1", json.dumps({"result": tool_text}))
+
+    assert frame == {"type": "image", "url": f"/artifacts/s1/{path.name}"}
+
+
 @pytest.mark.parametrize("content", [
-    "not json", json.dumps({"object_ref": "obj_1"}), json.dumps(["x"]), None,
+    "not json", json.dumps({"result": "not json"}), json.dumps({"object_ref": "obj_1"}), json.dumps(["x"]), None,
     json.dumps({"artifact": {"name": "0" * 32 + "_x.png", "kind": "image"}}),
 ])
 def test_a_tool_result_without_this_sessions_artifact_sends_no_frame(artifact_root, content):
