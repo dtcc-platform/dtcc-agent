@@ -760,97 +760,75 @@ def test_an_http_server_with_a_broken_catalogue_exits_without_listening():
     assert "catalogue built" not in out.stderr
 
 
+# -- dtcc-sim discovery, through Core's own register_remote_service ------------
+# dtcc-core fixed both upstream (dtcc-core#128, #132, pinned since #59). These
+# drive Core's real function with only the HTTP reply faked, so they fail if a
+# Core pin move ever brings either bug back.
 
-def test_a_remote_dataset_cannot_replace_a_core_dataset_of_the_same_name(
-        monkeypatch, optional_dataset, caplog):
-    """Core's register() overwrites by name, so a dtcc-sim service advertising
-    `point_cloud` would swap Core's download for its own everywhere Core's
-    registry is read: the catalogue, and get_buildings through runner (#45)."""
-    from dtcc_core import datasets
-    from dtcc_core.datasets.registry import get_dataset, register
-    from dtcc_core.datasets.remote import RemoteDatasetDescriptor
-
-    def remote(name):
-        return RemoteDatasetDescriptor(
-            name=name, description="remote", args_schema={"properties": {}},
-            base_url=SIM, result_kind="file", supported_formats=["bin"],
-            source_service="dtcc-sim")
-
-    def register_remote_service(url):  # Core's, minus the network
-        register("point_cloud", remote("point_cloud"))
-        optional_dataset("flood_sim", remote("flood_sim"))
-        return ["point_cloud", "flood_sim"]
-
-    core_point_cloud = get_dataset("point_cloud")
-    monkeypatch.setattr(runner, "_remote_services", lambda: [SIM])
-    monkeypatch.setattr(runner, "_REGISTERED_REMOTE_SERVICES", set())
-    monkeypatch.setattr(datasets, "register_remote_service", register_remote_service)
-    try:
-        runner._ensure_remote_services_registered()
-        catalogue = registry._build_registry()
-
-        assert get_dataset("point_cloud") is core_point_cloud
-        assert catalogue["datasets.point_cloud"]._callable is core_point_cloud
-        assert "datasets.flood_sim" in catalogue
-        assert SIM in runner._REGISTERED_REMOTE_SERVICES
-        assert "point_cloud" in caplog.text and SIM in caplog.text
-    finally:
-        register("point_cloud", core_point_cloud)  # even if the fix is missing
+def _entry(name, **overrides):
+    return {"name": name, "description": "remote", "args_schema": {"properties": {}},
+            "result_kind": "file", "supported_formats": ["bin"], **overrides}
 
 
-def _remote(name):
-    from dtcc_core.datasets.remote import RemoteDatasetDescriptor
-    return RemoteDatasetDescriptor(
-        name=name, description="remote", args_schema={"properties": {}},
-        base_url=SIM, result_kind="file", supported_formats=["bin"],
-        source_service="dtcc-sim")
-
-
-def test_a_half_broken_discovery_leaves_nothing_behind_however_often_it_is_retried(
-        monkeypatch, optional_dataset, caplog):
-    """Core registers entries one at a time and returns [] when a later one is
-    malformed, so every retry left another copy of the valid ones (#44)."""
-    from dtcc_core import datasets
+@pytest.fixture
+def discovery(monkeypatch):
+    """Point runner at one dtcc-sim service whose discovery reply is `reply`."""
+    import httpx
     from dtcc_core.datasets import registry as core_datasets
 
-    def half_broken(url):  # Core's, minus the network: one valid entry, then a bad one
-        core_datasets.register("flood_sim", _remote("flood_sim"))
-        return []
+    state = SimpleNamespace(reply={"service": "dtcc-sim", "datasets": {}})
 
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return state.reply
+
+    monkeypatch.setattr(httpx, "get", lambda url, timeout: Response())
     monkeypatch.setattr(runner, "_remote_services", lambda: [SIM])
     monkeypatch.setattr(runner, "_REGISTERED_REMOTE_SERVICES", set())
-    monkeypatch.setattr(datasets, "register_remote_service", half_broken)
-    optional_dataset("flood_sim", _remote("flood_sim"))  # removed afterwards if it leaks
-    core_datasets.unregister("flood_sim")
+    before = dict(core_datasets._datasets_by_name)
+    yield state
+    for name in set(core_datasets._datasets_by_name) - set(before):
+        core_datasets.unregister(name)
+    for name, ds in before.items():
+        if core_datasets._datasets_by_name.get(name) is not ds:
+            core_datasets.register(name, ds)
 
-    for _ in range(8):  # the retrier asks every 30 s
+
+def test_a_remote_dataset_cannot_replace_a_core_dataset_of_the_same_name(discovery, caplog):
+    """A service advertising `point_cloud` would otherwise swap Core's download
+    for its own, in the catalogue and in get_buildings (#45)."""
+    from dtcc_core.datasets.registry import get_dataset
+
+    core_point_cloud = get_dataset("point_cloud")
+    discovery.reply["datasets"] = {"point_cloud": _entry("point_cloud"),
+                                   "flood_sim": _entry("flood_sim")}
+
+    runner._ensure_remote_services_registered()
+    catalogue = registry._build_registry()
+
+    assert get_dataset("point_cloud") is core_point_cloud
+    assert catalogue["datasets.point_cloud"]._callable is core_point_cloud
+    assert "datasets.flood_sim" in catalogue
+    assert SIM in runner._REGISTERED_REMOTE_SERVICES
+    assert "point_cloud" in caplog.text and SIM in caplog.text
+
+
+def test_a_half_broken_discovery_leaves_nothing_behind_however_often_it_is_retried(discovery):
+    """One valid entry then a malformed one used to leave a copy of the valid
+    one on every retry, every 30 s (#44)."""
+    from dtcc_core.datasets import registry as core_datasets
+
+    count = len(core_datasets._datasets_registry)
+    discovery.reply["datasets"] = {"flood_sim": _entry("flood_sim"),
+                                   "broken_sim": {"name": "broken_sim"}}
+
+    for _ in range(8):
         runner._ensure_remote_services_registered()
 
     assert "flood_sim" not in core_datasets.list_datasets()
-    assert not [d for d in core_datasets._datasets_registry
-                if getattr(d, "name", None) == "flood_sim"]
+    assert len(core_datasets._datasets_registry) == count
     assert SIM not in runner._REGISTERED_REMOTE_SERVICES
-    assert "flood_sim" in caplog.text and SIM in caplog.text
 
-
-def test_a_half_broken_discovery_puts_back_a_dataset_it_replaced(
-        monkeypatch, optional_dataset):
-    from dtcc_core import datasets
-    from dtcc_core.datasets import registry as core_datasets
-
-    other = _remote("heat_sim")  # another service's, registered earlier
-    optional_dataset("heat_sim", other)
-
-    def half_broken(url):
-        core_datasets.register("heat_sim", _remote("heat_sim"))
-        return []
-
-    monkeypatch.setattr(runner, "_remote_services", lambda: [SIM])
-    monkeypatch.setattr(runner, "_REGISTERED_REMOTE_SERVICES", set())
-    monkeypatch.setattr(datasets, "register_remote_service", half_broken)
-
-    runner._ensure_remote_services_registered()
-
-    assert core_datasets.get_dataset("heat_sim") is other
-    assert [d for d in core_datasets._datasets_registry
-            if getattr(d, "name", None) == "heat_sim"] == [other]

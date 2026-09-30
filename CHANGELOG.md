@@ -14,6 +14,7 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-30 | dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone ([#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)) | 🔍 |
 | 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | ✅ |
 | 2026-09-30 | References say what they name (`obj_…`, `run_…`), a wrong one is refused, and a run hands back its result's reference ([#57](https://github.com/dtcc-platform/dtcc-agent/pull/57), T9, fixes [#26](https://github.com/dtcc-platform/dtcc-agent/issues/26)) | ✅ |
 | 2026-09-30 | After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects ([#56](https://github.com/dtcc-platform/dtcc-agent/pull/56), T12, fixes [#27](https://github.com/dtcc-platform/dtcc-agent/issues/27)) | ✅ |
@@ -40,7 +41,34 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59.
+
+---
+
+## 🔍 In review
+
+### dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone · 2026-09-30 · [#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)
+
+**Before:** pinned to `9b4e9b9`. Three Core bugs we reported were open, and the agent carried
+its own repairs for two of them (#55, #58).
+
+**Now:** pinned to `bb95f2f`, the head of Core's `develop`, which fixes:
+- [dtcc-core#126](https://github.com/dtcc-platform/dtcc-core/issues/126): two downloads of the
+  same tile no longer share a temporary file.
+- [dtcc-core#128](https://github.com/dtcc-platform/dtcc-core/issues/128): a dtcc-sim service is
+  registered all or nothing, so a half-broken reply leaves nothing behind.
+- [dtcc-core#132](https://github.com/dtcc-platform/dtcc-core/issues/132): a dtcc-sim service can
+  no longer replace a built-in dataset of the same name.
+
+The agent's repair step from #55 and #58 is removed, along with its lock, and the gap in it that
+PR-Agent flagged on #58 goes with it. The pin also brings Core's rewritten footprint cleaning.
+The disk cache starts empty once, because entries record the Core that wrote them (#56).
+
+**How we know it works:** the contract workflow passed on `bb95f2f`. The #45 and #44 tests now
+run Core's own `register_remote_service` with only the HTTP reply faked, so they fail if a
+later pin brings either bug back. A live Lindholmen run gives the same buildings as before, and
+the same from the cache as from a fresh download: 13 of 127 on LM, 12 of 138 on OSM. 343 tests
+pass (one test covered a case Core's all-or-nothing registration makes impossible).
 
 ---
 
