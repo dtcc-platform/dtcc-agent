@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -52,6 +53,9 @@ class RemoteSimulationResult:
 
 
 _REGISTERED_REMOTE_SERVICES: set[str] = set()
+# One registration at a time: _repair_registry compares Core's registry before
+# and after a call, which another thread's registration would confuse.
+_REGISTER_LOCK = threading.Lock()
 
 
 def _remote_services() -> list[str]:
@@ -76,24 +80,50 @@ def _remote_base_url() -> str | None:
 def _ensure_remote_services_registered() -> None:
     """Register configured remote services using dtcc-core's shared protocol."""
     from dtcc_core.datasets import register_remote_service
-    from dtcc_core.datasets.registry import list_datasets, register
+    from dtcc_core.datasets.registry import list_datasets
+
+    with _REGISTER_LOCK:
+        for url in _remote_services():
+            if url in _REGISTERED_REMOTE_SERVICES:
+                continue
+            before = list_datasets()
+            registered = register_remote_service(url)
+            _repair_registry(url, before, succeeded=bool(registered))
+            if registered:
+                _REGISTERED_REMOTE_SERVICES.add(url)
+
+
+def _repair_registry(url: str, before: dict[str, Any], succeeded: bool) -> None:
+    """Undo what registering ``url`` changed in Core's registry that must not stand.
+
+    Core's register() replaces a dataset of the same name, so a service
+    advertising `point_cloud` would take over Core's: put Core's back (#45).
+    And Core registers a service's entries one at a time, returning [] when a
+    later one is malformed, so each retry of a half-broken service would leave
+    another copy of the earlier ones: after a failed discovery, undo all of it
+    (#44). The real fixes are dtcc-core#128 and #132.
+    """
+    from dtcc_core.datasets.registry import list_datasets, register, unregister
 
     from .registry import _is_core_dataset
 
-    for url in _remote_services():
-        if url in _REGISTERED_REMOTE_SERVICES:
+    discarded = []
+    for name, ds in list_datasets().items():
+        old = before.get(name)
+        if ds is old:
             continue
-        # Core's register() replaces a dataset of the same name, so a service
-        # advertising `point_cloud` would take over Core's (#45). Put Core's back.
-        core = {n: ds for n, ds in list_datasets().items() if _is_core_dataset(ds)}
-        registered = register_remote_service(url)
-        for name, ds in core.items():
-            if list_datasets().get(name) is not ds:
-                register(name, ds)
-                logger.warning(f"Left out dataset {name} from {url}: "
-                               f"Core already has a dataset by that name")
-        if registered:
-            _REGISTERED_REMOTE_SERVICES.add(url)
+        if old is not None and _is_core_dataset(old):
+            register(name, old)
+            logger.warning(f"Left out dataset {name} from {url}: "
+                           f"Core already has a dataset by that name")
+        elif not succeeded:
+            unregister(name)
+            if old is not None:
+                register(name, old)
+            discarded.append(name)
+    if discarded:
+        logger.warning(f"Discarded dataset(s) {', '.join(sorted(discarded))} that a failed "
+                       f"discovery of {url} registered; it will be asked again")
 
 
 def _list_all_remote():

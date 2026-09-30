@@ -14,6 +14,7 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
+| 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | 🔍 |
 | 2026-09-29 | A dtcc-sim service can no longer replace a Core dataset by reusing its name ([#55](https://github.com/dtcc-platform/dtcc-agent/pull/55), fixes [#45](https://github.com/dtcc-platform/dtcc-agent/issues/45)) | ✅ |
 | 2026-09-29 | The README's token check works: it no longer runs a `verify_auth.py` that never existed ([#54](https://github.com/dtcc-platform/dtcc-agent/pull/54), fixes [#40](https://github.com/dtcc-platform/dtcc-agent/issues/40)) | ✅ |
 | 2026-09-29 | Slope and aspect no longer check a cache they can never be stored in ([#53](https://github.com/dtcc-platform/dtcc-agent/pull/53), fixes [#42](https://github.com/dtcc-platform/dtcc-agent/issues/42)) | ✅ |
@@ -37,7 +38,28 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 331 with #58.
+
+---
+
+## 🔍 In review
+
+### A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry · 2026-09-30 · [#58](https://github.com/dtcc-platform/dtcc-agent/pull/58)
+
+**Before:** when a dtcc-sim service's list of datasets had one good entry and then a broken
+one, Core registered the good one but reported that nothing was registered. The agent asked
+again every 30 seconds and on every `list_simulations` call, and each attempt left one more
+copy behind. `list_simulations` showed the good dataset while `list_operations` did not (#44).
+
+**Now:** after a failed discovery the agent undoes what it registered, and puts back anything
+it replaced, with a warning naming the datasets and the service. A half-broken service shows
+nothing until it is fixed, and is asked again as before. Registrations run one at a time, so a
+failed attempt on one thread cannot undo a successful one on another. This extends #55's
+restore of Core datasets into one repair step. The real fix is in Core
+([dtcc-core#128](https://github.com/dtcc-platform/dtcc-core/issues/128)).
+
+**How we know it works:** eight retries of a half-broken service leave no copy behind, and a
+dataset it replaced is put back. Both tests fail without the fix. 331 tests pass.
 
 ---
 
