@@ -661,3 +661,72 @@ def test_startup_ignores_a_file_removed_while_it_scans(monkeypatch, tmp_path):
     monkeypatch.setattr(Path, "iterdir", iterdir_with_a_ghost)
 
     DiskCache(cache_dir=tmp_path / "c")
+
+
+# -- Version stamp (T12, #27) --------------------------------------------------
+
+_LINDHOLMEN = [319700, 6399500, 320200, 6400000]
+
+
+def _store_point_cloud(cache):
+    return cache.store(obj="pc", operation="datasets.point_cloud", category="datasets",
+                       params_hash="src-LM", bounds=_LINDHOLMEN, source="LM",
+                       object_type="PointCloud")
+
+
+def _misses(cache):
+    return (cache.dataset_lookup("datasets.point_cloud", "LM", "src-LM", _LINDHOLMEN) is None
+            and cache.builder_lookup("datasets.point_cloud", "src-LM") is None)
+
+
+def test_entries_carry_the_schema_and_core_build_that_wrote_them(tmp_path):
+    from dtcc_agent import disk_cache
+
+    cache = DiskCache(cache_dir=tmp_path)
+    _store_point_cloud(cache)
+
+    assert cache._index[0]["stamp"] == disk_cache.CACHE_STAMP
+    assert disk_cache.CACHE_STAMP["core"]  # the pinned commit, never empty
+
+
+def test_after_a_core_upgrade_the_cache_starts_cold(monkeypatch, tmp_path):
+    from dtcc_agent import disk_cache
+
+    cache_id = _store_point_cloud(DiskCache(cache_dir=tmp_path))
+    monkeypatch.setitem(disk_cache.CACHE_STAMP, "core", "a-newer-core-commit")
+
+    cache = DiskCache(cache_dir=tmp_path)  # restarted on the new Core
+
+    assert _misses(cache)
+    assert cache._index == []
+    assert not (tmp_path / "objects" / f"{cache_id}.pkl").exists()
+
+
+def test_an_entry_from_another_core_sharing_the_dir_is_never_served(monkeypatch, tmp_path):
+    from dtcc_agent import disk_cache
+
+    cache = DiskCache(cache_dir=tmp_path)
+    monkeypatch.setitem(disk_cache.CACHE_STAMP, "core", "another-core-commit")
+    _store_point_cloud(DiskCache(cache_dir=tmp_path))
+    monkeypatch.undo()
+
+    assert _misses(cache)
+
+
+@pytest.mark.parametrize("index", [
+    [{"cache_id": "0000abcd", "operation": "datasets.point_cloud", "category": "datasets",
+      "params_hash": "src-LM", "bounds": _LINDHOLMEN, "source": "LM",
+      "timestamp": datetime.now().isoformat(), "size_bytes": 1}],   # written before stamps
+    [{"operation": "datasets.point_cloud"}, "not an entry", None],  # fields missing
+    {"entries": []},                                                  # not a list
+], ids=["unstamped", "malformed", "not-a-list"])
+def test_an_index_from_an_older_or_unknown_format_is_a_cold_start(tmp_path, index):
+    (tmp_path / "index.json").write_text(json.dumps(index))
+    (tmp_path / "index.json").chmod(0o600)
+
+    cache = DiskCache(cache_dir=tmp_path)
+
+    assert _misses(cache)
+    assert cache._index == []
+    _store_point_cloud(cache)  # and it still works
+    assert len(cache._index) == 1

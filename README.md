@@ -298,6 +298,10 @@ uses:
   equivalent inputs hits the cache even across sessions.
 - **TTL eviction** (7 days) and a **disk budget** (10 GB) with
   oldest-first eviction.
+- **Version stamp:** each entry records the cache format and the dtcc-core commit
+  that wrote it. After a Core upgrade, entries from the old Core are never served
+  and are removed at startup, so the cache starts cold instead of loading objects
+  the new Core may not read.
 
 Both `run_operation` (via the dispatcher) and `get_buildings` (direct
 MCP tool) check the disk cache before fetching from external sources.
