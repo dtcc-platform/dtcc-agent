@@ -159,14 +159,14 @@ def test_a_main_thread_tool_runs_even_when_the_pool_is_full(monkeypatch):
 
     monkeypatch.setattr(renderer, "render_to_file", lambda **kw: "/tmp/render.png")
     monkeypatch.setattr(server, "_local_session", server._Session())
-    object_id = server._session().objects.store([], source_op="test")
+    object_ref = server._session().objects.store([], source_op="test")
     full = anyio.CapacityLimiter(1)
     monkeypatch.setattr(server.runtime, "workers", full)
 
     async def run():
         await full.acquire_on_behalf_of(object())
         with anyio.fail_after(2):
-            return await server.mcp.call_tool("render_object", {"object_id": object_id})
+            return await server.mcp.call_tool("render_object", {"object_ref": object_ref})
 
     content, _ = anyio.run(run)
     assert "error" not in json.loads(content[0].text)

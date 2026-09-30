@@ -14,7 +14,8 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-30 | After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects ([#56](https://github.com/dtcc-platform/dtcc-agent/pull/56), T12, fixes [#27](https://github.com/dtcc-platform/dtcc-agent/issues/27)) | 🔍 |
+| 2026-09-30 | References say what they name (`obj_…`, `run_…`), a wrong one is refused, and a run hands back its result's reference ([#57](https://github.com/dtcc-platform/dtcc-agent/pull/57), T9, fixes [#26](https://github.com/dtcc-platform/dtcc-agent/issues/26)) | 🔍 |
+| 2026-09-30 | After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects ([#56](https://github.com/dtcc-platform/dtcc-agent/pull/56), T12, fixes [#27](https://github.com/dtcc-platform/dtcc-agent/issues/27)) | ✅ |
 | 2026-09-29 | A dtcc-sim service can no longer replace a Core dataset by reusing its name ([#55](https://github.com/dtcc-platform/dtcc-agent/pull/55), fixes [#45](https://github.com/dtcc-platform/dtcc-agent/issues/45)) | ✅ |
 | 2026-09-29 | The README's token check works: it no longer runs a `verify_auth.py` that never existed ([#54](https://github.com/dtcc-platform/dtcc-agent/pull/54), fixes [#40](https://github.com/dtcc-platform/dtcc-agent/issues/40)) | ✅ |
 | 2026-09-29 | Slope and aspect no longer check a cache they can never be stored in ([#53](https://github.com/dtcc-platform/dtcc-agent/pull/53), fixes [#42](https://github.com/dtcc-platform/dtcc-agent/issues/42)) | ✅ |
@@ -38,11 +39,38 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57.
 
 ---
 
 ## 🔍 In review
+
+### References say what they name, a wrong one is refused, and a run hands back its result's reference · 2026-09-30 · [#57](https://github.com/dtcc-platform/dtcc-agent/pull/57)
+
+**Before:** runs and stored objects both had ids of 8 hex characters, so nothing could tell
+them apart. Passing a run's id to an object tool said "not found" and pointed at
+`list_objects()`, where it would never appear. A run kept a second copy of its result that was
+never evicted, and `get_run_summary` gave no way to reach the stored result. Two GeoJSON tools
+crashed on an unknown id instead of reporting it (T9, #26).
+
+**Now:**
+- Object references are `obj_…` and run references are `run_…`. Tools take and return
+  `object_ref` and `run_ref`; `run_operation` returns `object_ref` instead of `result_id`.
+- A run reference passed where an object is expected (or the reverse, or as an operation
+  parameter) is refused with a message naming the right tool.
+- A run records its result's `object_ref` and keeps no copy: the stored object owns the result
+  (U6, decided 2026-09-30), so the memory budget covers simulation results. When the object has
+  been evicted, `get_run_summary` says so and asks for a re-run.
+- `query_geojson` and `summarize_geojson_property` report an unknown reference as an error.
+
+**How we know it works:** the four M0 tests that pinned the old behaviour were flipped to
+ADR-0010's contract, and nine new tests cover the prefixes, the run→object link, refusals in
+both directions and through `run_operation`, an evicted result, and the GeoJSON tools. 342 tests
+pass.
+
+---
+
+## ✅ Merged
 
 ### After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects · 2026-09-30 · [#56](https://github.com/dtcc-platform/dtcc-agent/pull/56)
 
@@ -61,10 +89,6 @@ a wrong answer. An index in an older or unexpected format could also crash a loo
 starts cold and deletes the old files; another Core's entries in a shared folder are never
 served; an index written before stamps, one with broken entries, and one that is not a list
 each start cold and keep working. 335 tests pass.
-
----
-
-## ✅ Merged
 
 ### A dtcc-sim service can no longer replace a Core dataset by reusing its name · 2026-09-29 · [#55](https://github.com/dtcc-platform/dtcc-agent/pull/55)
 

@@ -1,7 +1,8 @@
 """In-memory object store for dtcc-core objects.
 
 Stores intermediate results (PointCloud, Mesh, Raster, etc.) with short
-hex IDs so that multi-step pipelines can reference previous outputs.
+Object references (``obj_…``, ADR-0010) so that multi-step pipelines can
+reference previous outputs.
 Thread-safe via a lock; LRU eviction keeps memory bounded.
 """
 
@@ -9,10 +10,11 @@ from __future__ import annotations
 
 import threading
 import time
-import uuid
 from typing import Any
 
 import numpy as np
+
+from . import refs
 
 
 def _estimate_bytes(obj: Any) -> int:
@@ -59,8 +61,8 @@ class ObjectStore:
         self._total_bytes = 0
 
     def store(self, obj: Any, source_op: str = "", label: str = "") -> str:
-        """Store an object and return its short hex ID."""
-        obj_id = uuid.uuid4().hex[:8]
+        """Store an object and return its Object reference."""
+        obj_id = refs.new(refs.OBJECT)
         nbytes = _estimate_bytes(obj)
         entry = {
             "object": obj,
@@ -104,7 +106,7 @@ class ObjectStore:
             result = []
             for obj_id, entry in entries[:limit]:
                 result.append({
-                    "id": obj_id,
+                    "object_ref": obj_id,
                     "type": entry["type"],
                     "source_op": entry["source_op"],
                     "label": entry["label"],

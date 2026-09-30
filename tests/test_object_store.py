@@ -25,7 +25,7 @@ class TestObjectStore:
         store = ObjectStore()
         arr = np.ones((50, 3))
         obj_id = store.store(arr, source_op="test", label="my_array")
-        assert len(obj_id) == 8
+        assert obj_id.startswith("obj_") and len(obj_id) == 12
         retrieved = store.get(obj_id)
         np.testing.assert_array_equal(retrieved, arr)
 
@@ -51,8 +51,8 @@ class TestObjectStore:
         id2 = store.store("second", source_op="op2")
         items = store.list()
         # Most recent first
-        assert items[0]["id"] == id2
-        assert items[1]["id"] == id1
+        assert items[0]["object_ref"] == id2
+        assert items[1]["object_ref"] == id1
 
     def test_list_limit(self):
         store = ObjectStore()
@@ -93,7 +93,7 @@ class TestObjectStore:
         items = store.list()
         assert len(items) == 1
         entry = items[0]
-        assert entry["id"] == obj_id
+        assert entry["object_ref"] == obj_id
         assert entry["type"] == "ndarray"
         assert entry["source_op"] == "test_op"
         assert entry["label"] == "my_label"

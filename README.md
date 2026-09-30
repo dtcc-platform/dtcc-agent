@@ -249,14 +249,15 @@ building multi-step pipelines:
 
 ```
 run_operation("datasets.point_cloud", {"bounds": [...]})
-  → result_id: "a1b2c3d4"   (PointCloud stored in memory)
+  → object_ref: "obj_a1b2c3d4"   (PointCloud stored in memory)
 
-run_operation("builder.build_terrain_raster", {"pc": "a1b2c3d4", "cell_size": 2.0})
-  → result_id: "e5f6g7h8"   (Raster stored, built from the point cloud)
+run_operation("builder.build_terrain_raster", {"pc": "obj_a1b2c3d4", "cell_size": 2.0})
+  → object_ref: "obj_e5f6g7h8"   (Raster stored, built from the point cloud)
 ```
 
 Parameters marked `is_object_ref: true` in `describe_operation` output
-accept these IDs. The dispatcher resolves them from the store automatically.
+accept these Object references (`obj_…`). The dispatcher resolves them from the store
+automatically, and refuses a Run reference (`run_…`) passed in their place.
 
 Each Session has its own store, which uses LRU eviction to prevent unbounded
 memory growth during long sessions. Over stdio the one Session gets the whole
@@ -345,17 +346,17 @@ Agent calls: list_operations(search="terrain")
 
 Agent calls: run_operation("datasets.point_cloud",
                {"bounds": [319700, 6399500, 320200, 6400000]})
-  → result_id: "a1b2c3d4", summary: 1.2M points, z range 5–48m
+  → object_ref: "obj_a1b2c3d4", summary: 1.2M points, z range 5–48m
 
 Agent calls: run_operation("builder.build_terrain_raster",
-               {"pc": "a1b2c3d4", "cell_size": 2.0})
-  → result_id: "e5f6g7h8", summary: 250×250 raster, elevation 5–48m
+               {"pc": "obj_a1b2c3d4", "cell_size": 2.0})
+  → object_ref: "obj_e5f6g7h8", summary: 250×250 raster, elevation 5–48m
 
 Agent calls: run_operation("builder.raster.slope_aspect",
-               {"dem": "e5f6g7h8"})
-  → result_ids: ["f9g0h1i2", "j3k4l5m6"]  (slope + aspect rasters)
+               {"dem": "obj_e5f6g7h8"})
+  → object_refs: ["obj_f9g0h1i2", "obj_j3k4l5m6"]  (slope + aspect rasters)
 
-Agent calls: inspect_object("f9g0h1i2")
+Agent calls: inspect_object("obj_f9g0h1i2")
   → slope raster: mean 0.12 rad (7°), max 0.8 rad (46°)
 
 Agent: "The terrain around Chalmers is mostly gentle (mean slope 7°)
@@ -372,15 +373,15 @@ Agent calls: geocode("Lindholmen")
 
 Agent calls: run_operation("datasets.buildings",
                {"bounds": [318866, 6399800, 319366, 6400300]})
-  → result_id: "b1c2d3e4", 47 buildings, heights 3–45m
+  → object_ref: "obj_b1c2d3e4", 47 buildings, heights 3–45m
 
 Agent calls: run_operation("datasets.point_cloud",
                {"bounds": [318866, 6399800, 319366, 6400300]})
-  → result_id: "f5g6h7i8"
+  → object_ref: "obj_f5g6h7i8"
 
 Agent calls: run_operation("builder.trees_from_pointcloud",
-               {"pc": "f5g6h7i8"})
-  → result_id: "j9k0l1m2", 128 trees, height 4–18m
+               {"pc": "obj_f5g6h7i8"})
+  → object_ref: "obj_j9k0l1m2", 128 trees, height 4–18m
 
 Agent calls: list_objects()
   → 3 objects, 45 MB total
@@ -401,9 +402,9 @@ Agent calls: geocode("Lindholmen")
 
 Agent calls: run_operation("datasets.buildings",
                {"bounds": [318866, 6399800, 319366, 6400300]})
-  → result_id: "b1c2d3e4", 47 buildings, heights 3–45m
+  → object_ref: "obj_b1c2d3e4", 47 buildings, heights 3–45m
 
-Agent calls: render_object("b1c2d3e4")
+Agent calls: render_object("obj_b1c2d3e4")
   → {"image_path": "/tmp/dtcc_screenshots_xxx/b1c2d3e4.png",
      "type": "City", "width": 1200, "height": 800}
 
@@ -423,13 +424,13 @@ Agent calls: geocode("Chalmers")
 
 Agent calls: run_operation("datasets.point_cloud",
                {"bounds": [319700, 6399500, 320200, 6400000]})
-  → result_id: "a1b2c3d4", 1.2M points
+  → object_ref: "obj_a1b2c3d4", 1.2M points
 
 Agent calls: run_operation("builder.build_terrain_raster",
-               {"pc": "a1b2c3d4", "cell_size": 2.0})
-  → result_id: "e5f6g7h8", 250×250 raster, elevation 5–48m
+               {"pc": "obj_a1b2c3d4", "cell_size": 2.0})
+  → object_ref: "obj_e5f6g7h8", 250×250 raster, elevation 5–48m
 
-Agent calls: render_object("e5f6g7h8")
+Agent calls: render_object("obj_e5f6g7h8")
   → {"image_path": "/tmp/dtcc_screenshots_xxx/e5f6g7h8.png",
      "type": "Raster", "width": 1200, "height": 800}
 

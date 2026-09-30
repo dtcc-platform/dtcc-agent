@@ -436,10 +436,10 @@ def test_get_buildings_reuses_a_download_the_dispatcher_cached(monkeypatch, tmp_
     server, cache = _isolated_get_buildings(monkeypatch, tmp_path, fetch)
     store = ObjectStore()
     downloaded = BuildingCollection([_core_building(0, 0, 10.0), _core_building(500, 500, 30.0)])
-    result_id = store.store(downloaded, source_op="datasets.buildings")
+    object_ref = store.store(downloaded, source_op="datasets.buildings")
     dispatcher._populate_cache(
         "datasets.buildings", "datasets", {"bounds": [-100, -100, 600, 600]},
-        {"result_id": result_id}, store, cache,
+        {"object_ref": object_ref}, store, cache,
     )
 
     result = json.loads(server.get_buildings(bounds=[-50, -50, 100, 100]))

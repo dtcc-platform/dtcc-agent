@@ -93,27 +93,27 @@ def test_every_tool_has_a_description(name):
     [
         ("compare_scenarios", {"simulation_name", "bounds",
                                "scenario_a_parameters", "scenario_b_parameters"}),
-        ("delete_object", {"object_id"}),
+        ("delete_object", {"object_ref"}),
         ("describe_operation", {"name"}),
-        ("export_object", {"object_id", "format"}),
+        ("export_object", {"object_ref", "format"}),
         ("geocode", {"place_name"}),
         ("get_buildings", {"bounds"}),
-        ("get_field_names", {"object_id"}),
-        ("get_run_summary", {"run_id"}),
+        ("get_field_names", {"object_ref"}),
+        ("get_run_summary", {"run_ref"}),
         ("get_simulation_schema", {"simulation_name"}),
-        ("inspect_object", {"object_id"}),
+        ("inspect_object", {"object_ref"}),
         ("list_objects", set()),
         ("list_operations", set()),
         ("list_past_runs", set()),
         ("list_simulations", set()),
         ("load_geojson", {"file_path"}),
-        ("object_to_text", {"object_id"}),
-        ("query_geojson", {"object_id", "property_name", "operator", "value"}),
-        ("render_object", {"object_id"}),
+        ("object_to_text", {"object_ref"}),
+        ("query_geojson", {"object_ref", "property_name", "operator", "value"}),
+        ("render_object", {"object_ref"}),
         ("run_operation", {"name"}),
         ("run_simulation", {"simulation_name", "bounds"}),
-        ("spatial_query", {"object_id", "query_type", "params"}),
-        ("summarize_geojson_property", {"object_id", "property_name"}),
+        ("spatial_query", {"object_ref", "query_type", "params"}),
+        ("summarize_geojson_property", {"object_ref", "property_name"}),
     ],
 )
 def test_required_parameters(name, required):
@@ -124,7 +124,7 @@ def test_required_parameters(name, required):
 
 # -- Error reporting ---------------------------------------------------------
 
-OBJECT_ID_TOOLS = [
+OBJECT_REF_TOOLS = [
     "inspect_object",
     "get_field_names",
     "object_to_text",
@@ -132,8 +132,8 @@ OBJECT_ID_TOOLS = [
 ]
 
 
-@pytest.mark.parametrize("tool_name", OBJECT_ID_TOOLS)
-def test_unknown_object_id_returns_an_error_payload_not_an_exception(
+@pytest.mark.parametrize("tool_name", OBJECT_REF_TOOLS)
+def test_unknown_object_ref_returns_an_error_payload_not_an_exception(
     tool_name, clean_stores
 ):
     """Tools report failure as a JSON body, never by raising.
@@ -146,91 +146,109 @@ def test_unknown_object_id_returns_an_error_payload_not_an_exception(
     assert "error" in _parse(result)
 
 
-def test_unknown_run_id_returns_an_error_payload(clean_stores):
+@pytest.mark.parametrize("call", [
+    lambda ref: server.query_geojson(ref, "height", ">", 10),
+    lambda ref: server.summarize_geojson_property(ref, "height"),
+], ids=["query_geojson", "summarize_geojson_property"])
+def test_the_geojson_tools_report_an_unknown_object_rather_than_raise(call, clean_stores):
+    """They checked for None from ObjectStore.get, which raises KeyError instead."""
+    assert "not found" in _parse(call("obj_00000000"))["error"]
+
+
+def test_unknown_run_ref_returns_an_error_payload(clean_stores):
     assert "error" in _parse(server.get_run_summary("does-not-exist"))
 
 
-# -- Reference confusion (baseline for ADR-0010 / M1 task T9) ----------------
+# -- Typed references (ADR-0010, T9 #26) --------------------------------------
+# These replace the M0 characterisation tests that pinned the old behaviour:
+# unrelated ids, identical id shapes, and a reference of the wrong kind missed
+# ("not found") rather than refused.
 
-def _plant_run() -> str:
+class _Field:
+    """A result the way dolfinx returns one: values under .x.array."""
+    def __init__(self, values):
+        self.x = type("X", (), {"array": values})()
+
+
+def _plant_run(result=None) -> str:
     """Create a run the way the server itself does."""
     return server._store_result(
         name="fake_simulation",
         bounds=[0.0, 0.0, 1.0, 1.0],
         parameters={},
-        result={"not": "a field-bearing result"},
+        result={"not": "a field-bearing result"} if result is None else result,
     )
 
 
-def test_store_result_creates_two_entries_with_unrelated_ids(clean_stores):
-    """One simulation result is stored twice, under two different ids.
+def test_references_say_which_kind_they_are(clean_stores):
+    run_ref = _plant_run()
+    object_ref = server._session().objects.list()[0]["object_ref"]
 
-    `_store_result` writes to the Session's `results` under a run_id and separately to the
-    ObjectStore under its own obj_id. The only link is the ObjectStore's
-    `label` field, which is written and displayed but never queried.
-
-    ADR-0010 / task T9 changes this. Characterised here so the change is
-    visible when it happens.
-    """
-    run_id = _plant_run()
-
-    assert run_id in server._session().results
-    entries = server._session().objects.list()
-    assert len(entries) == 1
-    # The ObjectStore keys its listing on "id"; the run lives under "run_id"
-    # elsewhere. Same concept, two spellings, no shared vocabulary.
-    assert entries[0]["id"] != run_id, "ids are expected to be unrelated today"
-    # The only thing tying the two records together:
-    assert entries[0]["label"] == run_id
+    assert run_ref.startswith("run_") and object_ref.startswith("obj_")
+    assert len(run_ref) == len(object_ref) == 12
 
 
-def test_run_and_object_ids_are_shape_indistinguishable(clean_stores):
-    """Both id spaces are 8 hex characters, so no consumer can tell them apart.
+def test_a_run_records_the_object_it_yielded_and_holds_no_copy(clean_stores):
+    """U6: the Object owns the result; the Run keeps what was run and its reference."""
+    import numpy as np
 
-    `_store_result` uses `str(uuid4())[:8]`; the ObjectStore uses
-    `uuid4().hex[:8]`. Different derivations, identical shape.
-    """
-    run_id = _plant_run()
-    object_id = server._session().objects.list()[0]["id"]
+    run_ref = _plant_run(_Field(np.array([1.0, 2.0, 3.0])))
+    run = server._session().results[run_ref]
+    listed = server._session().objects.list()
 
-    assert len(run_id) == len(object_id) == 8
-    assert all(c in "0123456789abcdef" for c in run_id)
-    assert all(c in "0123456789abcdef" for c in object_id)
-
-
-def test_run_id_passed_to_an_object_tool_is_missed_not_refused(clean_stores):
-    """Today a mistyped reference reports 'not found', not 'wrong kind'.
-
-    That wording sends the caller to `list_objects()`, which will never show
-    the run they are holding. T9 makes this a refusal instead.
-    """
-    run_id = _plant_run()
-
-    payload = _parse(server.inspect_object(run_id))
-
-    assert "error" in payload
-    assert "not found" in payload["error"].lower()
-    # The diagnosis is absent: nothing says the id names a run.
-    assert "run" not in payload["error"].lower()
+    assert [o["object_ref"] for o in listed] == [run["object_ref"]]
+    assert "result" not in run
+    summary = _parse(server.get_run_summary(run_ref))
+    assert summary["object_ref"] == run["object_ref"]
+    assert summary["summary"]["mean"] == 2.0
 
 
-def test_object_id_passed_to_a_run_tool_is_missed_not_refused(clean_stores):
-    """The mirror case, with the same weakness."""
+@pytest.mark.parametrize("tool_name", OBJECT_REF_TOOLS)
+def test_a_run_reference_passed_to_an_object_tool_is_refused_as_the_wrong_kind(
+        tool_name, clean_stores):
+    run_ref = _plant_run()
+
+    error = _parse(getattr(server, tool_name)(run_ref))["error"]
+
+    assert "run reference" in error.lower() and "get_run_summary" in error
+    assert "not found" not in error.lower()
+
+
+def test_an_object_reference_passed_to_a_run_tool_is_refused_as_the_wrong_kind(clean_stores):
     _plant_run()
-    object_id = server._session().objects.list()[0]["id"]
+    object_ref = server._session().objects.list()[0]["object_ref"]
 
-    payload = _parse(server.get_run_summary(object_id))
+    error = _parse(server.get_run_summary(object_ref))["error"]
 
-    assert "error" in payload
-    assert "not found" in payload["error"].lower()
-    assert "object" not in payload["error"].lower()
+    assert "object reference" in error.lower() and "inspect_object" in error
+    assert "not found" not in error.lower()
+
+
+def test_a_run_reference_passed_to_an_operation_is_refused(clean_stores):
+    run_ref = _plant_run()
+
+    error = _parse(server.run_operation("builder.raster.slope_aspect",
+                                        {"dem": run_ref}))["error"]
+
+    assert "run reference" in error.lower()
+
+
+def test_a_run_whose_object_was_evicted_says_so(clean_stores):
+    run_ref = _plant_run()
+    server._session().objects.delete(server._session().results[run_ref]["object_ref"])
+
+    error = _parse(server.get_run_summary(run_ref))["error"]
+
+    assert "no longer in memory" in error and "run_simulation" in error
+    listed = _parse(server.list_past_runs())
+    assert listed[0]["run_ref"] == run_ref and listed[0]["evicted"] is True
 
 
 def test_get_run_summary_rejects_a_result_without_extractable_fields(clean_stores):
     """A run whose result has no `.x.array` reports that, rather than raising."""
-    run_id = _plant_run()
+    run_ref = _plant_run()
 
-    payload = _parse(server.get_run_summary(run_id))
+    payload = _parse(server.get_run_summary(run_ref))
 
     assert "error" in payload
     assert "extractable" in payload["error"].lower()

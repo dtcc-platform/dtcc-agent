@@ -18,6 +18,7 @@ import numbers
 from copy import deepcopy
 from typing import Any
 
+from . import refs
 from .object_store import ObjectStore
 from .registry import get_operation, OperationInfo
 from .serializers import serialize
@@ -116,10 +117,13 @@ def run_operation(
 
     Returns
     -------
-    dict with keys: operation, result_id (or result_ids for tuples),
+    dict with keys: operation, object_ref (or object_refs for tuples),
     summary, and label.
     """
     params = params or {}
+    for value in params.values():
+        if error := refs.wrong_kind(value, refs.OBJECT):
+            return {"error": error}
     # Only a literal box is checked here: some operations take bounds as a
     # stored Bounds object id, or default it to None.
     literal = params.get("bounds")
@@ -248,7 +252,7 @@ def _store_and_summarize(
             summaries.append(serialize(item))
         return {
             "operation": op_name,
-            "result_ids": ids,
+            "object_refs": ids,
             "label": label,
             "summary": summaries,
         }
@@ -260,7 +264,7 @@ def _store_and_summarize(
             obj_id = store.store(result, source_op=op_name, label=label)
             return {
                 "operation": op_name,
-                "result_id": obj_id,
+                "object_ref": obj_id,
                 "label": label,
                 "summary": serialize(result),
             }
@@ -279,7 +283,7 @@ def _store_and_summarize(
 
     return {
         "operation": op_name,
-        "result_id": obj_id,
+        "object_ref": obj_id,
         "label": label,
         "summary": summary,
     }
@@ -375,7 +379,7 @@ def _check_cache_dataset(
     obj_id = store.store(obj, source_op=name, label="(cached)")
     return {
         "operation": name,
-        "result_id": obj_id,
+        "object_ref": obj_id,
         "label": "(cached)",
         "summary": serialize(obj),
     }
@@ -397,7 +401,7 @@ def _check_cache_builder(
     obj_id = store.store(obj, source_op=name, label="(cached)")
     return {
         "operation": name,
-        "result_id": obj_id,
+        "object_ref": obj_id,
         "label": "(cached)",
         "summary": serialize(obj),
     }
@@ -413,7 +417,7 @@ def _compute_fingerprints(
         if isinstance(value, str) and value in store:
             meta = None
             for entry in store.list(limit=500):
-                if entry["id"] == value:
+                if entry["object_ref"] == value:
                     meta = entry
                     break
             if meta:
@@ -430,11 +434,11 @@ def _populate_cache(
     cache: DiskCache,
 ) -> None:
     """Store a successful operation result in the disk cache."""
-    result_id = result.get("result_id")
-    if not result_id:
+    object_ref = result.get("object_ref")
+    if not object_ref:
         return  # tuple/primitive results — skip for v1
     try:
-        obj = store.get(result_id)
+        obj = store.get(object_ref)
     except KeyError:
         return
 
