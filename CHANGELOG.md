@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-09-30.
+Last updated: 2026-10-01.
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-09-30.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-01 | Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem ([#63](https://github.com/dtcc-platform/dtcc-agent/pull/63), T7, fixes [#21](https://github.com/dtcc-platform/dtcc-agent/issues/21) and [#38](https://github.com/dtcc-platform/dtcc-agent/issues/38), decides U9) | 🔍 |
 | 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | ✅ |
 | 2026-09-30 | The Docker image installs the dtcc-core we pin and test, not Core's moving `develop` ([#61](https://github.com/dtcc-platform/dtcc-agent/pull/61), fixes [#41](https://github.com/dtcc-platform/dtcc-agent/issues/41), decides U10 [#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | ✅ |
 | 2026-09-30 | The wiki describes typed references, the cache version stamp and Core's registration fixes ([#60](https://github.com/dtcc-platform/dtcc-agent/pull/60)) | ✅ |
@@ -44,7 +45,51 @@ Last updated: 2026-09-30.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 397 with #63.
+
+---
+
+## 🔍 In review
+
+### Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem · 2026-10-01 · [#63](https://github.com/dtcc-platform/dtcc-agent/pull/63)
+
+**Before:** `render_object` had never produced an image anyone could see. Its drawing library,
+dtcc-viewer, was not installed, so it failed quietly. Even when it did draw, the file landed in
+a random temporary folder that the chat's `/renders` route never served, and nothing told the
+page an image existed (#38). `export_object` wrote wherever it was told, all users' exports shared
+one folder, and `load_geojson` read any file on the machine. Eighteen Core operations reachable
+through `run_operation` (the `io.load_*` / `io.save_*` family and two debug-folder options) took a
+file path straight from chat, half of them for writing (#21, U1).
+
+**Now:**
+- Every Core operation that takes a file path is refused in `run_operation` (U1). A test lists
+  the eighteen, so a Core upgrade that adds one fails the suite.
+- Each chat session gets its own private folder. `render_object` and `export_object` write there
+  under an unguessable name and return that name, never a path. The chat page shows an image in
+  the conversation and a file as a download link. Another session's link returns nothing, and a
+  session's files are deleted when it expires. Until central sign-in (T14), the link itself is
+  the credential.
+- `load_geojson` reads only from the shared results folder, where dtcc-sim writes.
+- Rendering uses matplotlib (U9): footprints, roads and lines are drawn in plan view, meshes and
+  point clouds in 3D, rasters as an image. It needs no graphics card or display, so it works the
+  same on a laptop and in the container. dtcc-viewer was set aside because it requires Core's
+  moving `develop`, which conflicts with our pin. Whether the page draws geometry itself is still
+  D1/D2 in M3; only the drawing code would change.
+
+**How we know it works:**
+- In a real browser, the chat was asked for the Lindholmen buildings: it downloaded them,
+  rendered 13 footprints, and the picture appeared in the conversation.
+- The same image link from another session returns 404. `io.save_mesh` with a path is refused,
+  and so is `load_geojson("/etc/passwd")`.
+- The live run caught two faults the unit tests had missed, both now fixed and tested:
+  `datasets.buildings` returns a building collection that no renderer handled, and the Claude
+  client wraps each tool result in one more layer, which hid the image from the page.
+- 397 tests pass.
+
+**Still open:**
+- Exporting a building collection is not supported yet.
+- `load_geojson` has no tool listing the shared results folder, so the file name has to come
+  from the user or the simulation.
 
 ---
 
@@ -562,12 +607,13 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 | U4: how accurate the memory budget must be ([#13](https://github.com/dtcc-platform/dtcc-agent/issues/13)) | T11 | ✅ Decided 2026-09-30: accurate byte counts for stored types; an oversized result returns its summary unstored; the budget covers the stored results |
 | U10: which dtcc-core install wins in the container ([#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | T13 | ✅ Decided 2026-09-30: the pin wins; the build arg won before, fixed by #61 |
 | U11: which network interface the MCP server listens on, and who may connect ([#15](https://github.com/dtcc-platform/dtcc-agent/issues/15)) | T13 | ✅ Decided 2026-09-30: loopback only until auth (T14, M2) |
+| U9: fix rendering in M1a, or switch it off until images reach the page (rebuild plan) | T7 | ✅ Decided 2026-09-30: fix it, drawn with matplotlib rather than dtcc-viewer (#63) |
 
 ## What's next
 
-1. **The rest of M1a, now unblocked:** per-session file folders with path arguments refused
-   (T7, U1), the memory budget (T11, U4), and the two-service container on loopback (T13, U10
-   and U11). The cache split (T6) is nearly moot: only public downloads are cached now (U2).
+1. **The rest of M1a:** per-session file folders with path arguments refused (T7, U1) is in
+   review (#63); the memory budget (T11, U4) and the two-service container on loopback (T13, U10
+   and U11) remain. T13 must give both services the same artifacts folder. The cache split (T6) is nearly moot: only public downloads are cached now (U2).
 2. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
    versioning (T12, #56).
 
