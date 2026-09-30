@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-09-30.
+Last updated: 2026-10-01.
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-09-30.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-01 | The chat works with the current Claude client again: an outdated library failed every message ([#64](https://github.com/dtcc-platform/dtcc-agent/pull/64)) | 🔍 |
 | 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | ✅ |
 | 2026-09-30 | The Docker image installs the dtcc-core we pin and test, not Core's moving `develop` ([#61](https://github.com/dtcc-platform/dtcc-agent/pull/61), fixes [#41](https://github.com/dtcc-platform/dtcc-agent/issues/41), decides U10 [#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | ✅ |
 | 2026-09-30 | The wiki describes typed references, the cache version stamp and Core's registration fixes ([#60](https://github.com/dtcc-platform/dtcc-agent/pull/60)) | ✅ |
