@@ -14,7 +14,8 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-30 | References say what they name (`obj_…`, `run_…`), a wrong one is refused, and a run hands back its result's reference ([#57](https://github.com/dtcc-platform/dtcc-agent/pull/57), T9, fixes [#26](https://github.com/dtcc-platform/dtcc-agent/issues/26)) | 🔍 |
+| 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | ✅ |
+| 2026-09-30 | References say what they name (`obj_…`, `run_…`), a wrong one is refused, and a run hands back its result's reference ([#57](https://github.com/dtcc-platform/dtcc-agent/pull/57), T9, fixes [#26](https://github.com/dtcc-platform/dtcc-agent/issues/26)) | ✅ |
 | 2026-09-30 | After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects ([#56](https://github.com/dtcc-platform/dtcc-agent/pull/56), T12, fixes [#27](https://github.com/dtcc-platform/dtcc-agent/issues/27)) | ✅ |
 | 2026-09-29 | A dtcc-sim service can no longer replace a Core dataset by reusing its name ([#55](https://github.com/dtcc-platform/dtcc-agent/pull/55), fixes [#45](https://github.com/dtcc-platform/dtcc-agent/issues/45)) | ✅ |
 | 2026-09-29 | The README's token check works: it no longer runs a `verify_auth.py` that never existed ([#54](https://github.com/dtcc-platform/dtcc-agent/pull/54), fixes [#40](https://github.com/dtcc-platform/dtcc-agent/issues/40)) | ✅ |
@@ -39,11 +40,28 @@ Last updated: 2026-09-29.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
+
+### A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry · 2026-09-30 · [#58](https://github.com/dtcc-platform/dtcc-agent/pull/58)
+
+**Before:** when a dtcc-sim service's list of datasets had one good entry and then a broken
+one, Core registered the good one but reported that nothing was registered. The agent asked
+again every 30 seconds and on every `list_simulations` call, and each attempt left one more
+copy behind. `list_simulations` showed the good dataset while `list_operations` did not (#44).
+
+**Now:** after a failed discovery the agent undoes what it registered, and puts back anything
+it replaced, with a warning naming the datasets and the service. A half-broken service shows
+nothing until it is fixed, and is asked again as before. Registrations run one at a time, so a
+failed attempt on one thread cannot undo a successful one on another. This extends #55's
+restore of Core datasets into one repair step. The real fix is in Core
+([dtcc-core#128](https://github.com/dtcc-platform/dtcc-core/issues/128)).
+
+**How we know it works:** eight retries of a half-broken service leave no copy behind, and a
+dataset it replaced is put back. Both tests fail without the fix. 344 tests pass.
 
 ### References say what they name, a wrong one is refused, and a run hands back its result's reference · 2026-09-30 · [#57](https://github.com/dtcc-platform/dtcc-agent/pull/57)
 
@@ -67,10 +85,6 @@ crashed on an unknown id instead of reporting it (T9, #26).
 ADR-0010's contract, and nine new tests cover the prefixes, the run→object link, refusals in
 both directions and through `run_operation`, an evicted result, and the GeoJSON tools. 342 tests
 pass.
-
----
-
-## ✅ Merged
 
 ### After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects · 2026-09-30 · [#56](https://github.com/dtcc-platform/dtcc-agent/pull/56)
 
