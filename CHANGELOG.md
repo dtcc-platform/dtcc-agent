@@ -14,7 +14,8 @@ Last updated: 2026-09-30.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | 🔍 |
+| 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | ✅ |
+| 2026-09-30 | The Docker image installs the dtcc-core we pin and test, not Core's moving `develop` ([#61](https://github.com/dtcc-platform/dtcc-agent/pull/61), fixes [#41](https://github.com/dtcc-platform/dtcc-agent/issues/41), decides U10 [#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | ✅ |
 | 2026-09-30 | The wiki describes typed references, the cache version stamp and Core's registration fixes ([#60](https://github.com/dtcc-platform/dtcc-agent/pull/60)) | ✅ |
 | 2026-09-30 | dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone ([#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)) | ✅ |
 | 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | ✅ |
@@ -47,7 +48,7 @@ Last updated: 2026-09-30.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
 ### Builder results are no longer cached, so a cache can't hand back the wrong geometry · 2026-09-30 · [#62](https://github.com/dtcc-platform/dtcc-agent/pull/62)
 
@@ -68,9 +69,21 @@ call writes a record and nothing to the cache, that the recorded key tells two a
 matches the same inputs across sessions, and that nothing is written without a log folder.
 344 tests pass.
 
----
+### The Docker image installs the dtcc-core we pin and test, not Core's moving `develop` · 2026-09-30 · [#61](https://github.com/dtcc-platform/dtcc-agent/pull/61)
 
-## ✅ Merged
+**Before:** the Dockerfile installed dtcc-core from a build argument that defaulted to Core's
+`develop` branch, then installed the agent. Building the image showed the first install stuck:
+the image reported `requested_revision: develop`, not our pinned commit. So the one artifact
+that reaches production ran whatever Core `develop` was at build time, which the contract
+workflow never tested. It matched our pin only because Core's `develop` happens to equal it
+today (#41, U10).
+
+**Now:** the separate Core install and its `DTCC_CORE_REF` build argument are gone, from the
+Dockerfile, `docker-compose.yml` and `build_docker.sh`. Core comes from the commit pinned in
+`pyproject.toml`, and the build fails if pip installed anything else.
+
+**How we know it works:** images built before and after the change, with the installed Core
+read from each. The build check fails when pointed at a different pin.
 
 ### dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone · 2026-09-30 · [#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)
 
@@ -544,27 +557,21 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 |---|---|---|
 | U3: where once-per-process startup lives ([#12](https://github.com/dtcc-platform/dtcc-agent/issues/12)) | T8, T10, T11 | ✅ Decided 2026-09-24: at process startup, not in FastMCP's per-session hook |
 | U6: who owns a simulation result, the run or the stored object (rebuild plan) | T9 | ✅ Decided 2026-09-30: the stored object owns it; the run keeps its reference (ADR-0010, #57) |
-| U1: how far the filesystem boundary goes ([#10](https://github.com/dtcc-platform/dtcc-agent/issues/10)) | T7 | ⏳ |
+| U1: how far the filesystem boundary goes ([#10](https://github.com/dtcc-platform/dtcc-agent/issues/10)) | T7 | ✅ Decided 2026-09-30: refuse path arguments in `run_operation`; `export_object` and `load_geojson` get a proper route in T7 |
 | U2: fix the cache keys, or turn builder caching off ([#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | T6 | ✅ Decided 2026-09-30: off for now, and builder calls recorded to measure whether provenance keys (T-001) are worth it |
-| U4: how accurate the memory budget must be ([#13](https://github.com/dtcc-platform/dtcc-agent/issues/13)) | T11 | ⏳ |
-| U10: which dtcc-core install wins in the container ([#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | T13 | ⏳ |
-| U11: which network interface the MCP server listens on, and who may connect ([#15](https://github.com/dtcc-platform/dtcc-agent/issues/15)) | T13 | ⏳ |
+| U4: how accurate the memory budget must be ([#13](https://github.com/dtcc-platform/dtcc-agent/issues/13)) | T11 | ✅ Decided 2026-09-30: accurate byte counts for stored types; an oversized result returns its summary unstored; the budget covers the stored results |
+| U10: which dtcc-core install wins in the container ([#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | T13 | ✅ Decided 2026-09-30: the pin wins; the build arg won before, fixed by #61 |
+| U11: which network interface the MCP server listens on, and who may connect ([#15](https://github.com/dtcc-platform/dtcc-agent/issues/15)) | T13 | ✅ Decided 2026-09-30: loopback only until auth (T14, M2) |
 
 ## What's next
 
-1. **The rest of M1a:** split the cache (T6), per-session
-   file folders (T7), the memory budget (T11),
-   and the two-service container (T13).
+1. **The rest of M1a, now unblocked:** per-session file folders with path arguments refused
+   (T7, U1), the memory budget (T11, U4), and the two-service container on loopback (T13, U10
+   and U11). The cache split (T6) is nearly moot: only public downloads are cached now (U2).
 2. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
    versioning (T12, #56).
 
 ## For discussion with the team
 
-- **Cropped building cache at the edge** (#49). Two rare cases where a cropped cached area
-  counts one building more at its edge than a fresh download. Options: a Core change that keeps
-  source ids or geometry, treating edge hits as cache misses, or wontfix.
-
-- **Who may reach the MCP server** (U11, #15). This decides whether the session id alone is
-  enough, and what host names the deployment allows.
 - **PR-Agent.** It runs on every PR on one Gemini API key. Who owns that key, and is an
   extra automated read worth it for the team?
