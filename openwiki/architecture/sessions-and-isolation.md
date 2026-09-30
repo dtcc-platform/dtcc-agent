@@ -16,10 +16,10 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-7da8cb11cdc15fb1e5a1f088
     resource: repo://tests/test_http_sessions.py
-generated: { by: "claude-code", at: "2026-09-29T13:24:05.367Z" }
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T19:33:34.851Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Sessions and isolation
@@ -33,7 +33,7 @@ A Session is one continuous conversation, identified anonymously and scoped to a
 `_Session` is a dataclass holding everything one Session owns:
 
 - `objects`: its own `ObjectStore`
-- `results`: its simulation runs, keyed by run id
+- `results`: its simulation Run records, keyed by Run reference (`run_…`). A record holds what was run and the `object_ref` of its result; the result itself lives in the Session's `objects` (U6, ADR-0010)
 - `in_flight`: the number of tool calls currently running
 - `workers`: its share of the process worker pool (see [MCP server and tool execution](mcp-server-and-tool-execution.md))
 

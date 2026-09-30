@@ -28,10 +28,10 @@ sources:
     resource: repo://dtcc_agent/registry.py
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T19:33:34.851Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Deployment, configuration and CI
@@ -56,7 +56,7 @@ To start: run dtcc-sim (`docker compose up -d` in `../dtcc-sim`) and `docker com
 
 ### Claude auth in containers
 
-Set either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. On macOS the Claude Code credential lives in the Keychain, so mounting `~/.claude` is not enough. Run `claude setup-token` interactively on the host and export the result. Do not wrap it in command substitution: it can capture the login screen into the variable. The README's `verify_auth.py` check refers to a script that is **not present in the repository**.
+Set either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. On macOS the Claude Code credential lives in the Keychain, so mounting `~/.claude` is not enough. Run `claude setup-token` interactively on the host and export the result. Do not wrap it in command substitution: it can capture the login screen into the variable. To check the token without printing it, the README gives a POSIX `case` test, run on the host and again through `docker compose exec` in the container. It reports an empty value or one containing whitespace (the captured-login-screen failure), a value without the `sk-ant-oat01-` prefix, or a correct-looking one. It checks shape only: one chat message through the service is the real test. The `verify_auth.py` script the README used to run was never in the repository (#40, fixed by #54).
 
 ## Environment variables
 

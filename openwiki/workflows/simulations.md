@@ -14,10 +14,12 @@ sources:
     resource: repo://dtcc_agent/serializers.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
-generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
+  - id: openwiki-source-2474212d3cebf96cd7d1f586
+    resource: repo://tests/test_server.py
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T19:33:34.851Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Simulations, runs and geocoding
@@ -62,6 +64,7 @@ Only `urban_heat_simulation` and `air_quality_field` are treated as simulations 
 
 - **Remote (mini-service mode)**, when `DTCC_SIM_SERVICE_URL` or `DTCC_REMOTE_SERVICES` is set:
   - The configured URLs are registered with dtcc-core's `register_remote_service`, each once it answers. `list_simulations`, `get_simulation_schema` and `run` register any service not yet registered on the spot. Separately, a background thread started with the operation catalogue asks every 30 s until each service has answered, so the same datasets also reach `list_operations` and `run_operation` without a request waiting on dtcc-sim (see [Operation catalogue](../concepts/operation-catalogue.md)).
+  - Registration is Core's own: at the pinned Core it is all or nothing, so a half-broken discovery reply registers nothing and the service is asked again later, and a remote dataset is skipped with a warning when its name belongs to a non-remote one, so a service cannot replace Core's `point_cloud` or `buildings` (dtcc-core#128, #132). The agent carried a repair step for both until the pin moved (#55, #58, removed in #59).
   - Datasets are resolved from Core's registry and must carry a `base_url`.
   - `run()` validates and calls the remote descriptor's `build()`. This reuses Core's submit, status and result protocol rather than a copy of it.
   - It returns a `RemoteSimulationResult` (task id, size, format, `remote=True`). **The light container does not deserialise the FEniCSx output, so no field statistics are computed.**
@@ -77,14 +80,14 @@ Only `urban_heat_simulation` and `air_quality_field` are treated as simulations 
 |---|---|
 | `list_simulations` | Name and description of each available simulation |
 | `get_simulation_schema(name)` | Parameter JSON schema |
-| `run_simulation(name, bounds, parameters, label)` | Runs and stores a Run; returns `run_id` and a field summary (local) or `remote_result` (remote) |
-| `compare_scenarios(name, bounds, a, b, label_a, label_b)` | Runs A then B on the same bounds; locally returns per-scenario summaries plus B−A difference statistics |
-| `list_past_runs(limit)` | Most recent Runs in this Session, with summaries |
-| `get_run_summary(run_id)` | Re-summarises one Run |
+| `run_simulation(name, bounds, parameters, label)` | Runs and stores a Run; returns `run_ref`, the result's `object_ref`, and a field summary (local) or `remote_result` (remote) |
+| `compare_scenarios(name, bounds, a, b, label_a, label_b)` | Runs A then B on the same bounds, stores both as Runs (`run_ref_a`, `run_ref_b`); locally returns per-scenario summaries plus B−A difference statistics |
+| `list_past_runs(limit)` | Most recent Runs in this Session, each with its `run_ref`, `object_ref` and summary, or `evicted: true` once its result is gone |
+| `get_run_summary(run_ref)` | Re-summarises one Run and returns its `object_ref`; refuses an Object reference as the wrong kind |
 
 `analysis.summarize_field` drops non-finite values and reports min, max, mean, std, median, the 5th and 95th percentiles, and the count. `compare_fields` requires equal value counts, meaning the same mesh; otherwise it returns an error. The field name is inferred as `temperature` or `concentration`.
 
-**Run bookkeeping.** `_store_result` mints `run_id = str(uuid4())[:8]`, stores `{simulation, bounds, parameters, result, timestamp}` in the Session's `results`, and **also** stores the result in the Session's ObjectStore under a separate object id with `label=run_id`. The Run does not record that object id, and `get_run_summary` does not return it, so reaching the Object from a Run means listing objects and matching labels. ADR-0010 changes this so that a Run records the Object reference it yielded, with typed `run_…` and `obj_…` references. Runs are per Session. See [Sessions and isolation](../architecture/sessions-and-isolation.md).
+**Run bookkeeping.** `_store_result` stores the result as an Object in the Session's ObjectStore (labelled with the Run reference), then records the Run in the Session's `results` under a new `run_…` reference: `{simulation, bounds, parameters, object_ref, timestamp}`. The Run keeps no copy of the result. The Object owns it (U6, decided 2026-09-30, ADR-0010), so the ObjectStore's byte budget governs simulation results and evicting the Object frees the memory. `get_run_summary` reads the result through the Run's `object_ref`; once that Object has been evicted or deleted it reports that the result is no longer in memory and asks for `run_simulation` again. Runs are per Session. See [Sessions and isolation](../architecture/sessions-and-isolation.md) and [Dispatch and the object store](../concepts/dispatch-and-object-store.md).
 
 ## Tests
 

@@ -18,14 +18,20 @@ sources:
     resource: repo://docs/adr/0008-evaluation-is-one-harness-with-two-layers.md
   - id: openwiki-source-3c0d2c67e2eefb3fce1e123d
     resource: repo://docs/adr/0009-rebuild-on-a-branch-not-a-fresh-repository.md
+  - id: openwiki-source-7931b878d950a1ff97af7eb8
+    resource: repo://docs/adr/0010-references-are-typed-and-a-run-records-its-object.md
   - id: openwiki-source-e706cdf6ed71c3ed5f88e79f
     resource: repo://docs/agents/domain.md
   - id: openwiki-source-56e73ecb740406a34053d68a
     resource: repo://docs/plans/2026-09-19-rebuild-plan.md
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+  - id: openwiki-source-d8839a242913c8f59a48c041
+    resource: repo://dtcc_agent/refs.py
+  - id: openwiki-source-10801051a0be31ef9b711d8f
+    resource: repo://dtcc_agent/server.py
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-27T19:28:40.080Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Architecture decisions map
@@ -53,7 +59,7 @@ The rebuild (`docs/plans/2026-09-19-rebuild-plan.md`) lands these decisions in f
 | **0007** Keep generic dispatch | Keep `registry.py`, `dispatcher.py`, `runner.py` and `serializers.py` rather than becoming a DTCC Engine client. The duplication is accepted because the Engine has no code. | **Holds.** See [Operation catalogue](../concepts/operation-catalogue.md). |
 | **0008** One evaluation harness, two layers | A measurement layer (latency, tokens, cost, model, prompt and catalogue revision) that needs no expert, and a correctness layer (the operations, order and parameters expected per Scenario) that needs a domain expert and drops in as an assertion pass. | **Not landed** (M2). Provenance is its prerequisite. |
 | **0009** Rebuild on a branch | Feature branches off `develop`, merged by PR every milestone. This reverses a 2026-09-17 "fresh repository" reading of the same recording. | **Holds.** It is the working process. |
-| **0010** Typed references; a Run records its Object | References carry their kind (`obj_…`, `run_…`) so a misrouted id fails loudly, and a Run records the Object reference it yielded. | **Not landed (M1b).** Ids are still indistinguishable 8-hex strings, and `tests/test_server.py` pins today's behaviour. See [Dispatch, object references and serialization](../concepts/dispatch-and-object-store.md). |
+| **0010** Typed references; a Run records its Object | References carry their kind (`obj_…`, `run_…`) so a misrouted id fails loudly, and a Run records the Object reference it yielded. | **Landed (M1b/T9, #57).** `dtcc_agent/refs.py` mints `obj_…` and `run_…`; object tools, `get_run_summary` and `run_operation` refuse the wrong kind; tools take `object_ref` and `run_ref`. U6 decided 2026-09-30: the Object owns a Run's result and the Run keeps only its reference. See [Dispatch, object references and serialization](../concepts/dispatch-and-object-store.md). |
 
 ## Delivered so far (per `CHANGELOG.md`, 2026-09-25)
 

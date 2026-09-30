@@ -20,10 +20,10 @@ sources:
     resource: repo://tests/test_server.py
   - id: openwiki-source-fa7af1493a897412d61af4b0
     resource: repo://tests/test_worker_pool.py
-generated: { by: "claude-code", at: "2026-09-29T19:33:34.851Z" }
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T19:33:34.851Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Test suite
@@ -41,7 +41,7 @@ All tests live in `tests/` as plain pytest modules. There is no `conftest.py`; f
 | Area | Module(s) | What they pin |
 |---|---|---|
 | Tool surface | `test_server.py`, `test_server_import.py` | Exact set of 22 tools, descriptions, required params, error payloads instead of exceptions; import smoke test guarding `mcp<2` |
-| Reference identity (characterisation) | `test_server.py` | Run and object ids are shape-indistinguishable and misrouted ids are *missed, not refused*, which is today's behaviour ahead of ADR-0010 |
+| Typed references (ADR-0010) | `test_server.py` | `obj_`/`run_` prefixes; a reference of the wrong kind refused by object tools, `get_run_summary` and `run_operation`; a Run records its result's `object_ref`; an evicted result is reported. These replaced the M0 characterisation tests that pinned the old, untyped behaviour (#57) |
 | Tool execution | `test_tool_execution.py` | Every tool registered async; `render_object` on the main thread; `asyncio.run()` inside a tool under uvloop |
 | Concurrency | `test_worker_pool.py` | Pool bound across Sessions, per-Session share, env sizing and validation, worker returned on exceptions, single-flight tile and buildings downloads, cancellation |
 | Startup and catalogue | `test_catalogue_startup.py` | HTTP builds before serving, stdio on first use; build-once; failing Core sections and unreadable Core datasets stop the build, optional datasets are skipped; the dtcc-sim retrier and merge (never on a reader's thread, 30 s loop, copy-and-swap, non-blocking lock); real HTTP subprocess cases. An autouse fixture clears `DTCC_SIM_SERVICE_URL`/`DTCC_REMOTE_SERVICES` and merge state, and the `dtcc_sim` fixtures work whether or not it is installed |

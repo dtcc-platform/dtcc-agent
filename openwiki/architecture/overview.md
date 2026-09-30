@@ -19,7 +19,7 @@ sources:
 generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-27T19:28:40.080Z
+    at: 2026-09-30T14:41:08.402Z
 ---
 
 # Architecture overview

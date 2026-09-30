@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1321b39b4c90013425da2d01548a439b8071693fdf34793193a0fb3eee675bec",
+  "pageVersion": "sha256:cb2e84de8abdab949a53fa30b770b8c44b675941f3a268f2c31201e30ccebe97",
   "claims": [
     {
       "id": "claim_7f9ee33d42b74fec93893f659cb039d8",
@@ -115,10 +115,20 @@
           "version": "repo-lines-v1:sha256:b08b9f9a7485f220538a955e9108c453dbb8bc4d6bf0d6293d369c9a233ca127:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTI4NWM3YjAyZjllNTM3ZjA2NzkyZjVhYzgzNDgxZGFlM2VmMmM4MmRlYmM0N2JhYTU4M2Y2YjlhMzBmMmFlYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmQzOWVhZjc3NTlmOWU3ZWQwYmMxMTMzMmI0N2I2M2IyYTYwNDgwMzBhNTM1MDZmZGQ2YThmMTQ1YjJlNmNkNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjk1ZjIwMjUyZWFlODk0ODVmNTM2ZDBjYjEwMzQ3NGVjNWFiMjJjMzk5MDFiZjFkMWY5ZTA0ZWYwNmY5ZjM4NiJ9"
         }
       ]
+    },
+    {
+      "id": "claim_bd2df7cf0f034702b0e68ebecb28a488",
+      "statement": "The README checks CLAUDE_CODE_OAUTH_TOKEN's shape without printing it, using a POSIX case test run on the host and inside the container through docker compose exec; it flags an empty or whitespace-containing value and a missing sk-ant-oat01- prefix.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L155-L185",
+          "version": "repo-lines-v1:sha256:5e982689a63fdcc717f58beb57dc0d96169e7185a86852d247e8777c4eedcc72:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1YThhNzVjYTYzNjBhYjIyZmEwNTg2NWM2NzZiNmYwZTg2MDA0NDhjYmM0ZTA2ZjFlN2IyODYxMmY4ZjQ1OTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjODE2NGFmODU1OTgyNjljZDgyNTA5NzY0Njk3MGRmY2M2Yjk1YWJhOGU0ODg5ZmY0NTc2YWIzMDFhMDliMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjNTNkN2M3ZWZmMGQyYTczNTU5OWE4YzNhNTQ1MDBiOWZiNzQ1ODY4ZjMwNWZjNTA4ODA3ZWY3ZmZjNGJmMjYifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-29T19:33:34.851Z"
+    "at": "2026-09-30T14:41:08.402Z"
   }
 }

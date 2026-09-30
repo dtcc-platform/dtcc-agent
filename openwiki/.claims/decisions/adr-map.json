@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e54fd57fbe6dce7f3839cb58a778f90dbe0b230148e3dbba9f14f73adf618fe0",
+  "pageVersion": "sha256:e2542ad6d464b2cdb216e764bef10570457dcaa1854b07682f6fb9122c2d7680",
   "claims": [
     {
       "id": "claim_9da995f22fc3412c950955bd53d0117c",
@@ -83,10 +83,28 @@
           "version": "repo-file-v1:sha256:d11b8d201e680d891b4191f5332eef9b191f07da1161c9e3bec40b155881adde"
         }
       ]
+    },
+    {
+      "id": "claim_666486d20de643d1a37ff85e988d7093",
+      "statement": "ADR-0010 has landed: references are minted as obj_ or run_ plus 8 hex characters in refs.py, a reference of the wrong kind is refused, and a Run records its result's object_ref and keeps no copy of the result (the U6 decision recorded in the ADR).",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0010-references-are-typed-and-a-run-records-its-object.md#L51-L60",
+          "version": "repo-lines-v1:sha256:6112c319f4ed35069d0d7645ec7a9282e0aac1dc083602a1a4b60de369d04f1b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhYjNjYzhkMDlkODllMWIwZDNiMjQzZjcyYzUzODRlZDVjMjc3NjY5OGQyMjk4ZmNhMzZiOTQwYWY1MGVjYTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllMmZlM2Q4YTFiMzhjZWFhNTljYjkyZTRkY2RjOTQ2MWY5MGRhMzExOTI1ODc3NGRlNTEyMDhkZWQzNWVhMGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0NzJlOTIwZmJjODM0YWExNzM3OTNhYTliZmUwOGVkZWZiMTIwNTEyMjU5OWY4ZTZiNTk4Zjg3ZmQ3MDk4ZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/refs.py",
+          "version": "repo-file-v1:sha256:316651d35af7a0538378cd7465617f9caa2b5bfd8cbc7286718ee720fd449c23"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L251-L268",
+          "version": "repo-lines-v1:sha256:f54123714630a6d652ffd7204895c0494658444e9d88437a1b9dfecc11617668:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzllNDM4MDI5MTFmODBhMjgwODM0NTYwZTk1ZGI3OTcyODI3YzBiYjdmZmU4MmI2NjFjNDRkYjI4ZDY5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NWMxMzZmYzhlNzZlZDg3YzQ2MDY0NTE2MGRkNDM1YWJhNjk4ZjcwNDY0ZmMzYTI1MzJmYWE0ZjNjZjYxZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMGFlZTA4OTg1ZDNiOTkwMjRiOGQ5ZGJjY2RiNjU0MWI0OGUyNWRjMGEyYWQ2NjI3ZDZjMGQ2YTUwMjQ4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmYWIyZmQxYTk1NmYzYmMxMGM0MzhiNTc0Y2VmODY1MWYzZjI4ZWQ5OGRlNzUzOWJkZTg0YzIzYTNjNDRmMDkifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-27T19:28:40.080Z"
+    "at": "2026-09-30T14:41:08.402Z"
   }
 }

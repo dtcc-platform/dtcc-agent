@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5f7abfef2e204f5eb50bb76b94b9c19fcb5c2b2c6b0a20fe029c03aa42745c00",
+  "pageVersion": "sha256:0a39b63b984385fd7bed5b095f34f797609770daca8c66ea040f3f277454593c",
   "claims": [
     {
       "id": "claim_91287ccec02148c08a9c50ef7e5ba64c",
@@ -31,12 +31,12 @@
       "statement": "render_object is registered with main_thread=True so it runs on the event loop (main thread), as GLFW requires, outside the worker pool.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/server.py#L821-L828",
-          "version": "repo-lines-v1:sha256:65865f13a693017c6742c8c658d767610f81300e0058eacb132d23377d44c4fc:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA0ZjYyY2Y2NzhjZTUxZjY5N2M0N2U3YjExN2M2MGJkZmQzNzg0OTc2YzMwMTJmMzliMDAwMmE4OWY3OTMyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmUyYTMxOTI1NjYyZmMyNzc4YTA1ZjYzZTNkY2EzNTUyMWMzMzdhZDhjZWU2NjA4MjQxNmU5YWUzMjIxNGU3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTM1OGNkNmJhMDY5ZjhhOGUwZDA1ODNmMWY3NGFlMjVjNDczOGFlNjllMmMwYzY1N2NjNjE5NGY1OTNhNjlkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjFmYjFjOGQ3YzUwZTZlMGMxOWE3MDFmMzMyNTFmMmJkM2RlMDQ3NGMzODBiOTllMDJiMjQwYTI4ZDBkYmRjOCJ9"
+          "resource": "repo://dtcc_agent/server.py#L871-L875",
+          "version": "repo-lines-v1:sha256:854e96c78f1a54f2857c41fa37011c6f0642756f4b963d840e68bc3b41344407:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjhhMTkxZmNiNTM3ZmJjMDU1NDk0ZWJmYTY1NTU5NTVhNDJmZDQyNzBjOTRkZDNlNjIxMjg5ZjM2NzJlNjg3ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVmNDI4MDg4NjBkMmU0MjFjZDcyNWE0ZjIxNjlhOTRmNDVlMTI1ZjM2ZDAyOTk4MzZhNDc2ZGFkNGFlY2YwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmU0ZWUyMTIwMzBhMWNlYmIyMTEyZDdhYjM1NzUxZDZjY2Q5ZWMyNmYzYWYzMjlmYzdmMDBiOTA5YmRhMjI0MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGVmOTM2YzEzZjRiYTJjNDU5NmYzZmJjNGUyNWM2YjdiNzIxZmJkN2U2ZTQ5OGE1NjFiNDU1NjAxNmM5Y2QxZiJ9"
         },
         {
           "resource": "repo://tests/test_tool_execution.py#L33-L52",
-          "version": "repo-lines-v1:sha256:0ef49c90b59f0d22ae586a01d19b783564b8e2372664f2cba9dfc1b83c188ca3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MmZhNTFiNjViMmZkNjdhZjkxYTI2NWFiNjZkYWIzMWI4OThjOGRkODRmZDY5OTA4Y2Y5YWJmYzhiNDQ0NDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwZGRlYWE1ZGQ5MTgwODVlZmJiOTRlNWFlZTY1ZGYzYjJkMjE1ODA2YTc0NTRjOWQ2ZGRhNWZiMmVjNGRhY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjNDFlN2I4YTAwMGJiNzZiOTYyZDFiNzBhZWVmZmJlNzNkNmNiMGZlYzVhNGVmMmMzN2I2N2M0ODgzNDBjYzEifQ"
+          "version": "repo-lines-v1:sha256:b1a6be06bf6572c0808726400a30065f7ec12e7cdfa938f2d150691e271e82fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MmZhNTFiNjViMmZkNjdhZjkxYTI2NWFiNjZkYWIzMWI4OThjOGRkODRmZDY5OTA4Y2Y5YWJmYzhiNDQ0NDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwZGRlYWE1ZGQ5MTgwODVlZmJiOTRlNWFlZTY1ZGYzYjJkMjE1ODA2YTc0NTRjOWQ2ZGRhNWZiMmVjNGRhY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjNDFlN2I4YTAwMGJiNzZiOTYyZDFiNzBhZWVmZmJlNzNkNmNiMGZlYzVhNGVmMmMzN2I2N2M0ODgzNDBjYzEifQ"
         }
       ]
     },
@@ -95,10 +95,24 @@
           "version": "repo-lines-v1:sha256:cd38db55d7d879e1708db7a57851c6f0fb117674314776a113c113249145f821:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJlOThjOTMwODE4NGFlMjQ2ZjZmNDU2ZGY3YjBlN2JmNmM3NzBhMjAxNmEzNjI5ZTc1MmQyNjJlYmI3Mjk4NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDdlMDBiY2FmZWJmZmJhODYyYmZlOTdiNjJjMDBkNzAzNjc2NjEzZmIxYjZjMGE2NTUxMTkyZjFhOGEyOWEwZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjk2ZTA5ZjU0YjYyNTkwNDY0YzkzYmM0M2QzOGU3MGMwM2YzMDkwMGY0M2VkM2VkZTNlMzNlM2QwZmYxZDIzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
+    },
+    {
+      "id": "claim_7f30a97dcdf148cab9c0a39e467044a1",
+      "statement": "Object tools resolve their reference through the _object helper and run tools through _run_record; a reference of the other kind is refused as the wrong kind and an unknown one is reported not found, both as JSON error payloads.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/refs.py",
+          "version": "repo-file-v1:sha256:316651d35af7a0538378cd7465617f9caa2b5bfd8cbc7286718ee720fd449c23"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L271-L292",
+          "version": "repo-lines-v1:sha256:8aadef02e012206c868091620c22c63bf722bfea2e3b8a42fd1f1eaf820b598f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMDYzNDc5YzM4NTgwOGVkNDNiZjc0OTkxMjcxNTIwMTM3NWFlMzBkYzJiNTFjYzE2NWE2MWI1MWYwMGIxYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiMDliNTI2M2RmMzllNTZmMTg2YzdhZDRiOGJjYTdlZTBiN2FjYTY0YWNjNWU4OGU1OWIxZjc0MjY5N2QxYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlODg3MjE3NzIyN2I4NTg4YWNlNmQ2ZjNhNmIxMWU5NWQ2ODBiZTZhMTlhZWQ3ZmZkMDFlNjdkZDdjY2EwZjEifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-29T13:24:05.367Z"
+    "at": "2026-09-30T14:41:08.402Z"
   }
 }

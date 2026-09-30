@@ -5,8 +5,10 @@ description: How dtcc-agent registers its MCP tools, runs each call in a bounded
 tags: [mcp, server, concurrency, transport, startup]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-29T13:24:05.367Z
+    at: 2026-09-30T14:41:08.402Z
 sources:
+  - id: openwiki-source-d8839a242913c8f59a48c041
+    resource: repo://dtcc_agent/refs.py
   - id: openwiki-source-4163f0ea9e6726ccca521458
     resource: repo://dtcc_agent/registry.py
   - id: openwiki-source-e23a39a8942c83ff4b942657
@@ -19,7 +21,7 @@ sources:
     resource: repo://tests/test_tool_execution.py
   - id: openwiki-source-fa7af1493a897412d61af4b0
     resource: repo://tests/test_worker_pool.py
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
 ---
 
 # MCP server and tool execution
@@ -40,6 +42,10 @@ For each call `run_bound`:
 4. Always resets the ContextVar and releases the Session's in-flight count, including when the body raises.
 
 Why a thread at all: FastMCP would call a sync tool directly on the event loop, where dtcc-core's internal `asyncio.run()` (LiDAR and GeoPackage downloads) raises, and one slow tool would stall every other Session.
+
+## Typed references in tool parameters
+
+Tools that act on stored values take typed references (ADR-0010): `object_ref` (`obj_…`) for an Object in the Session's store and `run_ref` (`run_…`) for a simulation Run. Object tools resolve their argument through one helper, `_object`, and the run tools through `_run_record`. A reference of the other kind is refused with a message naming the tool to use instead, and an unknown one is reported as not found; both come back as a JSON error payload, never as an exception. See [Dispatch and the object store](../concepts/dispatch-and-object-store.md) and [Simulations](../workflows/simulations.md).
 
 ## Two capacity limits
 
