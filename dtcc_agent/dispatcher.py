@@ -134,6 +134,15 @@ def run_operation(
         op = get_operation(name)
     except KeyError as exc:
         return {"error": str(exc)}
+    # No path from chat reaches the filesystem (U1, #10). An operation that
+    # requires a path is refused outright; an optional one only when given.
+    for p in op.params:
+        if p.is_path and (p.name in params or p.default is inspect.Parameter.empty):
+            return {"error": (
+                f"Refused: {name} takes a file path ({p.name}), and chat cannot "
+                "read or write files directly. Use export_object to give the "
+                "user a file, or load_geojson for dtcc-sim results."
+            )}
 
     # --- Disk cache check ---
     if cache and name in CACHE_ALLOWLIST:

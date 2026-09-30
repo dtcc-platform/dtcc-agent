@@ -13,8 +13,8 @@ from pathlib import Path
 # when the chatbot is started from within a Claude Code terminal.
 os.environ.pop("CLAUDECODE", None)
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from claude_agent_sdk import (
@@ -33,6 +33,7 @@ from claude_agent_sdk import (
 from chatbot.config import SYSTEM_PROMPT, get_mcp_server_config, DEFAULT_HOST, DEFAULT_PORT
 from chatbot.memory import ConversationMemory
 from chatbot.sessions import SessionManager
+from dtcc_agent import artifacts
 
 # --- Logging setup: file + console ---
 _log_dir = Path(os.getenv("DTCC_AGENT_LOG_DIR", "/tmp/dtcc_lurkie_logs"))
@@ -56,11 +57,6 @@ app = FastAPI(title="DTCC Lurkie")
 sessions = SessionManager()
 memory = ConversationMemory()
 
-# Serve rendered images from dtcc-agent
-_renders_dir = Path(os.getenv("DTCC_AGENT_RENDERS_DIR", "/tmp/dtcc_screenshots"))
-_renders_dir.mkdir(exist_ok=True)
-app.mount("/renders", StaticFiles(directory=str(_renders_dir)), name="renders")
-
 # Serve static frontend files
 _static_dir = Path(__file__).parent / "static"
 _static_dir.mkdir(exist_ok=True)
@@ -78,6 +74,43 @@ async def index():
             status_code=200,
         )
     return HTMLResponse(html_path.read_text())
+
+
+@app.get("/artifacts/{session_id}/{name}")
+async def artifact(session_id: str, name: str):
+    """A file a tool produced, served only while its Session is live.
+
+    The URL is the credential until T14 brings users: the Session id plus the
+    artifact's random token."""
+    path = artifacts.find(session_id, name) if sessions.get(session_id) else None
+    if path is None:
+        raise HTTPException(status_code=404)
+    headers = {"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"}
+    if path.suffix in artifacts.IMAGE_SUFFIXES:
+        return FileResponse(path, media_type="image/png", headers=headers)
+    return FileResponse(path, filename=artifacts.download_name(name),
+                        media_type="application/octet-stream", headers=headers)
+
+
+def _artifact_frame(session_id: str, content: object) -> dict | None:
+    """The frame that shows a tool result's artifact on the page, if it has one."""
+    if isinstance(content, list):
+        content = "".join(
+            part.get("text", "") for part in content if isinstance(part, dict)
+        )
+    try:
+        result = json.loads(content) if isinstance(content, str) else None
+    except json.JSONDecodeError:
+        return None
+    found = result.get("artifact") if isinstance(result, dict) else None
+    if not isinstance(found, dict) or not isinstance(found.get("name"), str):
+        return None
+    if artifacts.find(session_id, found["name"]) is None:
+        return None
+    url = f"/artifacts/{session_id}/{found['name']}"
+    if found.get("kind") == "image":
+        return {"type": "image", "url": url}
+    return {"type": "file", "url": url, "name": artifacts.download_name(found["name"])}
 
 
 @app.get("/health")
@@ -160,6 +193,8 @@ async def _stream_response(
                                 session_id, block.tool_use_id,
                                 content_str,
                                 "..." if len(str(block.content)) > 300 else "")
+                    if frame := _artifact_frame(session_id, block.content):
+                        await ws.send_json(frame)
                 else:
                     logger.debug("[%s]   UserBlock: %s", session_id, type(block).__name__)
 

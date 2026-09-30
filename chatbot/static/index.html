@@ -444,6 +444,17 @@
                     messagesEl.scrollTop = messagesEl.scrollHeight;
                     break;
 
+                case "file":
+                    if (!currentAssistantEl) {
+                        currentAssistantEl = addMessage("", "assistant");
+                        currentAssistantText = "";
+                    }
+                    // The server sends it as an attachment, so the link downloads.
+                    currentAssistantText += `\n\n[Download \`${data.name}\`](${data.url})\n\n`;
+                    currentAssistantEl.innerHTML = DOMPurify.sanitize(marked.parse(currentAssistantText));
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                    break;
+
                 case "done":
                     currentAssistantEl = null;
                     currentAssistantText = "";

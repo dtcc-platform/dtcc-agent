@@ -34,3 +34,10 @@ def test_mcp_server_config_carries_the_session_over_http(monkeypatch):
         "url": "http://mcp:8051/mcp",
         "headers": {"X-DTCC-Session": "s1"},
     }
+
+
+def test_mcp_server_config_names_the_session_over_stdio(monkeypatch):
+    # The stdio server writes artifacts under this Session's directory.
+    monkeypatch.delenv("DTCC_MCP_URL", raising=False)
+    config = get_mcp_server_config("s1")
+    assert config["dtcc-agent"]["env"] == {"DTCC_AGENT_SESSION": "s1"}

@@ -25,3 +25,21 @@ def test_remove_session():
     sid = mgr.create()
     mgr.remove(sid)
     assert mgr.get(sid) is None
+
+
+def test_an_expired_session_takes_its_artifacts_with_it(tmp_path, monkeypatch):
+    from datetime import timedelta
+
+    from chatbot import sessions as sessions_module
+    from dtcc_agent import artifacts
+
+    monkeypatch.setenv("DTCC_AGENT_ARTIFACTS_DIR", str(tmp_path))
+    manager = sessions_module.SessionManager()
+    sid = manager.create()
+    artifacts.new_path(sid, "obj", ".png").write_bytes(b"x")
+    manager.get(sid).created_at -= timedelta(seconds=sessions_module.MAX_AGE_SECONDS + 1)
+
+    manager.create()  # expiry runs on create
+
+    assert manager.get(sid) is None
+    assert not (tmp_path / sid).exists()

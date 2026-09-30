@@ -35,6 +35,8 @@ dependencies = [
   "httpx>=0.27.0",
   "pyproj>=3.6.0",
   "numpy",
+  # render_object draws with the Agg backend: no OpenGL or display (U9).
+  "matplotlib>=3.8",
   # server.py runs every tool in a worker thread via anyio (M1a/T4).
   "anyio>=4",
 ]

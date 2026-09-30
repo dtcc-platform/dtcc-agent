@@ -46,10 +46,18 @@ def _free_port() -> int:
 
 
 @pytest.fixture(scope="module")
-def server_url():
+def shared_dir(tmp_path_factory):
+    """Stands in for SHARED_RESULTS_DIR, the only place load_geojson reads."""
+    return tmp_path_factory.mktemp("shared")
+
+
+@pytest.fixture(scope="module")
+def server_url(shared_dir, tmp_path_factory):
     port = _free_port()
     env = {
         **os.environ,
+        "SHARED_RESULTS_DIR": str(shared_dir),
+        "DTCC_AGENT_ARTIFACTS_DIR": str(tmp_path_factory.mktemp("artifacts")),
         "DTCC_MCP_TRANSPORT": "http",
         "DTCC_MCP_HOST": "127.0.0.1",
         "DTCC_MCP_PORT": str(port),
@@ -78,10 +86,10 @@ def server_url():
 
 
 @pytest.fixture
-def geojson_file(tmp_path):
-    path = tmp_path / "points.geojson"
-    path.write_text(json.dumps(FEATURES))
-    return str(path)
+def geojson_file(shared_dir):
+    """A dtcc-sim result, named relative to the shared results directory."""
+    (shared_dir / "points.geojson").write_text(json.dumps(FEATURES))
+    return "points.geojson"
 
 
 def _call(url, session_id, tool, args=None):
@@ -108,7 +116,7 @@ def _ok(url, session_id, tool, args=None):
 
 
 def test_objects_are_invisible_to_another_session(server_url, geojson_file):
-    created = _ok(server_url, "session-a", "load_geojson", {"file_path": geojson_file})
+    created = _ok(server_url, "session-a", "load_geojson", {"name": geojson_file})
 
     assert _ok(server_url, "session-b", "list_objects")["num_objects"] == 0
     other = _ok(server_url, "session-b", "inspect_object", {"object_ref": created["object_ref"]})
@@ -118,7 +126,7 @@ def test_objects_are_invisible_to_another_session(server_url, geojson_file):
 def test_objects_survive_into_the_next_connection_of_the_same_session(
     server_url, geojson_file
 ):
-    created = _ok(server_url, "session-c", "load_geojson", {"file_path": geojson_file})
+    created = _ok(server_url, "session-c", "load_geojson", {"name": geojson_file})
 
     # A fresh MCP connection, as the chatbot opens for its next message.
     listed = _ok(server_url, "session-c", "list_objects")
@@ -160,7 +168,7 @@ def test_the_http_transport_keeps_no_per_connection_state(server_url):
 
 
 def test_render_object_resolves_the_calling_session(server_url, geojson_file):
-    created = _ok(server_url, "session-r", "load_geojson", {"file_path": geojson_file})
+    created = _ok(server_url, "session-r", "load_geojson", {"name": geojson_file})
     args = {"object_ref": created["object_ref"]}
 
     # Found (a GeoJSON dict is not renderable), not "not found".
@@ -170,12 +178,14 @@ def test_render_object_resolves_the_calling_session(server_url, geojson_file):
     assert "not found" in other["error"]
 
 
-def test_stdio_serves_one_local_session_without_a_header(geojson_file):
+def test_stdio_serves_one_local_session_without_a_header(geojson_file, shared_dir):
     async def run():
-        params = StdioServerParameters(command=sys.executable, args=["-m", "dtcc_agent"])
+        env = {**os.environ, "SHARED_RESULTS_DIR": str(shared_dir)}
+        params = StdioServerParameters(command=sys.executable, args=["-m", "dtcc_agent"],
+                                       env=env)
         async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
             await session.initialize()
-            created = await session.call_tool("load_geojson", {"file_path": geojson_file})
+            created = await session.call_tool("load_geojson", {"name": geojson_file})
             listed = await session.call_tool("list_objects", {})
             return json.loads(created.content[0].text), json.loads(listed.content[0].text)
 

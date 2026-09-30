@@ -13,7 +13,6 @@ import threading
 import pytest
 
 import dtcc_agent.dispatcher as dispatcher
-import dtcc_agent.renderer as renderer
 import dtcc_agent.server as server
 
 def _run_on_uvloop(coro):
@@ -28,27 +27,6 @@ def test_every_tool_is_registered_async():
     tools = server.mcp._tool_manager.list_tools()
     assert tools
     assert [t.name for t in tools if not t.is_async] == []
-
-
-def test_render_object_runs_on_the_main_thread(monkeypatch):
-    # GLFW must create its window on the main thread; on macOS doing it
-    # anywhere else aborts the whole process.
-    seen = {}
-
-    def fake_render_to_file(**kwargs):
-        seen["thread"] = threading.current_thread()
-        return "/tmp/render.png"
-
-    monkeypatch.setattr(renderer, "render_to_file", fake_render_to_file)
-    monkeypatch.setattr(server, "_local_session", server._Session())
-    object_ref = server._session().objects.store([], source_op="test")
-
-    content, _ = asyncio.run(
-        server.mcp.call_tool("render_object", {"object_ref": object_ref})
-    )
-
-    assert "error" not in json.loads(content[0].text)
-    assert seen["thread"] is threading.main_thread()
 
 
 def test_a_tool_whose_core_call_uses_asyncio_run_succeeds_under_uvloop(monkeypatch):

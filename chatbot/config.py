@@ -80,5 +80,7 @@ def get_mcp_server_config(session_id: str) -> dict:
             "type": "stdio",
             "command": os.getenv("DTCC_AGENT_PYTHON", sys.executable),
             "args": ["-m", "dtcc_agent"],
+            # Names the Session's artifact directory (dtcc_agent/artifacts.py).
+            "env": {"DTCC_AGENT_SESSION": session_id},
         }
     }

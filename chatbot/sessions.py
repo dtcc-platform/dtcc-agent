@@ -6,6 +6,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from dtcc_agent import artifacts
+
 
 MAX_AGE_SECONDS = 3600  # 1 hour
 
@@ -52,8 +54,9 @@ class SessionManager:
             session.sdk_session_id = sdk_session_id
 
     def remove(self, session_id: str) -> None:
-        """Remove a session."""
+        """Remove a session and the files it produced."""
         self._sessions.pop(session_id, None)
+        artifacts.remove_session(session_id)
 
     def _cleanup(self) -> int:
         """Remove sessions older than MAX_AGE_SECONDS. Returns count removed."""
@@ -64,5 +67,5 @@ class SessionManager:
             if (now - s.created_at).total_seconds() > MAX_AGE_SECONDS
         ]
         for sid in expired:
-            del self._sessions[sid]
+            self.remove(sid)
         return len(expired)
