@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-09-29.
+Last updated: 2026-09-30.
 
 ---
 
@@ -14,7 +14,7 @@ Last updated: 2026-09-29.
 
 | When | What | Status |
 |---|---|---|
-| 2026-09-30 | dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone ([#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)) | 🔍 |
+| 2026-09-30 | dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone ([#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)) | ✅ |
 | 2026-09-30 | A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry ([#58](https://github.com/dtcc-platform/dtcc-agent/pull/58), fixes [#44](https://github.com/dtcc-platform/dtcc-agent/issues/44)) | ✅ |
 | 2026-09-30 | References say what they name (`obj_…`, `run_…`), a wrong one is refused, and a run hands back its result's reference ([#57](https://github.com/dtcc-platform/dtcc-agent/pull/57), T9, fixes [#26](https://github.com/dtcc-platform/dtcc-agent/issues/26)) | ✅ |
 | 2026-09-30 | After a dtcc-core upgrade the disk cache starts cold instead of loading the old Core's objects ([#56](https://github.com/dtcc-platform/dtcc-agent/pull/56), T12, fixes [#27](https://github.com/dtcc-platform/dtcc-agent/issues/27)) | ✅ |
@@ -45,7 +45,7 @@ Last updated: 2026-09-29.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
 ### dtcc-core moved to `bb95f2f`, with the three fixes we reported; the agent's stopgaps for two of them are gone · 2026-09-30 · [#59](https://github.com/dtcc-platform/dtcc-agent/pull/59)
 
@@ -69,10 +69,6 @@ run Core's own `register_remote_service` with only the HTTP reply faked, so they
 later pin brings either bug back. A live Lindholmen run gives the same buildings as before, and
 the same from the cache as from a fresh download: 13 of 127 on LM, 12 of 138 on OSM. 343 tests
 pass (one test covered a case Core's all-or-nothing registration makes impossible).
-
----
-
-## ✅ Merged
 
 ### A half-broken dtcc-sim service no longer leaves a new stray dataset behind on every retry · 2026-09-30 · [#58](https://github.com/dtcc-platform/dtcc-agent/pull/58)
 
@@ -522,6 +518,7 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 | Decision | Blocks | Status |
 |---|---|---|
 | U3: where once-per-process startup lives ([#12](https://github.com/dtcc-platform/dtcc-agent/issues/12)) | T8, T10, T11 | ✅ Decided 2026-09-24: at process startup, not in FastMCP's per-session hook |
+| U6: who owns a simulation result, the run or the stored object (rebuild plan) | T9 | ✅ Decided 2026-09-30: the stored object owns it; the run keeps its reference (ADR-0010, #57) |
 | U1: how far the filesystem boundary goes ([#10](https://github.com/dtcc-platform/dtcc-agent/issues/10)) | T7 | ⏳ |
 | U2: fix the cache keys, or turn builder caching off ([#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | T6 | ⏳ |
 | U4: how accurate the memory budget must be ([#13](https://github.com/dtcc-platform/dtcc-agent/issues/13)) | T11 | ⏳ |
@@ -533,10 +530,14 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 1. **The rest of M1a:** split the cache (T6), per-session
    file folders (T7), the memory budget (T11),
    and the two-service container (T13).
-2. **M1b:** typed references, where a run and its object stay linked (T9), and cache
-   versioning (T12).
+2. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
+   versioning (T12, #56).
 
 ## For discussion with the team
+
+- **Cropped building cache at the edge** (#49). Two rare cases where a cropped cached area
+  counts one building more at its edge than a fresh download. Options: a Core change that keeps
+  source ids or geometry, treating edge hits as cache misses, or wontfix.
 
 - **Who may reach the MCP server** (U11, #15). This decides whether the session id alone is
   enough, and what host names the deployment allows.
