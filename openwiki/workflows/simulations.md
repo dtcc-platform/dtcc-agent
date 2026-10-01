@@ -14,12 +14,14 @@ sources:
     resource: repo://dtcc_agent/serializers.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
+  - id: openwiki-source-29ca6b9056d85782f4a180b6
+    resource: repo://tests/test_memory_budget.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
-generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:41:08.402Z
+    at: 2026-10-01T20:29:16.810Z
 ---
 
 # Simulations, runs and geocoding
@@ -87,10 +89,11 @@ Only `urban_heat_simulation` and `air_quality_field` are treated as simulations 
 
 `analysis.summarize_field` drops non-finite values and reports min, max, mean, std, median, the 5th and 95th percentiles, and the count. `compare_fields` requires equal value counts, meaning the same mesh; otherwise it returns an error. The field name is inferred as `temperature` or `concentration`.
 
-**Run bookkeeping.** `_store_result` stores the result as an Object in the Session's ObjectStore (labelled with the Run reference), then records the Run in the Session's `results` under a new `run_…` reference: `{simulation, bounds, parameters, object_ref, timestamp}`. The Run keeps no copy of the result. The Object owns it (U6, decided 2026-09-30, ADR-0010), so the ObjectStore's byte budget governs simulation results and evicting the Object frees the memory. `get_run_summary` reads the result through the Run's `object_ref`; once that Object has been evicted or deleted it reports that the result is no longer in memory and asks for `run_simulation` again. Runs are per Session. See [Sessions and isolation](../architecture/sessions-and-isolation.md) and [Dispatch and the object store](../concepts/dispatch-and-object-store.md).
+**Run bookkeeping.** `_store_result` stores the result as an Object in the Session's ObjectStore (labelled with the Run reference), then records the Run in the Session's `results` under a new `run_…` reference: `{simulation, bounds, parameters, object_ref, timestamp}`. The Run keeps no copy of the result. The Object owns it (U6, decided 2026-09-30, ADR-0010), so the ObjectStore's byte budget governs simulation results and evicting the Object frees the memory. A result larger than the Session may hold is not stored: the Run is still recorded, with `object_ref: null`, and the tool's answer carries the summary and a `not_stored` note (U4). A Session keeps its last `MAX_RUNS = 100` Runs; older ones are dropped, oldest first. `get_run_summary` reads the result through the Run's `object_ref`; once that Object has been evicted or deleted it reports that the result is no longer in memory and asks for `run_simulation` again. Runs are per Session. See [Sessions and isolation](../architecture/sessions-and-isolation.md) and [Dispatch and the object store](../concepts/dispatch-and-object-store.md).
 
 ## Tests
 
 - `tests/test_analysis.py` covers statistics, NaN handling and size mismatch.
 - `tests/test_geocode.py` covers the hardcoded fallbacks offline and Nominatim under the `external` marker.
 - `tests/test_server.py` covers the Run tools' error payloads and Run/Object id characterisation.
+- `tests/test_memory_budget.py` covers an oversized simulation result still getting a Run, and the Run cap.

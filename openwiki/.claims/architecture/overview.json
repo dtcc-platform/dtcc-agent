@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bfd9d62b1e097e15da97db9d2ef1dbdfd374e2ffadad938a603053f0ecc64b2b",
+  "pageVersion": "sha256:1237857258b6c03653477b9d69d52dc9dc9d06678f56166f08e75dcbf40dfc33",
   "claims": [
     {
       "id": "claim_b19ba07e1e2842748016f689ceb73672",
@@ -16,7 +16,7 @@
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
+          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
         }
       ]
     },
@@ -53,10 +53,20 @@
           "version": "repo-lines-v1:sha256:2c49b2368713d261b448de09dc3b15e4416cd3852f687be6702e344512a3db01:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3MjI5ZWRjOTA0ZDgxNzA0NGE5MjI2YWE5NzVlOTdhZWU0MmI2OGNjZWQxMWY5YjM1OThjZDQ4ODgyNzg2YjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiMDIxY2NkYjI5OGU4MzA3NWZlMGIxMGRmNWFmNjQ3OWQ4YmUzNjg4NTI4YzdmOThkNTRmMGM5MTRlNjJlMTcifQ"
         }
       ]
+    },
+    {
+      "id": "claim_89e5c3c50ec0498caa28f2cf5b0ca361",
+      "statement": "docker-compose.yml runs the MCP server and the chatbot as two services from one image; the MCP server binds 127.0.0.1:8051 without publishing it, and the chatbot shares its network namespace and the /data volume.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml",
+          "version": "repo-file-v1:sha256:d90a037d27f7becd506caca20284393874e721a6b88cc59f8ee15ebc16f93f68"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-30T14:41:08.402Z"
+    "at": "2026-10-01T20:29:16.810Z"
   }
 }

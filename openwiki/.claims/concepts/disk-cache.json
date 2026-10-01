@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e392846fabba3cccd27181bf18d57e89e362038abce85595100ef0e930b903a4",
+  "pageVersion": "sha256:62ee2453e780fc751ca157353f60abd2e53f03325343a30c85e8d179255ef3c3",
   "claims": [
     {
       "id": "claim_5a40abeabd6f4532b7c31d8cb7e35e3d",
@@ -22,15 +22,15 @@
     },
     {
       "id": "claim_0d7a14db9eb1430991ea565420791013",
-      "statement": "Only operations in CACHE_ALLOWLIST are cached: two bounds-keyed downloads (datasets.point_cloud, datasets.buildings) and four builder operations; builder.raster.slope_aspect is not among them.",
+      "statement": "Only the two operations in CACHE_ALLOWLIST are cached, the bounds-keyed downloads datasets.point_cloud and datasets.buildings; no builder operation is cached.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/disk_cache.py#L59-L66",
-          "version": "repo-lines-v1:sha256:a59216510dcbb198cc244989aa5350e0b2774931da38bdf502415915799e48e3:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ0YjBhMjczZjc3ZmMzYjIxNTg0ZWRlYzVjNGRlZDMyNTE1ZmI1NTBkNWU3NzM0OTY2MGNlMDZiNzNlNmQ2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODU4MGI3NjUxOGRhZTk3OWZhZWJkMDIzNjdhMjkyOTJhNTBkOTc2MDkyMjUxYTM4YTZjZTMwODgwYmE0MjgyNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmVmMzZjY2Y4MDk5ZDgxY2U5N2FlNDgzODM5OGFlOWE0ZWQzODIyNDBjYTc0ODcyMzk1MTJmMjdhY2ZkMGRkNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzM4YzQzMjY4Y2JiMzM0YjI2OTg0YzdjZjVhZmYyMzBlMjE1NmVhMjBlYmMxNDQyNjdlMTY0OTY5NjQwZWRiMCJ9"
+          "resource": "repo://dtcc_agent/disk_cache.py#L61-L64",
+          "version": "repo-lines-v1:sha256:29ab1a0cf155ddf3cb6a592ebafc7ed0160fbe5b0c08f049ba3985c93551485f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ0YjBhMjczZjc3ZmMzYjIxNTg0ZWRlYzVjNGRlZDMyNTE1ZmI1NTBkNWU3NzM0OTY2MGNlMDZiNzNlNmQ2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODU4MGI3NjUxOGRhZTk3OWZhZWJkMDIzNjdhMjkyOTJhNTBkOTc2MDkyMjUxYTM4YTZjZTMwODgwYmE0MjgyNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDJiZmM4ODYzM2FkZDI4YjhkZGJjMjY1OTY2YTVmYjIzZjY5NWYwN2Q4Njg0ZDVjZjNkMWRiODdlYTQ5M2U0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTZjZDMxYjE2YjliMzAyYmMzY2M4NWFmMTI3ODEyMzI2N2Q4MmI4MDM1MDA4N2ZlMjliMjdmNTNjNzI0M2E2NCJ9"
         },
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L137-L153",
-          "version": "repo-lines-v1:sha256:76c5fd5cc4574e1d44aadd38a5a447f1efd4d216c2dd8f3931ceaa999ed02751:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwN2FiZjZkZGE3YjU1OWM1NjAxZTU3NmQ3ZTlkYzJiNDRmYjhlYjhlODQ4ZTRkNzUwNzliNzllMWRhOTM1NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3YzE1NzZjY2FlNzcyZmYyMzI2N2MzNzU0ZWY0MTg0NzY3ZDQxNGY3OWU1MzA5M2JhZDg5ZTc1NjI1Njc2NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L150-L168",
+          "version": "repo-lines-v1:sha256:f1cd9d7d2167faf2a45ce6aae1b3b4b88ab2b86b8109f070c2fa5e6a5b2026f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjMDgyYjQzMDM4ZDk4NDcwMzBiYzA2MTRlNDFmNjJhYzRmY2ZkZWUwYWE0MzhiYzdmZTZhMWEzNzEyN2VlYmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlNjM3YmZhYTFhZjQwNjliNDY1Y2EwOTEzMDUyYmU3MzM1MzI3NTYzNjgzOGRjZTMwYjk1ODIwOWIwYzZkMTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyMWM0NWUzNTBiMDcwNzk1OWQ3YzhjNTZmNjVkNWUxYjc5ZGIzOTlkNjRmMTUzNDUxYmQzMTkwOTUyNzFkMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkYTM4NzMwZDkzMTA2YjhjODE2NWQ0NjI0ZDI4MjZhYjhmODhkZTM0ZWVkNzRmMWRmY2VkYmZmOTk1ZGNhOTAifQ"
         }
       ]
     },
@@ -49,40 +49,26 @@
       ]
     },
     {
-      "id": "claim_a973bd2ffd8044e79e81f40b33df80ed",
-      "statement": "Builder cache keys replace object-ref parameters with content_fingerprint, which hashes only type, source_op, nbytes and label metadata and never the object contents, so distinct inputs with equal metadata collide.",
-      "evidence": [
-        {
-          "resource": "repo://dtcc_agent/disk_cache.py#L69-L83",
-          "version": "repo-lines-v1:sha256:1884eeb0912ce8ed9aa6b5fa0eb0ca327754cacfc907119871d57c1594fd92bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZThlYTQwNDhiYzQyNDcwNWJjNzRjYzhkZGUyODBjZmFhZTdlNmQ5M2YzYjZhMmU0YWYyMDM1MGUxMmRmNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNjdjOGE4OWY2NGYwZDAyOTMzZDkwYjgxOWQxZjk5OGIzOGQzMjExMGMwZTE2MjVlOThiMDFjNGUzMWFkZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxMWNjMTVkMzcxNWM3MGZhYzk0MDVlYTg5ZmI2ZDExMjY1Y2VmYmYwYTBjZTg4MjU4NTAxMTQzMTNkM2ExNmIifQ"
-        },
-        {
-          "resource": "repo://dtcc_agent/dispatcher.py#L388-L426",
-          "version": "repo-lines-v1:sha256:4d93c1e8ac92f4a89b15c93d615522be5399e959393b915c17e4209cfd4131e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0NDZkYzhhMTY3NGVhZDI1OTU2ZWUwMTU0OWMxZjcyMDU0NDk5MmVjMjEyZGM5Y2IxYTQwZWNjNjEyNWNkZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmMTk1ZWYxMjhkZjJmZGU5YmViZTYzMWNhY2JkNWM3ZGMzMmIyZjE3NjFmMzVjNTQwMzkzMzE0MmQyNGE4MTUifQ"
-        }
-      ]
-    },
-    {
       "id": "claim_3a37486f603944079f9f82e801e7eb53",
       "statement": "Cache lookup and write failures are logged and never fail the operation.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L294-L310",
-          "version": "repo-lines-v1:sha256:4c29c4bfa11c4878ea9fb184bfd83532bc61c504045cc5c562cb1557f781c638:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1ZjE3M2YyMTkxOGViODU5NTI5NWVjYzUwYWRiNTJmNTg1MmVhOTYzZjhiNjhkODczZjc0YWI2YjY5MmMwYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYjE3MzJlNTQ2MjMzOTcwYTA1ODk3ZWExYjZhOGI1NDljYmYyODJmYjE1MzUwYTY2MmU4NGI3NzAxM2NiMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3YjM3YTVjNWEwMmE2ZDVkZjhjYjAzNmExNWM1MWVmYWI3ODQxYTAyZTJiZjVlOWVmODNlNjEyNjA1MDgwM2QifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L318-L331",
+          "version": "repo-lines-v1:sha256:6b1edef558f6ba191155087730a5401854d3f5a0725a434caa4a0dbcfb2d6ce5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1ZjE3M2YyMTkxOGViODU5NTI5NWVjYzUwYWRiNTJmNTg1MmVhOTYzZjhiNjhkODczZjc0YWI2YjY5MmMwYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYjE3MzJlNTQ2MjMzOTcwYTA1ODk3ZWExYjZhOGI1NDljYmYyODJmYjE1MzUwYTY2MmU4NGI3NzAxM2NiMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3YjM3YTVjNWEwMmE2ZDVkZjhjYjAzNmExNWM1MWVmYWI3ODQxYTAyZTJiZjVlOWVmODNlNjEyNjA1MDgwM2QifQ"
         },
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L428-L461",
-          "version": "repo-lines-v1:sha256:a8035af3c20d604776fdaf15bad453495116d9b649fc614d659ea11d10c00b01:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L410-L430",
+          "version": "repo-lines-v1:sha256:a98a45446a9f39157ea73bd5a604396a73173c5bc6ed427cc0941c3a47771e89:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNTRlNjI4NTI4NzM3YjY3OTE4YjI0OGU3NmU3ZThjOGU2ZTkwNzhkYmU3NjU3MjA3YWIwZTkyZjk3OTU2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
     {
       "id": "claim_6e7a3867a6b74aa89ed918ea9b5eff49",
-      "statement": "The dispatcher only writes single-object results (an object_ref) to the disk cache; tuple and primitive results are skipped.",
+      "statement": "The dispatcher only writes single-object results (an object_ref) to the disk cache; tuple, primitive and too-large-to-keep results are skipped.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L428-L445",
-          "version": "repo-lines-v1:sha256:240e09e3aa56d688a34f7dd5a26f51fe5e9bcae9fc16f3c3dccf1b2edc4f8775:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYTVjNjZlMTdiMTQ1Mzk3ODM0YjhjODU0ZGM0MTkzZTIxMjUxODBhODk5NmExNGMzMTg4MzMyNmIyZWZiY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiZTUyZDc2Y2M0ZWRiMzg4OGRlNzAwMTQyNzYxZWVmNzc2NTlkMjdjOWNkYmQ4YmI2MWNlMDc1YzQwOWM3YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNDQ1ZGYyYjYwMGU1YWRmMDFlZDljYzEzMDRkMzNjN2QwZTUxNTg2NTdkZGMyNjEyMmM4YjgzYTBmY2FiZTIifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L410-L424",
+          "version": "repo-lines-v1:sha256:83485debcce93d5886e30be4697c9f8dc151219d7f211a6ae9d50964be1c96c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxMjFhNDcyZTY4NGI1YmMzODA3M2NkNTg1MDQwMzgzNWJhNGE1ZjBmNTQ4MTk0MjhlODRiYzc4MzQ2ZTU3MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNWM4MjYzMmZjODJkNGIyYzM0MGY0MjU1OGJhM2RmYTMxYzc2NTVkZjZmY2MxNjhiNGZkY2U1N2ZhYzYwNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2NTU5YzA2OWMxNzRiM2RkMmZhYjVjMmUyMDYwZDhjMTdmOGNlMDQxY2Q0NWRkYmU2MDMxMzNmODE2MGVkYTYifQ"
         }
       ]
     },
@@ -175,10 +161,24 @@
           "version": "repo-lines-v1:sha256:0ab55da2f2cd5c62e5c589a46c724a06954b3b90bd3c12ac88e21131c8c783f4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwYmZkNDBlNmNhNmI5NzZiYTQ4Y2Y3YTlhOGNmYmNlOTExM2U3Yzg1MTUxYzU1MTQ5NzQ4ZWY0Y2Y0YTZhNGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4N2Y2M2Q3YjFkYjA4NjA5ZDU2ZjBkMWQzMmJkNGYzZDZhNDg2YjA1MmI5YWY5ODQ0YTI1MDk2MGE0YmQzOGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkZGNkMzI0ZWUzYWNiZDI1MTM5ZTkyYzMzMTYyNGY3MGZiZjRiNWY5MTZmNWNkNGE4NDcyNGYwMWU2NWZhZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_183a984ba4af4b73a75ef9a3a10fb189",
+      "statement": "Each builder.* call is recorded to $DTCC_AGENT_LOG_DIR/builder_calls.jsonl with its operation, success, duration and a hashed would-be cache key that keeps bounds; nothing is written without a log directory and a recording failure only warns.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/builder_calls.py",
+          "version": "repo-file-v1:sha256:ea99a527b556f0257ca3eb2dc1a05cc54b62b3a680006b01dfa481d4d78e13ba"
+        },
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L159-L164",
+          "version": "repo-lines-v1:sha256:4cf5821bedfc7d586ca0708615b0dcda978b83d32aa5cbb2e09a9f0e92a3e300:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTljNzE0OTdjZmM4MmU2ZmUwZmZmZjBiMDYyMzY1ZWY0OTcxNTM4OGE2NTQ3Yjk3YTEzMDBmN2VlYTI4ZjAyZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGNlOTFmN2M1NTk5ZmQ2ZDZjMDVhNzY4ZmVhMzFjNTc2NGY0YWY3YjNhYWJjZDYwNTlkZmE4OTM4NTIzOWEzNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTc0OWE1ZWJiMTU1NWMzOTczOGI1YzMzMWUwYWVkMTJjNmU4MDExMzJmNjY2YzJlNDRlZGQ5ZDU0NDc3MTEyYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmIwOTdiNTQzMTA3ZGUyMWQyMmNkMjdhNjY5NTk2ZGI5OWRjYTk5ZTg4NzQ4YjlmMWU0NGEyZWI1M2QxNTRlZSJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-30T14:41:08.402Z"
+    "at": "2026-10-01T20:29:16.810Z"
   }
 }

@@ -6,6 +6,8 @@ tags: [architecture, overview, mcp, chatbot, dtcc-core]
 sources:
   - id: openwiki-source-d82fbc21a9f74516f7bfd0f8
     resource: repo://chatbot/app.py
+  - id: openwiki-source-b79fbbd921df689b4bbdc82f
+    resource: repo://docker-compose.yml
   - id: openwiki-source-322ab22151ae73c933ac2f97
     resource: repo://docs/adr/0001-agent-is-a-conversational-front-door.md
   - id: openwiki-source-7cb0fe42631b753a02cd6ba2
@@ -16,15 +18,15 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-05ccef8d4cf1698187f20464
     resource: repo://pyproject.toml
-generated: { by: "claude-code", at: "2026-09-27T19:28:40.080Z" }
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:41:08.402Z
+    at: 2026-10-01T20:29:16.810Z
 ---
 
 # Architecture overview
 
-dtcc-agent is the conversational front door to the DTCC platform (ADR-0001, accepted 2026-09-15). A person asks a question in their own words. An LLM turns it into a sequence of platform Operations, and the answer comes back as text and rendered 3D images.
+dtcc-agent is the conversational front door to the DTCC platform (ADR-0001, accepted 2026-09-15). A person asks a question in their own words. An LLM turns it into a sequence of platform Operations, and the answer comes back as text, rendered images and downloadable files.
 
 The repo ships two Python packages:
 
@@ -37,17 +39,19 @@ browser (chatbot/static/index.html)
    ▼
 chatbot/app.py ── Claude Agent SDK ── system prompt (chatbot/config.py)
    │  MCP (stdio child process, or streamable-http + X-DTCC-Session)
+   │                         ▲ GET /artifacts/<session>/<name> (files tools wrote)
    ▼
 dtcc_agent/server.py   @tool functions, worker pool, per-Session state
    ├── runtime.py       process-wide setup: catalogue build, worker limits
    ├── registry.py      catalogue from the pinned Core, plus dtcc-sim datasets
    ├── dispatcher.py    run_operation: resolve refs → call → store → summarise
-   ├── object_store.py  per-Session LRU of live objects
-   ├── disk_cache.py    persistent cache for downloads and builders
+   ├── object_store.py  per-Session stores under one shared memory budget
+   ├── artifacts.py     per-Session file folders; the only files tools read/write
+   ├── disk_cache.py    persistent cache for the two dataset downloads
    ├── serializers.py   type-specific summaries (never raw arrays)
    ├── runner.py        simulations: remote dtcc-sim service or in-process
    ├── geocode.py       place name → EPSG:3006 bounds
-   └── renderer.py      offscreen PNG via dtcc-viewer
+   └── renderer.py      PNG with matplotlib (Agg: no GL, no display)
    ▼
 dtcc-core (pinned commit) / dtcc-sim (optional, local or remote)
 ```
@@ -61,6 +65,7 @@ dtcc-core (pinned commit) / dtcc-sim (optional, local or remote)
 | What operations exist | `registry.py` | [Operation catalogue](../concepts/operation-catalogue.md) |
 | Running an operation and holding its result | `dispatcher.py`, `object_store.py`, `serializers.py` | [Dispatch, object references and serialization](../concepts/dispatch-and-object-store.md) |
 | Persistent caching | `disk_cache.py`, `crop.py` | [Disk cache](../concepts/disk-cache.md) |
+| Files in and out: renders, exports, path refusal | `artifacts.py`, `renderer.py`, `chatbot/app.py` | [Artifacts and the file boundary](../concepts/artifacts-and-file-boundary.md) |
 | Simulations, geocoding, runs | `runner.py`, `geocode.py`, `analysis.py` | [Simulations, runs and geocoding](../workflows/simulations.md) |
 | Web chat, memory, prompt | `chatbot/` | [Lurkie chatbot](../integrations/chatbot-lurkie.md) |
 
@@ -79,7 +84,7 @@ ADR-0007 keeps this generic dispatch in the agent, rather than waiting for a Twi
 
 ## Deployment modes
 
-- **Mini-service mode.** The chatbot and MCP server run in a light Python container (`Dockerfile`, `docker-compose.yml`). Simulations are delegated to a running dtcc-sim service over dtcc-core's remote dataset protocol, configured with `DTCC_REMOTE_SERVICES` or `DTCC_SIM_SERVICE_URL`.
+- **Mini-service mode.** `docker-compose.yml` runs two services from one image (T13): the MCP server over streamable HTTP, bound to `127.0.0.1:8051` and never published (U11), and the chatbot sharing its network namespace and its `/data` volume. Simulations are delegated to a running dtcc-sim service over dtcc-core's remote dataset protocol, configured with `DTCC_REMOTE_SERVICES` or `DTCC_SIM_SERVICE_URL`.
 - **Direct mode.** The server imports `dtcc_core` and `dtcc_sim` in-process. This needs the full scientific stack (FEniCSx/dolfinx and the TetGen wrapper).
 
 `runner.py` picks the path at call time: remote when a service URL is configured, local dtcc-sim otherwise.

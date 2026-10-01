@@ -5,7 +5,7 @@ description: How dtcc-agent registers its MCP tools, runs each call in a bounded
 tags: [mcp, server, concurrency, transport, startup]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:41:08.402Z
+    at: 2026-10-01T20:29:16.810Z
 sources:
   - id: openwiki-source-d8839a242913c8f59a48c041
     resource: repo://dtcc_agent/refs.py
@@ -17,11 +17,9 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-c0b62da1c8d12500b49cd428
     resource: repo://tests/test_catalogue_startup.py
-  - id: openwiki-source-a2a4605dd979138870606faf
-    resource: repo://tests/test_tool_execution.py
   - id: openwiki-source-fa7af1493a897412d61af4b0
     resource: repo://tests/test_worker_pool.py
-generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 ---
 
 # MCP server and tool execution
@@ -37,9 +35,8 @@ Every tool is a plain synchronous function decorated with `@tool` (or `@tool(...
 For each call `run_bound`:
 
 1. Resolves the calling Session from the HTTP request (see [Sessions and isolation](sessions-and-isolation.md)) and binds it into a `ContextVar`, so helpers like `_session()` find the right object store without it being passed around.
-2. If the tool is `main_thread=True`, calls it directly on the event loop.
-3. Otherwise computes an optional *flight key*, then enters the Session's worker share, then the flight lock, and finally runs the body on a worker thread with `anyio.to_thread.run_sync(..., limiter=runtime.workers)`.
-4. Always resets the ContextVar and releases the Session's in-flight count, including when the body raises.
+2. Computes an optional *flight key*, then enters the Session's worker share, then the flight lock, and finally runs the body on a worker thread with `anyio.to_thread.run_sync(..., limiter=runtime.workers)`.
+3. Always resets the ContextVar and releases the Session's in-flight count, including when the body raises.
 
 Why a thread at all: FastMCP would call a sync tool directly on the event loop, where dtcc-core's internal `asyncio.run()` (LiDAR and GeoPackage downloads) raises, and one slow tool would stall every other Session.
 
@@ -56,7 +53,7 @@ Tools that act on stored values take typed references (ADR-0010): `object_ref` (
 
 The per-Session share is acquired **before** the flight lock. A Session waiting for its own share therefore never holds a key another Session needs. `DTCC_MCP_WORKERS` is validated at import: anything that is not a whole number ≥ 1 raises `ValueError` naming the variable, so a misconfigured process never starts. The default is deliberately small: operations may deep-copy heavy inputs, and anyio's default of 40 threads would trade a capacity limit for an OOM kill.
 
-`render_object` is `main_thread=True`: GLFW must create its window on the main thread (on macOS anywhere else aborts the process), so it runs on the event loop and does not count against either limiter.
+Every tool, `render_object` included, runs on a worker thread under both limiters. Rendering used to be the exception (`main_thread=True`, for GLFW); since #63 it draws with matplotlib's Agg backend, which needs no display or main thread, and the option is gone. See [Artifacts and the file boundary](../concepts/artifacts-and-file-boundary.md).
 
 ## Single-flight downloads
 
@@ -67,7 +64,7 @@ Only downloads keyed by their parameters share a flight:
 - `run_operation` gets a key only for a `datasets.*` operation that is in `CACHE_ALLOWLIST` and has `bounds`; the key is `(dataset, source or "LM", normalised bounds)`.
 - `get_buildings` uses the same `("datasets.buildings", source, bounds)` key, so the direct tool and the generic operation never download one area at once.
 
-Builders are excluded on purpose: their cache key fingerprints input objects by metadata, which two different objects can share, so a shared flight could hand one caller another's result. Bounds are normalised to floats so `319700` and `319700.0` are the same tile.
+Builders get no flight: since #62 their results are not cached at all (U2), so a waiting caller would have nothing to read afterwards. Bounds are normalised to floats so `319700` and `319700.0` are the same tile.
 
 ## Transports and startup
 
@@ -83,7 +80,7 @@ The HTTP transport is stateless because the chatbot opens a new connection per m
 
 ## Tests that pin this behaviour
 
-- `tests/test_worker_pool.py`: the pool bound across sessions, the per-Session share, the local Session using the whole pool, bad env values, main-thread tools running while the pool is full, workers returned after exceptions, and the flight rules (one download per tile, waiting holds no worker, cancellation leaves nothing behind).
-- `tests/test_tool_execution.py`: every tool registered async, `render_object` on the main thread, `asyncio.run()` inside a tool body under uvloop, tools still directly callable.
+- `tests/test_worker_pool.py`: the pool bound across sessions, the per-Session share, the local Session using the whole pool, bad env values, workers returned after exceptions, and the flight rules (one download per tile, waiting holds no worker, cancellation leaves nothing behind).
+- `tests/test_tool_execution.py`: every tool registered async, `asyncio.run()` inside a tool body under uvloop, tools still directly callable.
 - `tests/test_catalogue_startup.py`: HTTP builds the catalogue before the app starts and keeps the inner lifespan's state; a broken catalogue stops the HTTP app (also checked with a real subprocess); stdio serves without building it.
 - `tests/test_server_import.py`: import smoke tests; guards the `mcp<2` upper bound, since mcp 2.x removed `mcp.server.fastmcp`.

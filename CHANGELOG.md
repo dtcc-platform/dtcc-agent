@@ -14,7 +14,8 @@ Last updated: 2026-10-01.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-01 | Buildings download as GeoJSON or GeoPackage that GIS tools open ([#68](https://github.com/dtcc-platform/dtcc-agent/pull/68), fixes [#65](https://github.com/dtcc-platform/dtcc-agent/issues/65)) | 🔍 |
+| 2026-10-01 | The wiki describes the work through #68: files and path refusal (a new page), the memory budget, the two-service deployment, builder caching off ([#69](https://github.com/dtcc-platform/dtcc-agent/pull/69)) | ✅ |
+| 2026-10-01 | Buildings download as GeoJSON or GeoPackage that GIS tools open ([#68](https://github.com/dtcc-platform/dtcc-agent/pull/68), fixes [#65](https://github.com/dtcc-platform/dtcc-agent/issues/65)) | ✅ |
 | 2026-10-01 | **Last M1a task:** the agent runs as two containers, with the tool server reachable only by the chat ([#67](https://github.com/dtcc-platform/dtcc-agent/pull/67), T13, fixes [#24](https://github.com/dtcc-platform/dtcc-agent/issues/24)) | ✅ |
 | 2026-10-01 | Memory is counted from what objects really hold, and one budget is shared fairly by every user ([#66](https://github.com/dtcc-platform/dtcc-agent/pull/66), T11, fixes [#23](https://github.com/dtcc-platform/dtcc-agent/issues/23), implements U4) | ✅ |
 | 2026-10-01 | Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem ([#63](https://github.com/dtcc-platform/dtcc-agent/pull/63), T7, fixes [#21](https://github.com/dtcc-platform/dtcc-agent/issues/21) and [#38](https://github.com/dtcc-platform/dtcc-agent/issues/38), decides U9) | ✅ |
@@ -53,7 +54,7 @@ Last updated: 2026-10-01.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
 ### Buildings download as GeoJSON or GeoPackage that GIS tools open · 2026-10-01 · [#68](https://github.com/dtcc-platform/dtcc-agent/pull/68)
 
@@ -68,10 +69,6 @@ comes out in longitude and latitude, as GIS tools and web maps expect.
 **How we know it works:** the 127 real Lindholmen buildings exported as a 164 KB GeoJSON with all
 127 features, a GeoPackage and a city JSON. A test checks the GeoJSON lands in Gothenburg's
 longitude and latitude, not in Swedish grid metres. 427 tests pass.
-
----
-
-## ✅ Merged
 
 ### Last M1a task: the agent runs as two containers, with the tool server reachable only by the chat · 2026-10-01 · [#67](https://github.com/dtcc-platform/dtcc-agent/pull/67)
 

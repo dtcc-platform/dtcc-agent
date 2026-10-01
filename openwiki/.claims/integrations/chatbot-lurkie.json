@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bdcfcef240895ec58bd2769044519c031d8bf72ed4a5b0a8a1b1ba043d6ae630",
+  "pageVersion": "sha256:230c23f76ad7122725dcd2c1487a6005695400b5cc914c25e647334db91c6e98",
   "claims": [
     {
       "id": "claim_2688dfaf9e8a43de803df3ea136b17f6",
@@ -55,24 +55,6 @@
       ]
     },
     {
-      "id": "claim_0c7129c0ffcd441da4e6b9bc31a24f64",
-      "statement": "The UI handles an image frame but the server never emits one, and render_object writes PNGs to a fresh mkdtemp directory rather than the /renders static mount.",
-      "evidence": [
-        {
-          "resource": "repo://chatbot/app.py#L59-L62",
-          "version": "repo-lines-v1:sha256:2c997c86fc4da7eba740b1a024b28faf05b817a8e569dbcdb47c1eb9e16d8cb4:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFmZDFmYzE5NGQ2MmE4NzE3YWU2MWJhMjY2OWZjMGQ4ZjhmZjJkNzRiNzRjNDQ2NjgxYzE4MzMyODY2OWJmYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzVhZGE2NTJkYjVjNTI5MjU4NjUyYzI2NzQ1YjNmNGRkNzY4NzZhYTUzODFmNmU3Y2QzMjM3MWNlNzhkMDBmMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjM3NGJhZWY4NGQzY2Y2Y2I0MDZhNDdjYjRmZGQ5MjI4MjM4NmE5YWRmNGU4M2QyMTExNjM5OTM2MjZjMDg4YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjYwNmMyMTYwNDViMmEyNWRmMTBlNjY4YWMyMTViODljNzI2OTc4NDM4NmE3MGZlOWVhYTMyY2Q5OTMzYTEzZiJ9"
-        },
-        {
-          "resource": "repo://chatbot/static/index.html#L437-L445",
-          "version": "repo-lines-v1:sha256:e2bfb270f377562905f21c5ab32c30bd00ef6c6b2c9a6a8d8e80473f55589cc1:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmYwNTMyODg0NDk3YWFjYTg0ODNmYjk5Nzg5ZmJlYmRmYTg0ZDcyNDkxYWFmNjZmMGZmN2Q1M2E3MDA1OTQ4ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjgwZmFlMTQzMTI2NzgyOWUxODhlMjZkMmEyZTY4MDA0ODE0NmMxZjM2MjY0NTM2Njk5YTdjZDkyOWI4ZTgyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjhkNjI4MzA3ZjVkMTJkNjFjMGJlOTNmY2Q3MGVkMGJmY2RhMjY2MjM4ZWIwMDlhOGJmNTZhZjZiMWYxMDRhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWRmMmZmMmExNDM1ZWRmNmM0YjUyODQ5MGRlMjhjOTc2MjZhM2MwOWUxNmQ4MTUxMzJkMWZlNDgwYmY3ZTdlNSJ9"
-        },
-        {
-          "resource": "repo://dtcc_agent/renderer.py#L60-L80",
-          "version": "repo-lines-v1:sha256:47f57195e9688f1558e3293baaee6f35c8fd27b53e051fbdc2118eff68ee30d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YTBhYjU1ZmNlMDhkNmQyZmFkODk5MTJjMzRiZTJjZjg5MDQ1N2RiMmIxZWIzYWJmM2M2MDMzM2NhNzIxMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmOWExNzU1ZDYzYTFiZDkzNzU5NTFlZTE3NmY5MWM5NmUyODJlODg4MzFkOTY4MDM4OTNkOGFkNTg3OTdhNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMWNhYzcwZWJhNGUyZTdmYzUzZjc0M2MxOGQxOTk5ODJkZTQ3MGVmMDFmMzczZGVmNjdlMThhM2FjMGFmYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkYTdlMWI2NTk4OWVjM2MyZDRmMGM3OTE3YzA4ZGI3YjJhNzY1NDkyMTM3NzZhYzNlMDk2NzFjOTg1MmIxNTYifQ"
-        }
-      ]
-    },
-    {
       "id": "claim_9bd7f404d785460fba5ebce54b8d9d4c",
       "statement": "The stdio server the chatbot spawns does not build the operation catalogue at startup; the first tool call that reads it builds it, and a broken Core then fails that call rather than server startup.",
       "evidence": [
@@ -85,10 +67,38 @@
           "version": "repo-lines-v1:sha256:8e960176465245b2a78ba91dc9d421b1c10e94f233bcdcc2f4d8d7b5593522db:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmM2FmYTJiZjY3Yzg2MGZiZGU2MjBkNTdhZjgzMjhiOThhMTg1MjVmNzY5MDQyMzU0N2JhM2YyMzliYjRhOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlYmI4NTM5ZWQ1ZTE5M2Y2NWE3OWJjZmUwMTBkN2E2ODUzNjhmNDNkNTNkYmM4MGJlNDZiNDA2MjVjNGRmMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3Mzk2MWMzZjJkNjIxZDU0MTg2OGZiNzMxYzNhYzY4NDU0ODBjMTdiMWQ3ZGFmY2RhMDkwZDNmZDZjMGVkNzAifQ"
         }
       ]
+    },
+    {
+      "id": "claim_6ab0ec0146784883a6635dd24b1dea45",
+      "statement": "The chatbot sends the page an image or file frame for a tool result that names an artifact in the current session's folder, unwrapping FastMCP's {\"result\": ...} form first and building the URL from its own session id.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/app.py#L198-L202",
+          "version": "repo-lines-v1:sha256:844409886ab9318dbd15a9b14c59a992979486cd9a826d1a0d2b8af8e823d38a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDgyMWQ1ZjMxNzY0YWFiMDY2ZjFhZGUwNmI5ZGNjZTNjODAyOTcyZTE3NjA0NDAyNzU3YjRlMDUxNWFiZWQ4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAwY2NlMjI4MzU3ZDE2MzYwNGEzOWVhMzQxMWE2NjM0YmIyYjQyZmM1MWRhYzZiYzIwNDVmZDIwZGM4YWNmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjliOGRjYjg4NDg3YjNlMWIzNzE2MjcxNTkxM2ZmNDM2ZjhkNjBlNTQ5NmM0ZjA0YzM3MzY3ZDIwN2FjYjhjMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTA3NmJkNGU2NWI5MzEyMGFhMmM0ODNlZTViN2ViMDE0N2YyZjliOGViNDkyNGE2ZDk5ZjVlYjM5ODVjNDg2YyJ9"
+        },
+        {
+          "resource": "repo://chatbot/app.py#L95-L125",
+          "version": "repo-lines-v1:sha256:7e012d5e48113fc71f09209b98bfddb43ea97d0caf8fa9b6eb24238ebd8a3e73:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjYWQ1OGM2NmNjNGFkMTczODUyOWI2ZWJkYzNiMDM0NmVmNWE2NmJjYWUxNmM4ZDczNTU5YTA1YzJhYzk3OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwYmY1ZmM3YmZkNGZiNjFiOTFlOTQ0NTM2NmY1NGY0NzAyZTg1NWY5ZWM3ZGNiZTkyMDhmNjJiNjBmMWY5M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0YTJhZTczMDM1ODFlMTI3NGRlZGEzMGZjMTVmNWJjNjBiYTJjMWM0NjZmNWZlZDJlZjY3M2JkY2Q0ZTZiZDkifQ"
+        },
+        {
+          "resource": "repo://chatbot/static/index.html#L437-L456",
+          "version": "repo-lines-v1:sha256:3d823496221af6fe19facbea3e9c96f7286ec40ffea2b292a95c69209f464724:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmMDUzMjg4NDQ5N2FhY2E4NDgzZmI5OTc4OWZiZWJkZmE4NGQ3MjQ5MWFhZjY2ZjBmZjdkNTNhNzAwNTk0OGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4MGZhZTE0MzEyNjc4MjllMTg4ZTI2ZDJhMmU2ODAwNDgxNDZjMWYzNjI2NDUzNjY5OWE3Y2Q5MjliOGU4MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZDYyODMwN2Y1ZDEyZDYxYzBiZTkzZmNkNzBlZDBiZmNkYTI2NjIzOGViMDA5YThiZjU2YWY2YjFmMTA0YWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkZjJmZjJhMTQzNWVkZjZjNGI1Mjg0OTBkZTI4Yzk3NjI2YTNjMDllMTZkODE1MTMyZDFmZTQ4MGJmN2U3ZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3cafdb71de864962b407e99666aab699",
+      "statement": "claude-agent-sdk is floored at 0.2.163 because 0.1.39 failed every chat turn on the current Claude CLI's rate_limit_event.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml",
+          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-30T14:41:08.402Z"
+    "at": "2026-10-01T20:29:16.810Z"
   }
 }

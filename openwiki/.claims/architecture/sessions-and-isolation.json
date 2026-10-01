@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a97ca3b7caf82aabea4235533e09d42ebc0895c0762e4d5a8663df56801879f3",
+  "pageVersion": "sha256:dfb67a8a0de9d3b9c307942ce9fa109c11cddfb0ebe0b78423c12ddc75c5b25c",
   "claims": [
     {
       "id": "claim_003015a8b19f45bd80f4e61264a2ac11",
-      "statement": "Each Session owns its own ObjectStore, its simulation Run records, an in-flight call counter and a worker-pool share, held in a _Session dataclass; a Run record holds its result's object_ref while the result itself lives in the Session's ObjectStore.",
+      "statement": "Each Session owns an id naming its artifact folder, its own ObjectStore, its simulation Run records (capped at MAX_RUNS), an in-flight call counter and a worker-pool share, held in a _Session dataclass; a Run record holds its result's object_ref while the result itself lives in the Session's ObjectStore.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/server.py#L251-L268",
-          "version": "repo-lines-v1:sha256:f54123714630a6d652ffd7204895c0494658444e9d88437a1b9dfecc11617668:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzllNDM4MDI5MTFmODBhMjgwODM0NTYwZTk1ZGI3OTcyODI3YzBiYjdmZmU4MmI2NjFjNDRkYjI4ZDY5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NWMxMzZmYzhlNzZlZDg3YzQ2MDY0NTE2MGRkNDM1YWJhNjk4ZjcwNDY0ZmMzYTI1MzJmYWE0ZjNjZjYxZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMGFlZTA4OTg1ZDNiOTkwMjRiOGQ5ZGJjY2RiNjU0MWI0OGUyNWRjMGEyYWQ2NjI3ZDZjMGQ2YTUwMjQ4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmYWIyZmQxYTk1NmYzYmMxMGM0MzhiNTc0Y2VmODY1MWYzZjI4ZWQ5OGRlNzUzOWJkZTg0YzIzYTNjNDRmMDkifQ"
+          "resource": "repo://dtcc_agent/server.py#L255-L275",
+          "version": "repo-lines-v1:sha256:b7f664d77a3f254e5dceaec929e4657d6e6c91b615a910aacf8301bb3c48b164:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzllNDM4MDI5MTFmODBhMjgwODM0NTYwZTk1ZGI3OTcyODI3YzBiYjdmZmU4MmI2NjFjNDRkYjI4ZDY5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NWMxMzZmYzhlNzZlZDg3YzQ2MDY0NTE2MGRkNDM1YWJhNjk4ZjcwNDY0ZmMzYTI1MzJmYWE0ZjNjZjYxZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMGFlZTA4OTg1ZDNiOTkwMjRiOGQ5ZGJjY2RiNjU0MWI0OGUyNWRjMGEyYWQ2NjI3ZDZjMGQ2YTUwMjQ4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkMzgzODRhY2Y2YTVkNzJhYzlkYjUxOTQ0NWU5NzI0YzlmNGU1MmZiYjhjMjgwYzY1YTVhZjgwNjkwNTM0NTEifQ"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L63-L77",
-          "version": "repo-lines-v1:sha256:2ff55f636f05afc148ab2a38f5244451f8779f6fb56afd03b566eee6d8eb06f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYmFiODlmN2ZhYWFmMzY2NDcyODIxZmY4NzA2NWJlYTFjOGI1YmU2ZGQ3MmU1Yzg3NWYxOGRiN2VlOGJhNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlMjI3YTJmMGNkZTI0MDA3N2FhMzYyNjZjMjA2NDg5YTFmNDQ1NzZiN2Q2MmNiZjdlZDVhZjMxOTE4YjU4NjAifQ"
+          "resource": "repo://dtcc_agent/server.py#L69-L83",
+          "version": "repo-lines-v1:sha256:c3fc1cfebd4976b42f83248427ff4de51368ea4f2ccd8bf304795f70d2a2a090:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYzA3NGJhMTc5YWM4OWZhZDZmM2I5NGJmMWU0ZDRjMjRhODAyNTM2ZGQxYTFkNzE5YzQ3NWRkYTg3NDAzMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzZTQ2NTIyMmE1ZjNmMGU2Y2I4ZGVmZjExMDc3MjhkMWUxZTVhZTlhODM1NDM0NDMxNjBmY2MxNzcxNWVmNzUifQ"
         }
       ]
     },
@@ -22,7 +22,7 @@
       "evidence": [
         {
           "resource": "repo://dtcc_agent/server.py#L86-L151",
-          "version": "repo-lines-v1:sha256:e0b0a74f6573d684c8e8a83692a7909f218cb7d1ee56f9795f7df17f5904514d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiZTk4Y2U5ODIxMzBkYmE5ZGZkNzFhOWI2YzlkNDcyMDk5MDk4YmE5Yzc5NGM1ZGRiOTdlZGQ2ZTYyNzFmNzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiNjhkZmYyMGNlN2VhOGFmZmYwZDJmNTNlNGJkNzIyMmNmNWU3NDQ4ZWUwOWQ4MzZmMjdlYmEyNzkzZDM1ZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1Y2UwNDI5MjAyZmJkNWUxYmFlNjJlNzc1Y2U2ODRhMWJjMjdmMjU3YWUxNTMzYTE4NzJiMDJkM2UwZDAxMDMifQ"
+          "version": "repo-lines-v1:sha256:93a0f26b441ebd8b67634ab2fd8a48327a2c5a22205c9e48b62fcdbb918a95be:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiZTk4Y2U5ODIxMzBkYmE5ZGZkNzFhOWI2YzlkNDcyMDk5MDk4YmE5Yzc5NGM1ZGRiOTdlZGQ2ZTYyNzFmNzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiNjhkZmYyMGNlN2VhOGFmZmYwZDJmNTNlNGJkNzIyMmNmNWU3NDQ4ZWUwOWQ4MzZmMjdlYmEyNzkzZDM1ZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1Y2UwNDI5MjAyZmJkNWUxYmFlNjJlNzc1Y2U2ODRhMWJjMjdmMjU3YWUxNTMzYTE4NzJiMDJkM2UwZDAxMDMifQ"
         },
         {
           "resource": "repo://tests/test_http_sessions.py#L128-L137",
@@ -35,30 +35,12 @@
       ]
     },
     {
-      "id": "claim_cd258e4aed5e4d5d94dba64b09b3ef41",
-      "statement": "At most MAX_SESSIONS = 8 HTTP Sessions are kept, each with a 1/8 share of the 2 GiB object budget; beyond the cap the least recently used idle Sessions are dropped with their objects and runs, and a Session with a tool call in flight is never evicted.",
-      "evidence": [
-        {
-          "resource": "repo://dtcc_agent/server.py#L104-L133",
-          "version": "repo-lines-v1:sha256:cb559fdc596b3041bb2cac1e1296f4a2beac37c1aef2336ee0f88d00fbffe8b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMmQwYjViNWJlZTdkNDRiZGVmMzFjZGY1YjNkNTc0ZTUyYTljMTQxMjEzNTY3NDA3N2I3OGE2MzYzNTNiNmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NDVmOTY2NzllYmQ4YzQ3YzhlMzA0YmU4ODU0M2M5ZDA3OTNiNDc5MzM5OWZlYjUxYzEzZTY1MjliODZkZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhYWY0N2MzMThmMDE3NzFiOTRjMWExYWYwYzZjZTIwZDQyMzg0MzNkNGVmOWQxZjRmN2Q3NWEyMzFmZTE0MjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2Y2QwNDU4ZDAwNzQyNWEwYmU0NmJhNWRjZGQyYzk3YmE2NmY3ZGUwNjQyNGI1MWQwODE3OWEwMzVkN2UzYTgifQ"
-        },
-        {
-          "resource": "repo://dtcc_agent/server.py#L52-L61",
-          "version": "repo-lines-v1:sha256:28cdc4b95a2d3036c88a7c2da617155b92884c47f47614405428ec726254a2c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNTRhOTczMTI0YTY3NDIxOTQyNWRiOTE2ZWYzOWQ0N2YyNWFhNzJiMDlhMTAyZGFjNGRmZmUyYmM0ZWIxNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiZjI1NTBhMDRjYTc0NGFjNTE3MWNhNDBlNmUwZTQwOTdjMTk2YjkyMzRmMWM1OTYwMDViMzk5ZWJjOTUyNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MjY1MDY4ODdiMDJmYmI5OGZhMDk4YmFiM2JiZTI4NTU3MzRkNWY0ZDEyNWYyMGM3YjZlZGMxMzJkNDM1ZjYifQ"
-        },
-        {
-          "resource": "repo://tests/test_http_sessions.py#L198-L251",
-          "version": "repo-lines-v1:sha256:1aa0b2b01cd01916c52b19a87f88668aca5728a69786b631bcecbbc6913db6d3:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NzlhZGM4M2EyZGZiNWRhNmVjOWVmZWEzYTY2MDQ2NmQxZTUyNzE3MTc4NzVjOWQ3NDBlNjM4MDgyZDhkYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZWIxZmQxZTY5NjlkYjNmN2VjNGJmZjUwMWFhNzYxYWM1ZDY0NjQ4YzBlMTNlZTIwY2I2ZTM3MTYwZDlhODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2Y2M4MWMzYTI4NzI4MWI3YWViZmRhMWNkYTJlNzE1MzNmNmFkMGFkMjk5MTIzZTRhNzhhMDlhNWI1N2Y2MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkMGM4NmFhMjJiNjdiM2ViZDYwNDUyMzZhOGI0ZDQ3YTk4NmRiYWZlYWU4ODVmNTg2ZDczMGYxNjVhYWI0NzIifQ"
-        }
-      ]
-    },
-    {
       "id": "claim_3d8684255353403bb144f7acbd5b7b0a",
-      "statement": "The chatbot sends its own session id in the X-DTCC-Session header when DTCC_MCP_URL is set, and otherwise launches the MCP server as a stdio child process.",
+      "statement": "The chatbot sends its own session id in the X-DTCC-Session header when DTCC_MCP_URL is set, and otherwise launches the MCP server as a stdio child process with the id in DTCC_AGENT_SESSION.",
       "evidence": [
         {
-          "resource": "repo://chatbot/config.py#L59-L84",
-          "version": "repo-lines-v1:sha256:10ebbde3994d59d4657d11f5f2c321c4351cf50c17ca58a038ae14e4c0668523:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NjQ4ZDYwMTA0MjI3YjhhYTBkMWQ4N2I3OWE3ZjU2MzI1NGFhY2Q4NmI5ZjRmNjVjY2ZiYmZiZDJiZTJhNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZDEwZWIyMjgxNmQ1NzE1ZDU1ODJlOGQ4OWM0OWZlYzJjZTA5ZGI3NWE5ZTExOTExYjdmNjhkM2YwODE3M2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://chatbot/config.py#L59-L86",
+          "version": "repo-lines-v1:sha256:1126c4ca03c1b5b71bb9a6869f07322a621e41ac251f2415da4926da3f679f86:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NjQ4ZDYwMTA0MjI3YjhhYTBkMWQ4N2I3OWE3ZjU2MzI1NGFhY2Q4NmI5ZjRmNjVjY2ZiYmZiZDJiZTJhNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZDEwZWIyMjgxNmQ1NzE1ZDU1ODJlOGQ4OWM0OWZlYzJjZTA5ZGI3NWE5ZTExOTExYjdmNjhkM2YwODE3M2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -73,20 +55,6 @@
       ]
     },
     {
-      "id": "claim_36b3c5993bf741c8abbf42a14f566caa",
-      "statement": "ADR-0004 keeps only bounds-keyed public downloads (datasets.point_cloud and datasets.buildings) shared across Sessions; builder cache entries should be session-local because content_fingerprint hashes only metadata and can collide.",
-      "evidence": [
-        {
-          "resource": "repo://docs/adr/0004-session-is-the-isolation-unit.md#L44-L78",
-          "version": "repo-lines-v1:sha256:942e3f4322e11020b88c16542183e66616d7813b0af63b33d0b44d5afef24d79:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNDcxNWM5MzMzNzA4YjNlNDViZmE1MWYyZWFjYTFmYjZhZmIzODAzMjQ2ZWVhY2FlNWI2ODQ3YjY1OTY5MTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNmQzNzE1YTBjNDE0OTFlNGMzZGRkODVkNmY1ZDU2MGQyNDM5YTNkMTM3ZTg5MjdjM2YzMTdkOWU3YmZiOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlMjU2OGVmODE4MTZiMTY4MDc3YTkxNmZlZmM1NDhhNTYxYTc3ZTAwNTE2ZDRkZmRhZWM3ODQ3ODQ5YmI1YzQifQ"
-        },
-        {
-          "resource": "repo://dtcc_agent/disk_cache.py#L39-L52",
-          "version": "repo-lines-v1:sha256:d9c592b2f664061d2f5fd52e3b62ce03d6f89c4ab565e92157f9f76c43173e4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZThlYTQwNDhiYzQyNDcwNWJjNzRjYzhkZGUyODBjZmFhZTdlNmQ5M2YzYjZhMmU0YWYyMDM1MGUxMmRmNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNDhhYzVlNzdjNThmNDE3MjRhZDAwNmE3NTk3MjZiMGYxYTBkMzFlOGUwMTgwZDU0NzY0ZmI0YzUzYzEwN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNjdjOGE4OWY2NGYwZDAyOTMzZDkwYjgxOWQxZjk5OGIzOGQzMjExMGMwZTE2MjVlOThiMDFjNGUzMWFkZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMTA3ZjA0MzA5MDI3NjVlZmY3MzVlYzY4MTMwMThmYjRlYTg1MDk1NTIwYmQwYzM4ZDVjOTAxODEyY2RmNmIifQ"
-        }
-      ]
-    },
-    {
       "id": "claim_9b92e33312814a10ba80e992398b7346",
       "statement": "get_buildings has no disk-cache entry of its own: it reads and writes the shared datasets.buildings download through load_cached_dataset and store_dataset and summarises per request.",
       "evidence": [
@@ -95,10 +63,34 @@
           "version": "repo-lines-v1:sha256:825b16fea7d4524b3e38ff8732510361cf5e88d6763f42f70f28acc9a07fa5db:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMzFjODkwYWQ5M2E5OWExMWYyZTU0NTZmNmJjYTExZTViYjQwOWI0MmM2MmQ3MzIyOGI0MmRlNTk0MzRlM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiYzI2MGE4ODNiNDQ0OGUyMjViMjEwNmQzNDQ3Zjk5YzUxNjBmOTExN2M5NWUzYzM1MDIwNmE2ODAwMTNhOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4MGVkODExMGJmYTkzYjBlMDY3NTEyOWVhNDJjODQwYTA1ZjBjYmZmYjY3MTFiYTkwN2RjNTg0OWRjYWRhMDIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_f5e905efcdaf41a782a7080bf5aff83a",
+      "statement": "At most MAX_SESSIONS = 8 HTTP Sessions are kept; beyond the cap the least recently used idle Sessions are dropped and their stores cleared so their bytes return to the shared budget, and a Session with a tool call in flight is never evicted.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L136-L142",
+          "version": "repo-lines-v1:sha256:6f18502daa2b67a3b8b2761d28f4196396a68b409963149b30d35200d1fa1561:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjcwNDgwYThlNGM4M2Y4MjI4YjU3YjlkZDZiNmY3ZmVkNDUzY2E2MTE4NDk0NGRjYWZkYzlmMjllNTkxMWIyMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzM0ZjBlNWZjMjU0YmEzOGZmYTFlN2Q5MmFlNTEzY2Y0OGRjMmMzZjM3ZjkzMTIxMGEzZjk4ZjhiZDI1ZjMwYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjliNmQ2MzE3NDliZjhkZjAyODEwZTJiZTc0ZjViNTEwOGE0MTEwNzI1MDg1ZTAwMGVjMDA0NWYyM2YxYTIwNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTZjZDA0NThkMDA3NDI1YTBiZTQ2YmE1ZGNkZDJjOTdiYTY2ZjdkZTA2NDI0YjUxZDA4MTc5YTAzNWQ3ZTNhOCJ9"
+        },
+        {
+          "resource": "repo://tests/test_http_sessions.py#L209-L238",
+          "version": "repo-lines-v1:sha256:4abf1d6dbb6ea196b1e451937b824491caea247184a054bce017ba318971c427:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NzlhZGM4M2EyZGZiNWRhNmVjOWVmZWEzYTY2MDQ2NmQxZTUyNzE3MTc4NzVjOWQ3NDBlNjM4MDgyZDhkYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2Y2M4MWMzYTI4NzI4MWI3YWViZmRhMWNkYTJlNzE1MzNmNmFkMGFkMjk5MTIzZTRhNzhhMDlhNWI1N2Y2MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjMGZjZTY0OTQyODU3MWQ3ZGJhNWI4MzdlNzg0NDg3ODM3NDVkMGM4YjZlNWM5OTZlNGQ3ZTliMmUyZDVkMWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4c4c4be274fa4d1aba939d2e0fb2963e",
+      "statement": "Only the two bounds-keyed public downloads, datasets.point_cloud and datasets.buildings, are in CACHE_ALLOWLIST, so no cache entry derived from a user's objects is shared across Sessions.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/disk_cache.py#L61-L64",
+          "version": "repo-lines-v1:sha256:29ab1a0cf155ddf3cb6a592ebafc7ed0160fbe5b0c08f049ba3985c93551485f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ0YjBhMjczZjc3ZmMzYjIxNTg0ZWRlYzVjNGRlZDMyNTE1ZmI1NTBkNWU3NzM0OTY2MGNlMDZiNzNlNmQ2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODU4MGI3NjUxOGRhZTk3OWZhZWJkMDIzNjdhMjkyOTJhNTBkOTc2MDkyMjUxYTM4YTZjZTMwODgwYmE0MjgyNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDJiZmM4ODYzM2FkZDI4YjhkZGJjMjY1OTY2YTVmYjIzZjY5NWYwN2Q4Njg0ZDVjZjNkMWRiODdlYTQ5M2U0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTZjZDMxYjE2YjliMzAyYmMzY2M4NWFmMTI3ODEyMzI2N2Q4MmI4MDM1MDA4N2ZlMjliMjdmNTNjNzI0M2E2NCJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-30T14:41:08.402Z"
+    "at": "2026-10-01T20:29:16.810Z"
   }
 }

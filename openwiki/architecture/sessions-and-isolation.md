@@ -8,18 +8,16 @@ sources:
     resource: repo://chatbot/config.py
   - id: openwiki-source-931ea4e3e14cfe3c996abf4a
     resource: repo://chatbot/memory.py
-  - id: openwiki-source-2d18eac28ce6bc775094dd62
-    resource: repo://docs/adr/0004-session-is-the-isolation-unit.md
   - id: openwiki-source-052f7c9f16ee5a8169a3fb7d
     resource: repo://dtcc_agent/disk_cache.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-7da8cb11cdc15fb1e5a1f088
     resource: repo://tests/test_http_sessions.py
-generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:41:08.402Z
+    at: 2026-10-01T20:29:16.810Z
 ---
 
 # Sessions and isolation
@@ -32,8 +30,9 @@ A Session is one continuous conversation, identified anonymously and scoped to a
 
 `_Session` is a dataclass holding everything one Session owns:
 
-- `objects`: its own `ObjectStore`
-- `results`: its simulation Run records, keyed by Run reference (`run_…`). A record holds what was run and the `object_ref` of its result; the result itself lives in the Session's `objects` (U6, ADR-0010)
+- `id`: the chatbot's session id (the `X-DTCC-Session` value over HTTP; `DTCC_AGENT_SESSION` or `"local"` over stdio). It names the Session's artifact folder, see [Artifacts and the file boundary](../concepts/artifacts-and-file-boundary.md)
+- `objects`: its own `ObjectStore`, drawing on the process-wide memory budget
+- `results`: its simulation Run records, keyed by Run reference (`run_…`), oldest first and capped at `MAX_RUNS = 100`. A record holds what was run and the `object_ref` of its result; the result itself lives in the Session's `objects` (U6, ADR-0010)
 - `in_flight`: the number of tool calls currently running
 - `workers`: its share of the process worker pool (see [MCP server and tool execution](mcp-server-and-tool-execution.md))
 
@@ -47,16 +46,17 @@ A Session is one continuous conversation, identified anonymously and scoped to a
 
 Sessions are keyed by the header value rather than by MCP transport session, because the chatbot opens a new connection per message. Objects therefore survive into the next connection of the same Session.
 
-### Cap and eviction
+### Cap, budget and eviction
 
 - `MAX_SESSIONS = 8` Sessions are kept in an `OrderedDict` in least-recently-used order.
-- Each HTTP Session's store gets `OBJECT_BUDGET_BYTES // MAX_SESSIONS` (2 GiB / 8 = 256 MiB), so the Sessions together never exceed the old single-store budget. The local stdio Session gets the whole 2 GiB and the whole worker pool.
-- `_evict_idle_excess()` drops the least recently used **idle** Sessions beyond the cap, with their objects and runs. A Session with a call in flight is never evicted. If every Session is busy the cap is exceeded temporarily, and the excess is trimmed as calls finish (`_release`).
+- Memory is not split into equal shares any more (T11, #66). Every Session's store draws on one `MemoryBudget` of `OBJECT_BUDGET_BYTES` (2 GiB); when the stores together pass it, the least recently used Object in any Session is evicted. An HTTP Session may hold at most `SESSION_OBJECT_BYTES` (1 GiB); the local stdio Session may use the whole budget and the whole worker pool. Details in [Dispatch and the object store](../concepts/dispatch-and-object-store.md).
+- `_evict_idle_excess()` drops the least recently used **idle** Sessions beyond the cap, with their runs, and clears their store so its bytes go back to the budget at once. A Session with a call in flight is never evicted. If every Session is busy the cap is exceeded temporarily, and the excess is trimmed as calls finish (`_release`).
 
 ## Chatbot side
 
-- `chatbot/sessions.py` `SessionManager` mints a 12-hex-char id per browser session, keeps it in memory for up to an hour (cleaned on `create()`), and stores the Agent SDK session id used for resume.
-- `chatbot/config.py` `get_mcp_server_config(session_id)`: with `DTCC_MCP_URL` set, it connects over HTTP and sends `X-DTCC-Session: <session_id>`. Otherwise it spawns the server over stdio, which gives one Session per child process.
+- `chatbot/sessions.py` `SessionManager` mints a 12-hex-char id per browser session, keeps it in memory for up to an hour (cleaned on `create()`), and stores the Agent SDK session id used for resume. Removing or expiring a session also deletes its artifact folder.
+- `chatbot/config.py` `get_mcp_server_config(session_id)`: with `DTCC_MCP_URL` set, it connects over HTTP and sends `X-DTCC-Session: <session_id>`. Otherwise it spawns the server over stdio, one child process per message, and passes the id as `DTCC_AGENT_SESSION` so the child writes into that Session's artifact folder.
+- The chatbot's `/artifacts/<session>/<name>` route serves a file only while that session is live in `SessionManager`.
 - `chatbot/memory.py` `ConversationMemory.retrieve()` filters the ChromaDB query with `where={"session_id": ...}`. This closes the cross-user memory leak ADR-0004 was written to fix.
 
 ## The hybrid boundary for cached data
@@ -64,13 +64,12 @@ Sessions are keyed by the header value rather than by MCP transport session, bec
 Taken literally, "never visible from another" would destroy the disk cache's containment reuse. ADR-0004's corrected split is:
 
 - Public upstream downloads (`datasets.point_cloud`, `datasets.buildings`) stay shared. They are keyed on bounds and source alone. `get_buildings` has no entry of its own: it reads and writes the `datasets.buildings` download and summarises per request (#39).
-- Builder results derived from user objects should be session-local, because `content_fingerprint` hashes only metadata (`type`, `source_op`, `nbytes`, `label`) and two Sessions can collide. Cross-session reuse of derived geometry is tracked as `TODOS.md` T-001.
+- Builder results are not cached at all since U2 (#11, #62): their old keys described inputs by metadata only and could collide across Sessions. `CACHE_ALLOWLIST` holds just the two downloads, so nothing derived from a user's objects is shared. Cross-session reuse of derived geometry would need provenance keys (`TODOS.md` T-001).
 
 ## Known gaps (recorded, not hidden)
 
-- `DiskCache` keys carry no Session identity yet, so the builder entries in `CACHE_ALLOWLIST` are still shared in code. See [Disk cache](../concepts/disk-cache.md).
-- The Session id is client-supplied and unauthenticated until central auth lands (U11, #15). A client that invents ids gets a worker share and object budget per id.
-- There is no Session expiry on the server, only the cap of 8. Budgets are an equal share rather than per-Session budgets (T11/U7, #23).
+- The Session id is client-supplied and unauthenticated until admission control lands (T14). In the two-service deployment the MCP port is reachable only over loopback from the chatbot (U11), and an artifact URL is a capability: the live session id plus a random token.
+- There is no Session expiry on the server, only the cap of 8 (U7 is open). Memory held by idle Sessions is reclaimed by the shared budget's eviction.
 
 ## Tests
 
@@ -81,6 +80,6 @@ Taken literally, "never visible from another" would destroy the disk cache's con
 - no per-connection state is kept;
 - stdio works without a header;
 - the cap evicts the LRU idle Session, never one in flight;
-- the per-Session budgets add up to the process budget.
+- every Session draws on the one process budget, and a dropped Session hands its bytes back.
 
 `tests/test_chatbot_sessions.py` covers `SessionManager`.
