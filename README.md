@@ -100,9 +100,8 @@ Over HTTP every tool call must carry an `X-DTCC-Session` header; a call without 
 refused. Objects and runs belong to that Session and are never visible from another
 (ADR-0004). The transport is stateless: the Session travels in the header, not in the MCP
 connection, so a client may open a new connection per request. At most 8 Sessions are live
-at once, each with an equal share (256 MiB) of a 2 GiB object budget. Past that, the least
-recently used idle Session is dropped along with its objects and runs; a Session with a tool
-call in flight is never dropped. To point the chatbot at the
+at once. Past that, the least recently used idle Session is dropped along with its objects
+and runs; a Session with a tool call in flight is never dropped. To point the chatbot at the
 HTTP server, set `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`; it then sends its own session id
 in that header. Without `DTCC_MCP_URL` the chatbot falls back to spawning the server over stdio.
 
@@ -258,9 +257,15 @@ Parameters marked `is_object_ref: true` in `describe_operation` output
 accept these Object references (`obj_…`). The dispatcher resolves them from the store
 automatically, and refuses a Run reference (`run_…`) passed in their place.
 
-Each Session has its own store, which uses LRU eviction to prevent unbounded
-memory growth during long sessions. Over stdio the one Session gets the whole
-2 GiB budget; over HTTP each live Session gets 256 MiB (see Standalone above).
+Each Session has its own store, and every store draws on one 2 GiB process budget
+(T11, #23). When the stores together pass it, the least recently used object in any
+Session is evicted, so memory an idle Session holds goes to the ones in use. Over HTTP
+one Session may hold at most 1 GiB; over stdio the one Session may use all of it.
+Sizes are counted from what an object really holds: arrays, dict and list contents, and
+Core geometry (U4, #13). A single result bigger than the Session's limit is not kept: the
+call still returns its summary, with `object_ref: null` and a `not_stored` note. A Session
+remembers its last 100 simulation Runs. The budget covers stored results; memory while an
+operation runs is bounded by `DTCC_MCP_WORKERS` instead.
 
 ### What gets returned
 

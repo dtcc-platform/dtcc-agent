@@ -18,6 +18,7 @@ import time
 
 import anyio
 import httpx
+import numpy as np
 import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -218,9 +219,22 @@ def test_sessions_are_capped_and_the_least_recently_used_is_dropped(monkeypatch)
     assert len(server._sessions) == server.MAX_SESSIONS
 
 
-def test_the_session_budgets_add_up_to_the_process_budget():
-    per_session = server._session_for("budget").objects._max_bytes
-    assert per_session * server.MAX_SESSIONS <= server.OBJECT_BUDGET_BYTES
+def test_every_session_draws_on_one_process_budget():
+    a, b = server._session_for("budget-a"), server._session_for("budget-b")
+    assert a.objects._budget is b.objects._budget is server._object_budget
+    assert server._local_session.objects._budget is server._object_budget
+    assert a.objects._max_bytes < server.OBJECT_BUDGET_BYTES
+
+
+def test_a_dropped_session_hands_its_bytes_back(monkeypatch):
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    before = server._object_budget.total_bytes
+    server._session_for("leaving").objects.store(np.zeros(10_000), source_op="t")
+    assert server._object_budget.total_bytes > before
+    for i in range(server.MAX_SESSIONS):
+        server._session_for(f"other{i}")
+    assert "leaving" not in server._sessions
+    assert server._object_budget.total_bytes == before
 
 
 def test_runs_are_invisible_to_another_session():

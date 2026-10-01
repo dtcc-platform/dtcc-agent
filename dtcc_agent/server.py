@@ -31,7 +31,7 @@ from mcp.server.lowlevel.server import request_ctx
 from . import artifacts, refs, runtime
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
-from .object_store import ObjectStore
+from .object_store import MemoryBudget, ObjectStore
 from .serializers import serialize
 from .disk_cache import CACHE_ALLOWLIST, DiskCache
 from .geojson_store import (
@@ -49,15 +49,20 @@ mcp = FastMCP("dtcc-agent", stateless_http=True)
 SESSION_HEADER = "X-DTCC-Session"
 
 
-# What every Session's objects may hold in total: the budget one shared store
-# had before stores were per-Session. A global budget with per-Session caps
-# and Session expiry is T11/U7 (#23); until then, capping how many Sessions
-# are live, each with an equal share, keeps the process-wide bound.
+# What every Session's Objects may hold together (T11, #23). The least
+# recently used Object anywhere goes first, so an idle Session's memory goes to
+# the Sessions in use. Over HTTP one Session may hold at most half of it; a
+# single result larger than that is returned unstored (U4, #13). The budget
+# covers stored results only: the worker count bounds memory while running.
 OBJECT_BUDGET_BYTES = 2 * 1024**3
+SESSION_OBJECT_BYTES = OBJECT_BUDGET_BYTES // 2
+_object_budget = MemoryBudget(OBJECT_BUDGET_BYTES)
 MAX_SESSIONS = 8
+# Runs a Session remembers; each is metadata and an object_ref (U6).
+MAX_RUNS = 100
 
 def _new_session_objects() -> ObjectStore:
-    return ObjectStore(max_bytes=OBJECT_BUDGET_BYTES // MAX_SESSIONS)
+    return ObjectStore(max_bytes=SESSION_OBJECT_BYTES, budget=_object_budget)
 
 
 @dataclass
@@ -68,8 +73,8 @@ class _Session:
     id: str = "local"
     # dtcc-core objects (PointCloud, Mesh, Raster, etc.)
     objects: ObjectStore = field(default_factory=_new_session_objects)
-    # Simulation results, keyed by run_ref, so the agent can refer back to them.
-    results: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # Simulation Runs, keyed by run_ref, oldest first; at most MAX_RUNS.
+    results: OrderedDict[str, dict[str, Any]] = field(default_factory=OrderedDict)
     # Tool calls running in this Session; it is never evicted while nonzero.
     in_flight: int = 0
     # This Session's share of runtime.workers.
@@ -89,7 +94,7 @@ _sessions_lock = threading.Lock()
 _local_session = _Session(
     # The chatbot launches a stdio server per message and names its Session here.
     id=os.getenv("DTCC_AGENT_SESSION", "local"),
-    objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES),
+    objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES, budget=_object_budget),
     workers=anyio.CapacityLimiter(runtime.WORKERS),
 )
 
@@ -134,7 +139,7 @@ def _evict_idle_excess() -> None:
     Must be called with _sessions_lock held."""
     idle = [sid for sid, s in _sessions.items() if not s.in_flight]
     for sid in idle[: max(0, len(_sessions) - MAX_SESSIONS)]:
-        del _sessions[sid]
+        _sessions.pop(sid).objects.clear()
 
 
 def _request_session() -> _Session | None:
@@ -257,14 +262,22 @@ def _store_result(name: str, bounds: list[float], parameters: dict, result: Any)
     run_ref = refs.new(refs.RUN)
     object_ref = _session().objects.store(result, source_op=f"simulation.{name}",
                                           label=run_ref)
-    _session().results[run_ref] = {
+    runs = _session().results
+    runs[run_ref] = {
         "simulation": name,
         "bounds": bounds,
         "parameters": parameters,
         "object_ref": object_ref,
         "timestamp": time.time(),
     }
+    while len(runs) > MAX_RUNS:
+        runs.popitem(last=False)
     return run_ref
+
+
+def _kept(object_ref: str | None) -> dict[str, str]:
+    """The note a result carries when it was too large to keep (U4)."""
+    return {} if object_ref else {"not_stored": _session().objects.not_stored()}
 
 
 def _object(object_ref: str) -> tuple[Any, str | None]:
@@ -479,7 +492,8 @@ def run_simulation(
             "heatwave"). Used in comparison output.
 
     Returns a JSON object with run_ref, simulation metadata, and summary
-    statistics (min, max, mean, std, median, percentiles).
+    statistics (min, max, mean, std, median, percentiles). A result too large
+    to keep has object_ref null and a not_stored note.
     """
     from .dispatcher import bounds_error
     from .runner import run as _run
@@ -499,6 +513,7 @@ def run_simulation(
         return _fmt({
             "run_ref": run_ref,
             "object_ref": _session().results[run_ref]["object_ref"],
+            **_kept(_session().results[run_ref]["object_ref"]),
             "label": label or run_ref,
             "simulation": simulation_name,
             "bounds": bounds,
@@ -532,6 +547,7 @@ def run_simulation(
     return _fmt({
         "run_ref": run_ref,
         "object_ref": _session().results[run_ref]["object_ref"],
+        **_kept(_session().results[run_ref]["object_ref"]),
         "label": label or run_ref,
         "simulation": simulation_name,
         "bounds": bounds,
@@ -802,7 +818,8 @@ def run_operation(
         label: Optional human-readable label for this result.
 
     Returns a JSON object with object_ref (object_refs for several results), operation name, and a
-    summary of the result (statistics, counts — never raw data).
+    summary of the result (statistics, counts — never raw data). A result too large to keep
+    has object_ref null and a not_stored note: tell the user, and suggest a smaller area.
     """
     from .dispatcher import run_operation as _dispatch
 
@@ -1193,7 +1210,7 @@ def spatial_query(
                 label=f"filtered from {object_ref}",
             )
             return _fmt({
-                "new_object_ref": new_id, "type": "SensorCollection",
+                "new_object_ref": new_id, **_kept(new_id), "type": "SensorCollection",
                 "count": count, "query": "filter_by_bounds", "bounds": bounds,
             })
 
@@ -1216,7 +1233,7 @@ def spatial_query(
                 label=f"filtered from {object_ref}",
             )
             return _fmt({
-                "new_object_ref": new_id, "type": "PointCloud",
+                "new_object_ref": new_id, **_kept(new_id), "type": "PointCloud",
                 "count": int(mask.sum()), "original_count": len(pts),
                 "query": "filter_by_bounds", "bounds": bounds,
             })
@@ -1267,7 +1284,7 @@ def spatial_query(
             label=f"filtered from {object_ref}",
         )
         return _fmt({
-            "new_object_ref": new_id, "type": "SensorCollection",
+            "new_object_ref": new_id, **_kept(new_id), "type": "SensorCollection",
             "count": count, "query": "filter_by_value",
             "field": field_name, "op": op, "value": value,
         })
@@ -1331,7 +1348,7 @@ def spatial_query(
             label=f"filtered from {object_ref}",
         )
         return _fmt({
-            "new_object_ref": new_id, "type": "list[Building]",
+            "new_object_ref": new_id, **_kept(new_id), "type": "list[Building]",
             "count": len(filtered), "original_count": len(buildings),
             "query": "buildings_by_height",
             "min_height": min_h,
@@ -1374,7 +1391,7 @@ def load_geojson(name: str) -> str:
     obj_id = _session().objects.store(
         geojson, source_op="geojson.load", label=result["summary"]["file"],
     )
-    return _fmt({"object_ref": obj_id, **result["summary"]})
+    return _fmt({"object_ref": obj_id, **_kept(obj_id), **result["summary"]})
 
 
 @tool
@@ -1410,7 +1427,7 @@ def query_geojson(
         result["geojson"], source_op="geojson.query",
         label=f"{property_name} {operator} {value}",
     )
-    return _fmt({"new_object_ref": new_id, **result["result"]})
+    return _fmt({"new_object_ref": new_id, **_kept(new_id), **result["result"]})
 
 
 @tool

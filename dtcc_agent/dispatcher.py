@@ -250,6 +250,11 @@ def _run_dataset(
     return _store_and_summarize(result, op.name, store, label)
 
 
+def _kept(store: ObjectStore, *object_refs: str | None) -> dict[str, str]:
+    """The note a result carries when a part was too large to keep (U4)."""
+    return {} if all(object_refs) else {"not_stored": store.not_stored()}
+
+
 def _store_and_summarize(
     result: Any,
     op_name: str,
@@ -269,6 +274,7 @@ def _store_and_summarize(
         return {
             "operation": op_name,
             "object_refs": ids,
+            **_kept(store, *ids),
             "label": label,
             "summary": summaries,
         }
@@ -281,6 +287,7 @@ def _store_and_summarize(
             return {
                 "operation": op_name,
                 "object_ref": obj_id,
+                **_kept(store, obj_id),
                 "label": label,
                 "summary": serialize(result),
             }
@@ -300,6 +307,7 @@ def _store_and_summarize(
     return {
         "operation": op_name,
         "object_ref": obj_id,
+        **_kept(store, obj_id),
         "label": label,
         "summary": summary,
     }
@@ -393,6 +401,7 @@ def _check_cache_dataset(
     return {
         "operation": name,
         "object_ref": obj_id,
+        **_kept(store, obj_id),
         "label": "(cached)",
         "summary": serialize(obj),
     }

@@ -1,23 +1,64 @@
 """Tests for the in-memory object store."""
 
+import json
+
 import numpy as np
 
-from dtcc_agent.object_store import ObjectStore, _estimate_bytes
+from dtcc_agent.object_store import MemoryBudget, ObjectStore, _estimate_bytes
 
 
 class TestEstimateBytes:
     def test_numpy_arrays(self):
         class FakePC:
-            points = np.zeros((100, 3), dtype=np.float64)
-            classification = np.zeros(100, dtype=np.uint8)
+            def __init__(self):
+                self.points = np.zeros((100, 3), dtype=np.float64)
+                self.classification = np.zeros(100, dtype=np.uint8)
         nbytes = _estimate_bytes(FakePC())
         assert nbytes >= 100 * 3 * 8 + 100
 
     def test_plain_object(self):
         assert _estimate_bytes("hello") == 64  # minimum
 
-    def test_dict_object(self):
-        assert _estimate_bytes({"key": "value"}) == 64
+    def test_a_dict_counts_its_contents(self):
+        small = _estimate_bytes({"key": "value"})
+        assert _estimate_bytes({"key": "value" * 1000}) > small + 4000
+
+    def test_the_u4_probe_is_counted_within_an_order_of_magnitude(self):
+        # #13: a GeoJSON-like dict whose JSON is 64,168 bytes was counted as 64.
+        features = [
+            {"type": "Feature",
+             "geometry": {"type": "Point", "coordinates": [319000.0 + i, 6400000.0 + i]},
+             "properties": {"name": f"station_{i}", "air_temperature": 21.5 + i / 100}}
+            for i in range(413)
+        ]
+        geojson = {"type": "FeatureCollection", "features": features}
+        size = len(json.dumps(geojson))
+        assert 60_000 < size < 70_000
+        assert size / 10 <= _estimate_bytes(geojson) <= size * 10
+
+    def test_a_shared_array_and_a_view_count_once(self):
+        arr = np.zeros(10_000)
+        assert _estimate_bytes([arr, arr, arr[:10]]) < arr.nbytes + 1000
+
+    def test_a_simulation_result_counts_its_values(self):
+        class Vector:
+            def __init__(self):
+                self._values = np.zeros(50_000)
+
+            @property
+            def array(self):
+                return self._values
+
+        class Function:
+            __slots__ = ("x",)
+
+            def __init__(self):
+                self.x = Vector()
+
+        assert _estimate_bytes(Function()) >= 50_000 * 8
+
+    def test_classes_and_modules_are_not_walked(self):
+        assert _estimate_bytes({"np": np, "cls": ObjectStore}) < 1000
 
 
 class TestObjectStore:
@@ -110,3 +151,50 @@ def test_delete_returns_the_removed_entry_and_none_when_absent():
     assert (entry["type"], entry["label"]) == ("list", "lbl")
     assert store.delete(obj_id) is None
     assert store.total_bytes == 0
+
+
+# -- Shared budget and oversized Objects (T11, #23; U4, #13) -----------------
+
+ARRAY = 80_000  # np.zeros(10_000) of float64
+
+
+def _arr():
+    return np.zeros(10_000)
+
+
+def test_an_object_larger_than_the_store_is_not_kept_and_nothing_is_evicted():
+    store = ObjectStore(max_bytes=3 * ARRAY)
+    kept = store.store(_arr())
+    assert store.store(np.zeros(40_000)) is None
+    assert kept in store
+    assert "Too large to keep" in store.not_stored()
+
+
+def test_the_least_recently_used_object_in_any_store_goes_first():
+    budget = MemoryBudget(max_bytes=int(2.5 * ARRAY))
+    a = ObjectStore(max_bytes=2 * ARRAY, budget=budget)
+    b = ObjectStore(max_bytes=2 * ARRAY, budget=budget)
+    old = a.store(_arr())
+    newer = b.store(_arr())
+    a.get(old)  # now newer is the least recently used
+    b.store(_arr())
+    assert old in a and newer not in b
+    assert budget.total_bytes <= budget.max_bytes
+
+
+def test_each_store_keeps_its_own_cap_under_a_larger_budget():
+    budget = MemoryBudget(max_bytes=10 * ARRAY)
+    store = ObjectStore(max_bytes=2 * ARRAY + 1000, budget=budget)
+    refs = [store.store(_arr()) for _ in range(3)]
+    assert refs[0] not in store and len(store) == 2
+
+
+def test_clearing_a_store_returns_its_bytes_to_the_budget():
+    budget = MemoryBudget(max_bytes=10 * ARRAY)
+    a = ObjectStore(max_bytes=5 * ARRAY, budget=budget)
+    b = ObjectStore(max_bytes=5 * ARRAY, budget=budget)
+    a.store(_arr())
+    b.store(_arr())
+    a.clear()
+    assert len(a) == 0
+    assert budget.total_bytes == b.total_bytes
