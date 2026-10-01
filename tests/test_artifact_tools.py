@@ -76,3 +76,56 @@ def test_load_geojson_reads_only_the_shared_results_directory(tmp_path, monkeypa
     monkeypatch.setenv("SHARED_RESULTS_DIR", str(shared))
 
     assert "No GeoJSON file" in json.loads(server.load_geojson(name))["error"]
+
+
+# -- Buildings (#65) ---------------------------------------------------------
+
+SQUARE = np.array([[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 10, 0]], dtype=float)
+
+
+def _building(height=12.0):
+    building = model.Building()
+    building.add_geometry(model.Surface(vertices=SQUARE + [319000, 6400000, 0]),
+                          model.GeometryType.LOD0)
+    building.attributes["height"] = height
+    return building
+
+
+def _collection():
+    collections = pytest.importorskip("dtcc_core.model.object.dataset_collections")
+    return collections.BuildingCollection(buildings=[_building(), _building(20.0)])
+
+
+@pytest.mark.parametrize("fmt", ["geojson", "gpkg", "json"])
+@pytest.mark.parametrize("make", [_collection, lambda: [_building(), _building()]],
+                         ids=["BuildingCollection", "list"])
+def test_buildings_export_as_gis_files(session, fmt, make):
+    ref = session.objects.store(make(), source_op="t")
+
+    result = json.loads(server.export_object(ref, fmt))
+
+    assert "error" not in result, result
+    path = artifacts.find("sess1", result["artifact"]["name"])
+    assert path is not None and path.stat().st_size > 0
+    if fmt == "geojson":
+        features = json.loads(path.read_text())["features"]
+        assert len(features) == 2
+
+
+def test_a_geojson_export_of_buildings_is_in_wgs84(session):
+    ref = session.objects.store(_collection(), source_op="t")
+    name = json.loads(server.export_object(ref, "geojson"))["artifact"]["name"]
+    feature = json.loads(artifacts.find("sess1", name).read_text())["features"][0]
+    lon, lat = feature["geometry"]["coordinates"][0][0][:2]
+    assert 10 < lon < 13 and 56 < lat < 59  # Gothenburg, not SWEREF 99 metres
+
+
+def test_a_bad_building_format_names_the_allowed_ones(session):
+    ref = session.objects.store(_collection(), source_op="t")
+    error = json.loads(server.export_object(ref, "obj"))["error"]
+    assert "Allowed: geojson, gpkg, json" in error
+
+
+def test_a_list_that_is_not_buildings_is_not_exported(session):
+    ref = session.objects.store([1, 2, 3], source_op="t")
+    assert "not supported" in json.loads(server.export_object(ref, "geojson"))["error"]
