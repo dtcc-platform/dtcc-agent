@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     HOME=/home/dtcc-agent \
     XDG_CACHE_HOME=/data/cache \
+    DTCC_AGENT_ARTIFACTS_DIR=/data/artifacts \
     DTCC_AGENT_HOST=0.0.0.0 \
     DTCC_AGENT_PORT=8050
 
@@ -33,7 +34,7 @@ pin = next(d for d in tomllib.load(open('pyproject.toml', 'rb'))['project']['dep
 got = json.loads(m.distribution('dtcc-core').read_text('direct_url.json'))['vcs_info']['commit_id']; \
 assert got == pin, f'dtcc-core {got} is not the pinned {pin}'; \
 print('dtcc-core', got)" && \
-    mkdir -p /data/cache /data/logs /data/memory /shared/results /home/dtcc-agent/.cache && \
+    mkdir -p /data/artifacts /data/cache /data/logs /data/memory /shared/results /home/dtcc-agent/.cache && \
     chown -R dtcc-agent:dtcc-agent /app /data /shared /home/dtcc-agent
 
 USER dtcc-agent

@@ -106,7 +106,7 @@ def test_every_tool_has_a_description(name):
         ("list_operations", set()),
         ("list_past_runs", set()),
         ("list_simulations", set()),
-        ("load_geojson", {"file_path"}),
+        ("load_geojson", {"name"}),
         ("object_to_text", {"object_ref"}),
         ("query_geojson", {"object_ref", "property_name", "operator", "value"}),
         ("render_object", {"object_ref"}),

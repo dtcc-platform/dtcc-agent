@@ -1,6 +1,7 @@
 # tests/test_chatbot_app.py
 """Smoke tests for the chatbot FastAPI app."""
 
+import json
 import sys
 import types
 from unittest.mock import MagicMock
@@ -82,3 +83,98 @@ def test_websocket_session_handshake():
         msg = ws.receive_json()
         assert msg["type"] == "session"
         assert "session_id" in msg
+
+
+# -- Artifacts (T7, #21) ----------------------------------------------------
+
+import chatbot.app as app_module
+from dtcc_agent import artifacts
+
+
+@pytest.fixture
+def artifact_root(tmp_path, monkeypatch):
+    monkeypatch.setenv("DTCC_AGENT_ARTIFACTS_DIR", str(tmp_path))
+    return tmp_path
+
+
+def _artifact(session_id, stem, suffix, body=b"data"):
+    path = artifacts.new_path(session_id, stem, suffix)
+    path.write_bytes(body)
+    return path
+
+
+def test_a_live_sessions_image_is_served_inline(artifact_root):
+    sid = app_module.sessions.create()
+    path = _artifact(sid, "obj_1", ".png", b"\x89PNG")
+
+    resp = TestClient(app).get(f"/artifacts/{sid}/{path.name}")
+
+    assert resp.status_code == 200
+    assert resp.content == b"\x89PNG"
+    assert resp.headers["content-type"] == "image/png"
+    assert resp.headers["cache-control"] == "private, no-store"
+    assert resp.headers["x-content-type-options"] == "nosniff"
+
+
+def test_an_exported_file_downloads_under_its_plain_name(artifact_root):
+    sid = app_module.sessions.create()
+    path = _artifact(sid, "obj_1", ".csv")
+
+    resp = TestClient(app).get(f"/artifacts/{sid}/{path.name}")
+
+    assert resp.status_code == 200
+    assert "attachment" in resp.headers["content-disposition"]
+    assert "obj_1.csv" in resp.headers["content-disposition"]
+
+
+def test_an_artifact_is_not_served_to_another_or_an_unknown_session(artifact_root):
+    owner = app_module.sessions.create()
+    other = app_module.sessions.create()
+    path = _artifact(owner, "obj_1", ".png")
+    client = TestClient(app)
+
+    assert client.get(f"/artifacts/{other}/{path.name}").status_code == 404
+    # A Session the chatbot no longer knows serves nothing, even if files remain.
+    app_module.sessions._sessions.pop(owner)
+    assert client.get(f"/artifacts/{owner}/{path.name}").status_code == 404
+
+
+def test_a_traversal_name_is_not_served(artifact_root):
+    sid = app_module.sessions.create()
+    assert TestClient(app).get(f"/artifacts/{sid}/..%2F..%2Fetc%2Fpasswd").status_code == 404
+
+
+def test_a_tool_result_with_an_image_artifact_becomes_an_image_frame(artifact_root):
+    path = _artifact("s1", "obj_1", ".png")
+    content = [{"type": "text", "text": json.dumps({"artifact": artifacts.describe(path)})}]
+
+    assert app_module._artifact_frame("s1", content) == {
+        "type": "image", "url": f"/artifacts/s1/{path.name}",
+    }
+
+
+def test_a_tool_result_with_a_file_artifact_becomes_a_download_frame(artifact_root):
+    path = _artifact("s1", "obj_1", ".csv")
+    content = json.dumps({"artifact": artifacts.describe(path)})
+
+    assert app_module._artifact_frame("s1", content) == {
+        "type": "file", "url": f"/artifacts/s1/{path.name}", "name": "obj_1.csv",
+    }
+
+
+def test_an_artifact_inside_fastmcps_structured_result_is_found(artifact_root):
+    # The shape the Claude CLI actually delivers (seen end to end).
+    path = _artifact("s1", "obj_1", ".png")
+    tool_text = json.dumps({"object_ref": "obj_1", "artifact": artifacts.describe(path)})
+
+    frame = app_module._artifact_frame("s1", json.dumps({"result": tool_text}))
+
+    assert frame == {"type": "image", "url": f"/artifacts/s1/{path.name}"}
+
+
+@pytest.mark.parametrize("content", [
+    "not json", json.dumps({"result": "not json"}), json.dumps({"object_ref": "obj_1"}), json.dumps(["x"]), None,
+    json.dumps({"artifact": {"name": "0" * 32 + "_x.png", "kind": "image"}}),
+])
+def test_a_tool_result_without_this_sessions_artifact_sends_no_frame(artifact_root, content):
+    assert app_module._artifact_frame("s1", content) is None

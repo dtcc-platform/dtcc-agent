@@ -26,12 +26,26 @@ _OBJECT_TYPE_NAMES: set[str] = {
 }
 
 
+# Parameter names that are file paths across dtcc-core's io module.
+_PATH_NAMES = {"path", "filename", "outfile"}
+
+
 @dataclass
 class ParamInfo:
     name: str
     type_hint: str = ""
     default: Any = inspect.Parameter.empty
     is_object_param: bool = False
+
+    @property
+    def is_path(self) -> bool:
+        """A file or directory path, which run_operation refuses (U1, #10)."""
+        return (
+            self.name in _PATH_NAMES
+            or self.name.endswith(("_path", "_dir"))
+            or "Path" in self.type_hint
+            or "'format': 'path'" in self.type_hint
+        )
 
     def to_dict(self) -> dict:
         d: dict[str, Any] = {

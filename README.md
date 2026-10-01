@@ -24,7 +24,7 @@ LLM (Claude) ←→ MCP protocol ←→ dtcc-agent
                                     ├── export_object       │
                                     ├── object_to_text      │
                                     ├── spatial_query      ─┘
-                                    ├── render_object       (dtcc_viewer, offscreen)
+                                    ├── render_object       (matplotlib PNG, per-Session file)
                                     └── disk_cache          (spatial containment, TTL eviction)
 ```
 
@@ -121,8 +121,7 @@ not asked again, so restart the agent after redeploying dtcc-sim: until then a n
 simulation is missing and a removed one is still offered (#46).
 
 At most `DTCC_MCP_WORKERS` tool calls (default 4) run at once across all Sessions, and at
-most half of them (at least 1) from one Session; the rest wait their turn. `render_object`
-is outside this count: it runs on the main thread, where GLFW needs it. Each Core operation
+most half of them (at least 1) from one Session; the rest wait their turn. Each Core operation
 can copy a large input, so size it to the host's memory. Over stdio the one client may use all
 of them. Two calls that would download the same dataset for the same bounds never download
 at once, including `get_buildings` and `datasets.buildings` for one area: the later one waits,
@@ -220,7 +219,7 @@ The Docker layout mirrors `dtcc-sim`:
 | `inspect_object` | Get detailed summary of a stored object |
 | `delete_object` | Delete a stored object and free memory |
 | `get_field_names` | Discover fields/data attached to a stored object |
-| `export_object` | Export an object to file (CSV, OBJ, PLY, STL, VTK, glTF, etc.) |
+| `export_object` | Export an object to a file the user downloads from the chat (CSV, OBJ, PLY, STL, VTK, glTF, etc.) |
 | `object_to_text` | Get a rich markdown representation of a stored object |
 | `spatial_query` | Spatial filtering, nearest-station lookup, height-based queries |
 
@@ -228,7 +227,7 @@ The Docker layout mirrors `dtcc-sim`:
 
 | Tool | Description |
 |------|-------------|
-| `render_object` | Render a stored object as a PNG screenshot (offscreen 3D via dtcc-viewer) |
+| `render_object` | Render a stored object as a PNG shown in the chat (matplotlib; plan view for footprints and lines, 3D for meshes and point clouds) |
 
 The dynamic dispatch tools expose **all** of dtcc-core:
 
@@ -275,6 +274,25 @@ type-specific summaries:
 - **Tuples**: each element stored separately with linked IDs
 
 Use `inspect_object(id)` to get a detailed summary of any stored object.
+
+### Files: no paths in, no paths out
+
+No tool reads or writes a path given in chat (U1, #10). `run_operation` refuses every
+operation parameter that is a file or directory path (the `io.load_*` / `io.save_*` family
+and Core's tetgen debug directories), and `tests/test_path_refusal.py` pins that list
+against the pinned Core.
+
+Files a tool produces go into the calling Session's own `0700` directory under
+`$DTCC_AGENT_ARTIFACTS_DIR` (default: the system temp directory; Docker: `/data/artifacts`),
+named with a random token. `render_object` and `export_object` return the artifact's name,
+never its path. Lurkie serves it at `/artifacts/<session>/<name>` only while that Session
+is live, shows an image inline and a file as a download link, and deletes the directory
+when the Session expires. Until central auth (T14), that URL is the credential.
+
+`load_geojson` reads only from `$SHARED_RESULTS_DIR`, where dtcc-sim writes results, by a
+path relative to it; absolute paths and anything resolving outside it are refused. The MCP
+server and Lurkie must see the same artifacts directory; in the two-service deployment
+(T13) they share a volume.
 
 ### Disk cache
 
@@ -392,9 +410,9 @@ Agent: "Lindholmen has 47 buildings (3–45m tall) and approximately
         128 detected trees (4–18m tall) from the LiDAR data..."
 ```
 
-### Example 4: Visualizing buildings in 3D
+### Example 4: Visualizing buildings
 
-Download buildings for an area and render a 3D screenshot:
+Download buildings for an area and render them:
 
 ```
 User: "Show me the buildings in Lindholmen"
@@ -407,10 +425,11 @@ Agent calls: run_operation("datasets.buildings",
   → object_ref: "obj_b1c2d3e4", 47 buildings, heights 3–45m
 
 Agent calls: render_object("obj_b1c2d3e4")
-  → {"image_path": "/tmp/dtcc_screenshots_xxx/b1c2d3e4.png",
-     "type": "City", "width": 1200, "height": 800}
+  → {"object_ref": "obj_b1c2d3e4", "type": "BuildingCollection",
+     "artifact": {"name": "3f9c…_obj_b1c2d3e4.png", "kind": "image"}}
+  (Lurkie shows the footprints, drawn in plan view, in the chat)
 
-Agent: "Here's a 3D rendering of the 47 buildings in Lindholmen.
+Agent: "Here are the 47 building footprints in Lindholmen.
         The tallest building reaches 45m..."
 ```
 
@@ -433,8 +452,8 @@ Agent calls: run_operation("builder.build_terrain_raster",
   → object_ref: "obj_e5f6g7h8", 250×250 raster, elevation 5–48m
 
 Agent calls: render_object("obj_e5f6g7h8")
-  → {"image_path": "/tmp/dtcc_screenshots_xxx/e5f6g7h8.png",
-     "type": "Raster", "width": 1200, "height": 800}
+  → {"object_ref": "obj_e5f6g7h8", "type": "Raster",
+     "artifact": {"name": "8a1d…_obj_e5f6g7h8.png", "kind": "image"}}
 
 Agent: "Here's the terrain raster for the Chalmers area. Elevation
         ranges from 5m near the waterfront to 48m on the hillside..."

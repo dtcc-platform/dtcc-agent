@@ -152,26 +152,6 @@ def test_a_bad_pool_size_stops_startup_naming_the_variable():
         assert "DTCC_MCP_WORKERS" in out.stderr, out.stderr[-300:]
 
 
-def test_a_main_thread_tool_runs_even_when_the_pool_is_full(monkeypatch):
-    # Rendering bypasses the pool: it runs on the event loop and never
-    # needed a worker thread.
-    import dtcc_agent.renderer as renderer
-
-    monkeypatch.setattr(renderer, "render_to_file", lambda **kw: "/tmp/render.png")
-    monkeypatch.setattr(server, "_local_session", server._Session())
-    object_ref = server._session().objects.store([], source_op="test")
-    full = anyio.CapacityLimiter(1)
-    monkeypatch.setattr(server.runtime, "workers", full)
-
-    async def run():
-        await full.acquire_on_behalf_of(object())
-        with anyio.fail_after(2):
-            return await server.mcp.call_tool("render_object", {"object_ref": object_ref})
-
-    content, _ = anyio.run(run)
-    assert "error" not in json.loads(content[0].text)
-
-
 def test_a_tool_that_raises_gives_its_worker_back(monkeypatch):
     pool = anyio.CapacityLimiter(1)
     monkeypatch.setattr(server.runtime, "workers", pool)

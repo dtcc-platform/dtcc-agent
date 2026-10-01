@@ -28,7 +28,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.lowlevel.server import request_ctx
 
-from . import refs, runtime
+from . import artifacts, refs, runtime
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
 from .object_store import ObjectStore
@@ -64,6 +64,8 @@ def _new_session_objects() -> ObjectStore:
 class _Session:
     """Everything one Session owns (ADR-0004): never visible from another."""
 
+    # The chatbot's Session id; it names the Session's artifact directory.
+    id: str = "local"
     # dtcc-core objects (PointCloud, Mesh, Raster, etc.)
     objects: ObjectStore = field(default_factory=_new_session_objects)
     # Simulation results, keyed by run_ref, so the agent can refer back to them.
@@ -85,6 +87,8 @@ _sessions_lock = threading.Lock()
 # stdio has exactly one client per process, and in-process callers have none.
 # Being alone, it may use all of runtime.workers.
 _local_session = _Session(
+    # The chatbot launches a stdio server per message and names its Session here.
+    id=os.getenv("DTCC_AGENT_SESSION", "local"),
     objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES),
     workers=anyio.CapacityLimiter(runtime.WORKERS),
 )
@@ -110,7 +114,7 @@ def _session_for(session_id: str, acquire: bool = False) -> _Session:
     Session is busy the cap is exceeded until one goes idle.
     """
     with _sessions_lock:
-        session = _sessions.pop(session_id, None) or _Session()
+        session = _sessions.pop(session_id, None) or _Session(id=session_id)
         _sessions[session_id] = session
         if acquire:
             session.in_flight += 1
@@ -184,7 +188,6 @@ async def _flight(key: Hashable | None):
 def tool(
     fn: Callable[..., str] | None = None,
     *,
-    main_thread: bool = False,
     flight: Callable[[dict[str, Any]], Hashable | None] | None = None,
 ):
     """Register `fn` as an MCP tool bound to the calling Session.
@@ -194,9 +197,7 @@ def tool(
     gpkg downloads) raises, and a thread also keeps one slow tool from
     stalling every other session. At most `runtime.workers` bodies run at once
     across the process, and at most the Session's share of them from one
-    Session. `main_thread=True` runs it on the event loop instead, which is
-    the main thread; GLFW rendering needs that. The Session is bound through
-    a context variable either way.
+    Session. The Session is bound through a context variable.
 
     `flight` maps the call's arguments to a key; calls with the same key run
     one at a time (see `_flight`), None opting a call out.
@@ -204,7 +205,7 @@ def tool(
     Returns `fn` unchanged so in-process callers keep calling it synchronously.
     """
     if fn is None:
-        return functools.partial(tool, main_thread=main_thread, flight=flight)
+        return functools.partial(tool, flight=flight)
 
     signature = inspect.signature(fn)
 
@@ -213,8 +214,6 @@ def tool(
         session = _request_session()
         token = _current_session.set(session)
         try:
-            if main_thread:
-                return fn(*args, **kwargs)
             call = signature.bind(*args, **kwargs)
             call.apply_defaults()
             key = flight(call.arguments) if flight else None
@@ -866,9 +865,7 @@ def inspect_object(object_ref: str) -> str:
 
 # -- Visualization -----------------------------------------------------------
 
-# GLFW must create its window on the main thread; on macOS anywhere else
-# aborts the process.
-@tool(main_thread=True)
+@tool
 def render_object(
     object_ref: str,
     width: int = 1200,
@@ -876,8 +873,9 @@ def render_object(
 ) -> str:
     """Render a stored object as a PNG screenshot.
 
-    Creates an offscreen 3D visualization of any dtcc-core geometry object
-    (Mesh, PointCloud, City, Building, Raster, etc.) and saves it as a PNG.
+    Draws a dtcc-core geometry object (Mesh, PointCloud, City, Building,
+    Raster, etc.) as a PNG the user sees in the chat. Footprints and lines
+    are drawn in plan view, meshes and point clouds in 3D.
 
     Supported types: Mesh, PointCloud, City, Raster, Building, Surface,
     MultiSurface, VolumeMesh, RoadNetwork, Bounds, LineString,
@@ -888,7 +886,7 @@ def render_object(
         width: Image width in pixels (default 1200).
         height: Image height in pixels (default 800).
 
-    Returns a JSON object with the image file path, or an error message.
+    Returns a JSON object naming the image artifact, or an error message.
     """
     from .renderer import render_to_file, SUPPORTED_TYPES
 
@@ -903,23 +901,14 @@ def render_object(
                      f"Supported: {', '.join(sorted(SUPPORTED_TYPES - {'list'}))}",
         })
 
-    image_path = render_to_file(
-        obj=obj,
-        type_name=type_name,
-        label=object_ref,
-        width=width,
-        height=height,
-    )
-
-    if image_path is None:
-        return _fmt({"error": "Rendering failed. Check that dtcc-viewer is installed and the object has geometry."})
+    path = artifacts.new_path(_session().id, object_ref, ".png")
+    if not render_to_file(obj, type_name, path, width=width, height=height):
+        return _fmt({"error": f"Nothing to render: the {type_name} has no drawable geometry."})
 
     return _fmt({
         "object_ref": object_ref,
         "type": type_name,
-        "image_path": image_path,
-        "width": width,
-        "height": height,
+        "artifact": artifacts.describe(path),
     })
 
 
@@ -1033,9 +1022,8 @@ _EXPORT_DISPATCH = {
 def export_object(
     object_ref: str,
     format: str,
-    filepath: str | None = None,
 ) -> str:
-    """Export a stored object to a file.
+    """Export a stored object to a file the user can download from the chat.
 
     Supported types and formats:
     - PointCloud: csv, las, laz, json
@@ -1048,10 +1036,8 @@ def export_object(
     Args:
         object_ref: The Object reference (obj_…) from run_operation() or list_objects().
         format: Output format (e.g. "csv", "obj", "ply", "json").
-        filepath: Optional output file path. If omitted, saves to
-            /tmp/dtcc_exports/<object_ref>.<format>.
 
-    Returns a JSON object with the exported file path, or an error.
+    Returns a JSON object naming the file artifact, or an error.
     """
 
     obj, error = _object(object_ref)
@@ -1068,10 +1054,7 @@ def export_object(
 
         import csv as csv_mod
 
-        if filepath is None:
-            os.makedirs("/tmp/dtcc_exports", exist_ok=True)
-            filepath = f"/tmp/dtcc_exports/{object_ref}.csv"
-
+        filepath = artifacts.new_path(_session().id, object_ref, ".csv")
         with open(filepath, "w", newline="") as fh:
             writer = csv_mod.writer(fh)
             writer.writerow(["station", "x", "y", "z", "field", "value", "unit"])
@@ -1087,7 +1070,8 @@ def export_object(
                             field.name, val, field.unit,
                         ])
 
-        return _fmt({"object_ref": object_ref, "type": type_name, "format": fmt, "filepath": filepath})
+        return _fmt({"object_ref": object_ref, "type": type_name, "format": fmt,
+                     "artifact": artifacts.describe(filepath)})
 
     # Standard dtcc-core types
     if type_name not in _EXPORT_DISPATCH:
@@ -1101,20 +1085,20 @@ def export_object(
                      f"Allowed: {', '.join(sorted(allowed_formats))}."
         })
 
-    if filepath is None:
-        os.makedirs("/tmp/dtcc_exports", exist_ok=True)
-        filepath = f"/tmp/dtcc_exports/{object_ref}.{fmt}"
+    filepath = artifacts.new_path(_session().id, object_ref, f".{fmt}")
 
     from dtcc_core import io as dtcc_io
 
     save_func = getattr(dtcc_io, save_func_name)
 
     try:
-        save_func(obj, filepath)
+        save_func(obj, str(filepath))
     except Exception as exc:
+        filepath.unlink(missing_ok=True)
         return _fmt({"error": f"Export failed: {exc}"})
 
-    return _fmt({"object_ref": object_ref, "type": type_name, "format": fmt, "filepath": filepath})
+    return _fmt({"object_ref": object_ref, "type": type_name, "format": fmt,
+                 "artifact": artifacts.describe(filepath)})
 
 
 # -- Rich text output --------------------------------------------------------
@@ -1363,8 +1347,8 @@ def spatial_query(
 # -- GeoJSON tools -----------------------------------------------------------
 
 @tool
-def load_geojson(file_path: str) -> str:
-    """Load a GeoJSON file from disk and store it for querying.
+def load_geojson(name: str) -> str:
+    """Load a GeoJSON file from the shared results directory and store it for querying.
 
     Reads a GeoJSON FeatureCollection, stores it in the object store,
     and returns a summary with feature count, geometry types, property
@@ -1372,12 +1356,17 @@ def load_geojson(file_path: str) -> str:
     fewer features, the full features are included in the response.
 
     Args:
-        file_path: Absolute path to the .geojson file on disk.
+        name: Path of the .geojson file relative to the shared results
+            directory, where dtcc-sim writes its results (e.g.
+            "run_42/air_temperature.geojson"). Absolute paths are refused.
 
     Returns a JSON string with summary and an object_ref for use with
     query_geojson and summarize_geojson_property.
     """
-    result = _load_geojson(file_path)
+    path = artifacts.shared_result(name)
+    if path is None:
+        return _fmt({"error": f"No GeoJSON file {name!r} in the shared results directory."})
+    result = _load_geojson(str(path))
     if "error" in result:
         return _fmt(result)
 
