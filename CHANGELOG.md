@@ -14,7 +14,8 @@ Last updated: 2026-10-01.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-01 | Memory is counted from what objects really hold, and one budget is shared fairly by every user ([#66](https://github.com/dtcc-platform/dtcc-agent/pull/66), T11, fixes [#23](https://github.com/dtcc-platform/dtcc-agent/issues/23), implements U4) | 🔍 |
+| 2026-10-01 | **Last M1a task:** the agent runs as two containers, with the tool server reachable only by the chat ([#67](https://github.com/dtcc-platform/dtcc-agent/pull/67), T13, fixes [#24](https://github.com/dtcc-platform/dtcc-agent/issues/24)) | ✅ |
+| 2026-10-01 | Memory is counted from what objects really hold, and one budget is shared fairly by every user ([#66](https://github.com/dtcc-platform/dtcc-agent/pull/66), T11, fixes [#23](https://github.com/dtcc-platform/dtcc-agent/issues/23), implements U4) | ✅ |
 | 2026-10-01 | Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem ([#63](https://github.com/dtcc-platform/dtcc-agent/pull/63), T7, fixes [#21](https://github.com/dtcc-platform/dtcc-agent/issues/21) and [#38](https://github.com/dtcc-platform/dtcc-agent/issues/38), decides U9) | ✅ |
 | 2026-10-01 | The chat works with the current Claude client again: an outdated library failed every message ([#64](https://github.com/dtcc-platform/dtcc-agent/pull/64)) | ✅ |
 | 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | ✅ |
@@ -51,7 +52,26 @@ Last updated: 2026-10-01.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
+
+### Last M1a task: the agent runs as two containers, with the tool server reachable only by the chat · 2026-10-01 · [#67](https://github.com/dtcc-platform/dtcc-agent/pull/67)
+
+**Before:** one container ran the chat, which started a fresh tool server for every message
+over a pipe. Nothing in the deployment matched the plan's two services, and the shared folder
+for files and the network rule from U11 had nowhere to apply.
+
+**Now:** `docker compose up` starts two services from one image. The tool server listens on
+the container's own loopback address only, and its port is never published, so no other
+container or machine can reach it (U11). The chat shares its network and reaches it there. The
+chat starts only once the tool server is ready. Both share one data folder, so a picture the
+tool server draws is the one the chat serves (T7).
+
+**How we know it works:** with the stack up, the tool server's port answered neither the host
+nor another container. A chat session's render of the Lindholmen buildings landed in that
+session's private folder and loaded through the chat (200), while another session got 404. A
+file path was still refused, and the container ran the pinned Core. A full chat message was not
+sent inside Docker (it needs a Claude token there); the same connection was tested end to end
+in #33 and #63.
 
 ### Memory is counted from what objects really hold, and one budget is shared fairly by every user · 2026-10-01 · [#66](https://github.com/dtcc-platform/dtcc-agent/pull/66)
 
@@ -76,10 +96,6 @@ test and counts within an order of magnitude. New tests cover eviction across Se
 per-Session cap, a dropped Session handing its memory back, oversized results from operations,
 simulations and GeoJSON, and the Run cap. On real data the new count tracks the pickled size:
 6.25 vs 4.73 MB for buildings, 1.56 vs 1.54 MB for a point cloud. 418 tests pass.
-
----
-
-## ✅ Merged
 
 ### Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem · 2026-10-01 · [#63](https://github.com/dtcc-platform/dtcc-agent/pull/63)
 
@@ -637,11 +653,12 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 
 ## What's next
 
-1. **The rest of M1a:** per-session file folders with path arguments refused (T7, U1) are
-   merged (#63), and the memory budget (T11, U4) is in review (#66). The two-service container
-   on loopback (T13, U10 and U11) remains; it must give both services the same artifacts folder. Exporting a
-   building collection is queued as #65.
-2. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
+1. **Every M1a task is merged:** per-session file folders with path arguments refused (T7,
+   #63), the memory budget (T11, #66) and the two-service deployment on loopback (T13, #67).
+   What closes M1a is the QA checklist, run against `docker compose up` with a real chat.
+2. **Then M2,** starting with admission control (T14), which is what lets the tool server leave
+   loopback. Exporting a building collection is queued as #65.
+3. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
    versioning (T12, #56).
 
 ## For discussion with the team
