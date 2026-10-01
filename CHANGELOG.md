@@ -14,7 +14,8 @@ Last updated: 2026-10-01.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-01 | Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem ([#63](https://github.com/dtcc-platform/dtcc-agent/pull/63), T7, fixes [#21](https://github.com/dtcc-platform/dtcc-agent/issues/21) and [#38](https://github.com/dtcc-platform/dtcc-agent/issues/38), decides U9) | 🔍 |
+| 2026-10-01 | Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem ([#63](https://github.com/dtcc-platform/dtcc-agent/pull/63), T7, fixes [#21](https://github.com/dtcc-platform/dtcc-agent/issues/21) and [#38](https://github.com/dtcc-platform/dtcc-agent/issues/38), decides U9) | ✅ |
+| 2026-10-01 | The chat works with the current Claude client again: an outdated library failed every message ([#64](https://github.com/dtcc-platform/dtcc-agent/pull/64)) | ✅ |
 | 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | ✅ |
 | 2026-09-30 | The Docker image installs the dtcc-core we pin and test, not Core's moving `develop` ([#61](https://github.com/dtcc-platform/dtcc-agent/pull/61), fixes [#41](https://github.com/dtcc-platform/dtcc-agent/issues/41), decides U10 [#14](https://github.com/dtcc-platform/dtcc-agent/issues/14)) | ✅ |
 | 2026-09-30 | The wiki describes typed references, the cache version stamp and Core's registration fixes ([#60](https://github.com/dtcc-platform/dtcc-agent/pull/60)) | ✅ |
@@ -49,7 +50,7 @@ Last updated: 2026-10-01.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
 ### Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem · 2026-10-01 · [#63](https://github.com/dtcc-platform/dtcc-agent/pull/63)
 
@@ -87,13 +88,9 @@ file path straight from chat, half of them for writing (#21, U1).
 - 401 tests pass.
 
 **Still open:**
-- Exporting a building collection is not supported yet.
+- Exporting a building collection is not supported yet (#65).
 - `load_geojson` has no tool listing the shared results folder, so the file name has to come
   from the user or the simulation.
-
----
-
-## ✅ Merged
 
 ### Builder results are no longer cached, so a cache can't hand back the wrong geometry · 2026-09-30 · [#62](https://github.com/dtcc-platform/dtcc-agent/pull/62)
 
@@ -611,9 +608,10 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 
 ## What's next
 
-1. **The rest of M1a:** per-session file folders with path arguments refused (T7, U1) is in
-   review (#63); the memory budget (T11, U4) and the two-service container on loopback (T13, U10
-   and U11) remain. T13 must give both services the same artifacts folder. The cache split (T6) is nearly moot: only public downloads are cached now (U2).
+1. **The rest of M1a:** per-session file folders with path arguments refused (T7, U1) are
+   merged (#63). The memory budget (T11, U4) and the two-service container on loopback (T13,
+   U10 and U11) remain; T13 must give both services the same artifacts folder. Exporting a
+   building collection is queued as #65.
 2. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
    versioning (T12, #56).
 
