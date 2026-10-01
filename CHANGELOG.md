@@ -45,7 +45,7 @@ Last updated: 2026-10-01.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 397 with #63.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63.
 
 ---
 
@@ -84,7 +84,7 @@ file path straight from chat, half of them for writing (#21, U1).
 - The live run caught two faults the unit tests had missed, both now fixed and tested:
   `datasets.buildings` returns a building collection that no renderer handled, and the Claude
   client wraps each tool result in one more layer, which hid the image from the page.
-- 397 tests pass.
+- 401 tests pass.
 
 **Still open:**
 - Exporting a building collection is not supported yet.

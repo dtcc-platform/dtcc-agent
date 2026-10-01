@@ -91,7 +91,8 @@ def _plan(obj: Any, type_name: str) -> tuple[list, list, np.ndarray | None]:
             if hasattr(geom, "x")
         ]
         points = np.array(coords, dtype=float) if coords else None
-    return polygons, lines, points
+    # Empty geometry is nothing to draw, not a blank picture.
+    return [p for p in polygons if len(p)], [l for l in lines if len(l)], points
 
 
 def _draw_plan(fig: Figure, obj: Any, type_name: str) -> bool:

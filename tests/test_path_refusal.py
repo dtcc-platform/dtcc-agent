@@ -55,10 +55,12 @@ def test_a_path_argument_is_refused_before_core_is_called(name, params):
     core.assert_not_called()
 
 
-def test_an_optional_path_left_unset_does_not_refuse_the_operation():
+@pytest.mark.parametrize("unset", [{}, {"tetgen_debug_output_dir": None},
+                                   {"tetgen_debug_output_dir": ""}])
+def test_an_optional_path_left_unset_does_not_refuse_the_operation(unset):
     store = ObjectStore()
     city = store.store(object(), source_op="test")
     op = get_registry()["builder.build_city_volume_mesh"]
     with patch.object(op, "_callable", return_value=None) as core:
-        run_operation("builder.build_city_volume_mesh", {"city": city}, store=store)
+        run_operation("builder.build_city_volume_mesh", {"city": city, **unset}, store=store)
     core.assert_called_once()

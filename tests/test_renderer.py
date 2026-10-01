@@ -40,9 +40,14 @@ def test_a_large_point_cloud_is_subsampled_not_refused(tmp_path):
     assert render_to_file(model.PointCloud(points=points), "PointCloud", path)
 
 
-def test_empty_geometry_draws_nothing(tmp_path):
+@pytest.mark.parametrize("obj,type_name", [
+    (model.Mesh(), "Mesh"),
+    (model.LineString(), "LineString"),
+    (model.MultiLineString(linestrings=[model.LineString()]), "MultiLineString"),
+])
+def test_empty_geometry_draws_nothing(tmp_path, obj, type_name):
     path = tmp_path / "empty.png"
-    assert not render_to_file(model.Mesh(), "Mesh", path)
+    assert not render_to_file(obj, type_name, path)
     assert not path.exists()
 
 
