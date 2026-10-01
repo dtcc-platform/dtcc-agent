@@ -183,7 +183,19 @@ through the service is the real test.
 
 `ANTHROPIC_API_KEY` is also supported if you prefer API-key auth.
 
-The service listens on http://localhost:8050 and exposes a health endpoint at
+Compose runs two services from one image (T13):
+
+- `dtcc-agent-mcp`, the MCP server over streamable HTTP. It binds `127.0.0.1:8051` and that
+  port is never published (U11): until admission control (T14), nothing outside the pair can
+  reach it. It owns the network namespace, so the chatbot's port 8050 is published here.
+- `dtcc-agent`, the chatbot. It shares that namespace (`network_mode: service:dtcc-agent-mcp`)
+  and reaches the server at `http://127.0.0.1:8051/mcp`, sending its session id in
+  `X-DTCC-Session`. It starts once the MCP server is healthy, which is after the catalogue is built.
+
+Both mount the same `/data`. The MCP server writes each Session's files to `/data/artifacts`
+and the chatbot serves them. Only the MCP server mounts `/shared/results`.
+
+The chatbot listens on http://localhost:8050 and exposes a health endpoint at
 http://localhost:8050/health.
 
 The Docker layout mirrors `dtcc-sim`:

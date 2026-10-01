@@ -1,29 +1,76 @@
+# Two services from one image (T13, #24): the MCP server over streamable HTTP,
+# and the chatbot that talks to it.
+#
+# The MCP server binds 127.0.0.1 only and no MCP port is published (U11, #15):
+# the chatbot shares its network namespace and reaches it over loopback, so no
+# other container or host can. Revisit when admission control lands (T14).
+# Loopback also keeps FastMCP's DNS-rebinding allowlist (127.0.0.1, localhost)
+# valid without changes.
+#
+# Both mount the same /data: the MCP server writes each Session's artifacts to
+# /data/artifacts and the chatbot serves them from there (T7, #21).
+
+x-image: &image
+  image: ${DTCC_AGENT_IMAGE:-dtcc-agent}:${DTCC_AGENT_TAG:-local}
+  platform: ${DOCKER_PLATFORM:-linux/amd64}
+
 services:
-  dtcc-agent:
-    image: ${DTCC_AGENT_IMAGE:-dtcc-agent}:${DTCC_AGENT_TAG:-local}
-    platform: ${DOCKER_PLATFORM:-linux/amd64}
+  dtcc-agent-mcp:
+    <<: *image
     build:
       context: .
       dockerfile: Dockerfile
       args:
         APP_UID: ${APP_UID:-1000}
         APP_GID: ${APP_GID:-1000}
+    command: ["python", "-m", "dtcc_agent"]
+    # The chatbot listens inside this service's network namespace, so its
+    # port is published here. The MCP port (8051) is not.
     ports:
       - "8050:8050"
     environment:
-      - DTCC_AGENT_HOST=0.0.0.0
-      - DTCC_AGENT_PORT=8050
+      - DTCC_MCP_TRANSPORT=http
+      - DTCC_MCP_HOST=127.0.0.1
+      - DTCC_MCP_PORT=8051
       - DTCC_AGENT_LOG_DIR=/data/logs
-      - DTCC_AGENT_MEMORY_DIR=/data/memory
       - DTCC_AGENT_CACHE_DIR=/data/cache
       - DTCC_REMOTE_SERVICES=${DTCC_REMOTE_SERVICES:-http://host.docker.internal:8001}
       - DTCC_SIM_SERVICE_URL=${DTCC_SIM_SERVICE_URL:-}
       - SHARED_RESULTS_DIR=/shared/results
+    volumes:
+      - ${DTCC_AGENT_DATA:-./data/agent}:/data
+      - ${DTCC_SHARED_RESULTS:-../dtcc-sim/data/shared-results}:/shared/results
+    healthcheck:
+      # Listening means the catalogue is built: the server builds it before
+      # it accepts connections, and exits if a Core section fails (#22).
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; socket.create_connection(('127.0.0.1', 8051), 2)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+
+  dtcc-agent:
+    <<: *image
+    network_mode: "service:dtcc-agent-mcp"
+    depends_on:
+      dtcc-agent-mcp:
+        condition: service_healthy
+    environment:
+      - DTCC_MCP_URL=http://127.0.0.1:8051/mcp
+      - DTCC_AGENT_HOST=0.0.0.0
+      - DTCC_AGENT_PORT=8050
+      - DTCC_AGENT_LOG_DIR=/data/logs
+      - DTCC_AGENT_MEMORY_DIR=/data/memory
       - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
-      - ${DTCC_SHARED_RESULTS:-../dtcc-sim/data/shared-results}:/shared/results
     healthcheck:
       test:
         [

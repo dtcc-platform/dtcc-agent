@@ -12,4 +12,4 @@ export APP_GID="${APP_GID:-1000}"
 echo "Building ${DTCC_AGENT_IMAGE}:${DTCC_AGENT_TAG} via docker compose"
 
 cd "${SCRIPT_DIR}"
-docker compose build dtcc-agent
+docker compose build dtcc-agent-mcp
