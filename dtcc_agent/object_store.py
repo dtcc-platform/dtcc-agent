@@ -3,45 +3,107 @@
 Stores intermediate results (PointCloud, Mesh, Raster, etc.) with short
 Object references (``obj_…``, ADR-0010) so that multi-step pipelines can
 reference previous outputs.
-Thread-safe via a lock; LRU eviction keeps memory bounded.
+Thread-safe via a lock; LRU eviction keeps memory bounded, per store and
+across every store sharing a MemoryBudget (T11, #23).
 """
 
 from __future__ import annotations
 
+import itertools
+import sys
 import threading
 import time
+import types
+import weakref
 from typing import Any
 
 import numpy as np
 
 from . import refs
 
+# Never walked into: shared by everything, owned by nothing stored.
+_OPAQUE = (type, types.ModuleType, types.FunctionType, types.BuiltinFunctionType,
+           types.MethodType)
+_LEAVES = (str, bytes, bytearray, int, float, complex, bool, type(None))
+
 
 def _estimate_bytes(obj: Any) -> int:
-    """Estimate memory usage of a dtcc-core object."""
+    """Bytes `obj` holds, counting everything it reaches once (U4, #13).
+
+    Walks dicts, sequences and object attributes, so GeoJSON-like dicts, lists
+    of Buildings and Core geometry count their contents. A numpy array counts
+    its buffer, a view its base, and a simulation result its ``.x.array``.
+    """
     total = 0
-    # Handle raw numpy arrays directly
-    if isinstance(obj, np.ndarray):
-        return max(obj.nbytes, 64)
-    # Walk attributes looking for numpy arrays
-    for attr_name in ("points", "classification", "intensity", "return_number",
-                      "num_returns", "vertices", "faces", "cells", "markers",
-                      "normals", "data"):
-        arr = getattr(obj, attr_name, None)
-        if isinstance(arr, np.ndarray):
-            total += arr.nbytes
-    # For objects with children (City, etc.), recurse
-    children = getattr(obj, "children", None)
-    if isinstance(children, dict):
-        for child_list in children.values():
-            for child in child_list:
-                total += _estimate_bytes(child)
-    # For objects with geometry dict
-    geometry = getattr(obj, "geometry", None)
-    if isinstance(geometry, dict):
-        for geom in geometry.values():
-            total += _estimate_bytes(geom)
-    return max(total, 64)  # minimum 64 bytes for the object itself
+    seen: set[int] = set()
+    stack = [obj]
+    while stack:
+        item = stack.pop()
+        if id(item) in seen or isinstance(item, _OPAQUE):
+            continue
+        seen.add(id(item))
+        if isinstance(item, np.ndarray):
+            if isinstance(item.base, np.ndarray):
+                stack.append(item.base)
+            else:
+                total += item.nbytes
+            continue
+        total += sys.getsizeof(item)
+        if isinstance(item, _LEAVES):
+            continue
+        if isinstance(item, dict):
+            stack.extend(item.keys())
+            stack.extend(item.values())
+        elif isinstance(item, (list, tuple, set, frozenset)):
+            stack.extend(item)
+        else:
+            attrs = getattr(item, "__dict__", None)
+            if isinstance(attrs, dict):
+                stack.append(attrs)
+            for cls in type(item).__mro__:
+                slots = getattr(cls, "__slots__", ())
+                for slot in (slots,) if isinstance(slots, str) else slots:
+                    if isinstance(slot, str) and hasattr(item, slot):
+                        stack.append(getattr(item, slot))
+            # dolfinx keeps a Function's values behind a property, not an attribute.
+            values = getattr(getattr(item, "x", None), "array", None)
+            if isinstance(values, np.ndarray):
+                stack.append(values)
+    return max(total, 64)
+
+
+class MemoryBudget:
+    """What every Session's ObjectStore may hold together (T11, #23).
+
+    Stores sharing a budget share its lock. When their total passes
+    `max_bytes`, the least recently used Object in any of them is evicted, so
+    memory an idle Session holds goes to the Sessions in use.
+    """
+
+    def __init__(self, max_bytes: int):
+        self.max_bytes = max_bytes
+        self.total_bytes = 0
+        self.lock = threading.Lock()
+        self._stores: weakref.WeakSet[ObjectStore] = weakref.WeakSet()
+        self._clock = itertools.count()
+
+    def tick(self) -> int:
+        """The next access time; a counter, so ties cannot happen."""
+        return next(self._clock)
+
+    def evict_if_needed(self) -> None:
+        """Evict the least recently used Object anywhere until under budget.
+        Must be called with the lock held."""
+        while self.total_bytes > self.max_bytes:
+            candidates = [
+                (entry["last_accessed"], store, obj_id)
+                for store in self._stores
+                for obj_id, entry in store._objects.items()
+            ]
+            if not candidates:
+                return
+            _, store, obj_id = min(candidates, key=lambda c: c[0])
+            store._remove(obj_id)
 
 
 class ObjectStore:
@@ -50,50 +112,75 @@ class ObjectStore:
     Parameters
     ----------
     max_bytes : int
-        Maximum total memory before LRU eviction kicks in.
-        Default 2 GB.
+        The most this store may hold. Least recently used Objects are evicted
+        past it, and a single Object larger than it is not kept. Default 2 GB.
+    budget : MemoryBudget, optional
+        A budget shared with other stores. Without one the store has its own.
     """
 
-    def __init__(self, max_bytes: int = 2 * 1024**3):
-        self._lock = threading.Lock()
+    def __init__(self, max_bytes: int = 2 * 1024**3, budget: MemoryBudget | None = None):
+        self._budget = budget or MemoryBudget(max_bytes)
+        self._lock = self._budget.lock
         self._objects: dict[str, dict[str, Any]] = {}
-        self._max_bytes = max_bytes
+        # Never more than the budget: an Object that fit the store but not the
+        # budget would be evicted the moment its reference was returned.
+        self._max_bytes = min(max_bytes, self._budget.max_bytes)
         self._total_bytes = 0
-
-    def store(self, obj: Any, source_op: str = "", label: str = "") -> str:
-        """Store an object and return its Object reference."""
-        obj_id = refs.new(refs.OBJECT)
-        nbytes = _estimate_bytes(obj)
-        entry = {
-            "object": obj,
-            "type": type(obj).__name__,
-            "source_op": source_op,
-            "label": label,
-            "created": time.time(),
-            "last_accessed": time.time(),
-            "nbytes": nbytes,
-        }
         with self._lock:
+            self._budget._stores.add(self)
+
+    def store(self, obj: Any, source_op: str = "", label: str = "") -> str | None:
+        """Store an object and return its Object reference.
+
+        Returns None, keeping nothing, when the object alone is larger than
+        this store may hold (U4): evicting everything else would not make room.
+        """
+        nbytes = _estimate_bytes(obj)
+        if nbytes > self._max_bytes:
+            return None
+        obj_id = refs.new(refs.OBJECT)
+        with self._lock:
+            self._objects[obj_id] = {
+                "object": obj,
+                "type": type(obj).__name__,
+                "source_op": source_op,
+                "label": label,
+                "created": time.time(),
+                "last_accessed": self._budget.tick(),
+                "nbytes": nbytes,
+            }
             self._total_bytes += nbytes
-            self._objects[obj_id] = entry
+            self._budget.total_bytes += nbytes
             self._evict_if_needed()
+            self._budget.evict_if_needed()
         return obj_id
+
+    def not_stored(self) -> str:
+        """Why an Object this store refused has no object_ref."""
+        return (
+            f"Too large to keep: larger than the {self._max_bytes // 1024**2} MB this "
+            "Session may hold, so it has no object_ref for later steps. "
+            "Try a smaller area."
+        )
 
     def get(self, obj_id: str) -> Any:
         """Retrieve an object by ID. Raises KeyError if not found."""
         with self._lock:
             if obj_id not in self._objects:
                 raise KeyError(f"Object '{obj_id}' not found in store")
-            self._objects[obj_id]["last_accessed"] = time.time()
+            self._objects[obj_id]["last_accessed"] = self._budget.tick()
             return self._objects[obj_id]["object"]
 
     def delete(self, obj_id: str) -> dict[str, Any] | None:
         """Remove an object by ID and return its entry, or None if absent."""
         with self._lock:
-            entry = self._objects.pop(obj_id, None)
-            if entry is not None:
-                self._total_bytes -= entry["nbytes"]
-            return entry
+            return self._remove(obj_id)
+
+    def clear(self) -> None:
+        """Drop every Object, returning their bytes to the shared budget."""
+        with self._lock:
+            for obj_id in list(self._objects):
+                self._remove(obj_id)
 
     def list(self, limit: int = 50) -> list[dict[str, Any]]:
         """Return summaries of stored objects, most recent first."""
@@ -125,14 +212,17 @@ class ObjectStore:
     def __contains__(self, obj_id: str) -> bool:
         return obj_id in self._objects
 
+    def _remove(self, obj_id: str) -> dict[str, Any] | None:
+        """Must be called with the lock held."""
+        entry = self._objects.pop(obj_id, None)
+        if entry is not None:
+            self._total_bytes -= entry["nbytes"]
+            self._budget.total_bytes -= entry["nbytes"]
+        return entry
+
     def _evict_if_needed(self) -> None:
-        """Evict least-recently-accessed objects until under budget.
-        Must be called with lock held."""
+        """Evict least recently used Objects until under this store's cap.
+        Must be called with the lock held."""
         while self._total_bytes > self._max_bytes and self._objects:
-            # Find LRU entry
-            lru_id = min(
-                self._objects,
-                key=lambda k: self._objects[k]["last_accessed"],
-            )
-            self._total_bytes -= self._objects[lru_id]["nbytes"]
-            del self._objects[lru_id]
+            lru_id = min(self._objects, key=lambda k: self._objects[k]["last_accessed"])
+            self._remove(lru_id)

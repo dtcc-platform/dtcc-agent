@@ -14,6 +14,7 @@ Last updated: 2026-10-01.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-01 | Memory is counted from what objects really hold, and one budget is shared fairly by every user ([#66](https://github.com/dtcc-platform/dtcc-agent/pull/66), T11, fixes [#23](https://github.com/dtcc-platform/dtcc-agent/issues/23), implements U4) | 🔍 |
 | 2026-10-01 | Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem ([#63](https://github.com/dtcc-platform/dtcc-agent/pull/63), T7, fixes [#21](https://github.com/dtcc-platform/dtcc-agent/issues/21) and [#38](https://github.com/dtcc-platform/dtcc-agent/issues/38), decides U9) | ✅ |
 | 2026-10-01 | The chat works with the current Claude client again: an outdated library failed every message ([#64](https://github.com/dtcc-platform/dtcc-agent/pull/64)) | ✅ |
 | 2026-09-30 | Builder results are no longer cached, so a cache can't hand back the wrong geometry; builder calls are recorded to show whether correct keys are worth building ([#62](https://github.com/dtcc-platform/dtcc-agent/pull/62), decides U2 [#11](https://github.com/dtcc-platform/dtcc-agent/issues/11)) | ✅ |
@@ -46,7 +47,35 @@ Last updated: 2026-10-01.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66.
+
+---
+
+## 🔍 In review
+
+### Memory is counted from what objects really hold, and one budget is shared fairly by every user · 2026-10-01 · [#66](https://github.com/dtcc-platform/dtcc-agent/pull/66)
+
+**Before:** the memory budget counted only a few named arrays. 127 Lindholmen buildings, about
+5 MB in memory, counted as 64 bytes, and a GeoJSON file the same. So the 2 GB budget never
+limited the objects people actually fetch (#13). Each of the 8 Sessions got a fixed 256 MB
+share, even when the other seven were idle, and simulation Runs piled up without limit.
+
+**Now:**
+- Sizes count everything an object holds: arrays, dict and list contents, and Core geometry. The
+  same buildings count as 6.25 MB, in 16 ms.
+- All Sessions share one 2 GB budget. When it is full, the least recently used object in any
+  Session goes first, so an idle Session's memory goes to the people using the agent. One Session
+  may hold up to 1 GB.
+- A single result bigger than that is not kept. The user still gets its summary, with a note
+  that it was too large to keep and no reference for later steps (U4). Before, it would have
+  emptied the Session to make room.
+- A Session keeps its last 100 simulation Runs.
+
+**How we know it works:** the #13 probe (a 64 KB GeoJSON dict once counted as 64 bytes) is now a
+test and counts within an order of magnitude. New tests cover eviction across Sessions, the
+per-Session cap, a dropped Session handing its memory back, oversized results from operations,
+simulations and GeoJSON, and the Run cap. On real data the new count tracks the pickled size:
+6.25 vs 4.73 MB for buildings, 1.56 vs 1.54 MB for a point cloud. 418 tests pass.
 
 ---
 
@@ -609,8 +638,8 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
 ## What's next
 
 1. **The rest of M1a:** per-session file folders with path arguments refused (T7, U1) are
-   merged (#63). The memory budget (T11, U4) and the two-service container on loopback (T13,
-   U10 and U11) remain; T13 must give both services the same artifacts folder. Exporting a
+   merged (#63), and the memory budget (T11, U4) is in review (#66). The two-service container
+   on loopback (T13, U10 and U11) remains; it must give both services the same artifacts folder. Exporting a
    building collection is queued as #65.
 2. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
    versioning (T12, #56).
