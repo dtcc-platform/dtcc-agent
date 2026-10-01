@@ -20,10 +20,10 @@ sources:
     resource: repo://pyproject.toml
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:41:08.402Z
+    at: 2026-10-01T20:29:16.810Z
 ---
 
 # Quickstart
@@ -43,6 +43,7 @@ uv run pytest -q                                                         # full 
 python -m dtcc_agent                                                     # MCP over stdio
 DTCC_MCP_TRANSPORT=http DTCC_MCP_PORT=8051 python -m dtcc_agent          # MCP over HTTP (needs X-DTCC-Session)
 DTCC_MCP_URL=http://127.0.0.1:8051/mcp python -m chatbot                 # chatbot on :8050 against it
+docker compose up --build                                                # both, as two services (MCP on loopback only)
 ```
 
 Without `DTCC_MCP_URL`, the chatbot spawns the server over stdio. The HTTP server prints `dtcc-agent: catalogue built: N operations` at startup; if it exits instead, naming a catalogue section, the dtcc-core install is broken. A stdio server builds the catalogue on the first call that needs it, and a broken install shows up as that call's error.
@@ -59,9 +60,11 @@ dtcc-core is pinned to a commit in `pyproject.toml`. Do not move the pin by hand
 | Find out why an operation is missing, or pick up a new Core | [Operation catalogue](concepts/operation-catalogue.md) |
 | Understand `run_operation`, typed references (`obj_…`, `run_…`) and result summaries | [Dispatch, object references and serialization](concepts/dispatch-and-object-store.md) |
 | Debug stale, wrong or slow cached results | [Disk cache](concepts/disk-cache.md) |
+| Change how renders, exports or file inputs work, or why a path is refused | [Artifacts and the file boundary](concepts/artifacts-and-file-boundary.md) |
+| Understand memory limits and "too large to keep" | [Dispatch and the object store](concepts/dispatch-and-object-store.md) |
 | Work on heat or air-quality simulations, geocoding or scenario comparison | [Simulations, runs and geocoding](workflows/simulations.md) |
 | Change the chatbot, prompt, memory or UI | [Lurkie chatbot](integrations/chatbot-lurkie.md) |
-| Deploy, configure env vars, or change CI | [Deployment, configuration and CI](operations/deployment-and-ci.md) |
+| Deploy, run the two-service compose, configure env vars, or change CI | [Deployment, configuration and CI](operations/deployment-and-ci.md) |
 | Know what is decided and what is still planned | [Architecture decisions map](decisions/adr-map.md) |
 | Run or extend tests | [Test suite](testing/test-suite.md) |
 

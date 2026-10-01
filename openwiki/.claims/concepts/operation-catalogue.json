@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:4e1266b93fc9dec742fadc2c1c97a757095120d501d5aa94bc5632be955e8ff0",
+  "pageVersion": "sha256:9f370d1f44ae45a5806f2e28e6da73fa99bc98e141408acc262974b8d04a8678",
   "claims": [
     {
       "id": "claim_548542bb861e4fc5ace823d8124d1385",
@@ -50,7 +50,7 @@
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
+          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
         },
         {
           "resource": "repo://tests/test_core_dependency.py#L27-L47",
@@ -124,17 +124,31 @@
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
+          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
         },
         {
           "resource": "repo://tests/test_catalogue_startup.py#L763-L834",
           "version": "repo-lines-v1:sha256:79bee0d9409b51498ed2ea7a9bdc2f3ef7ee3d3736dbb46d8e6908aa2d6ad574:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ODU5ZmFhZGI4ZTI3OWJiZmI5OGVmNDdmOWM3NDE4Mjc3ZjNmYmFmZGRmNThkMGYxZTg1MWVlNGZkY2Y1NjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NDVhMjZhYmRjYzE4NDQ1YWQ1NWVmZmI1NzhiYjRjNzIyMzM5YjBiZjliZTdlMDU1NDQ2ZmJjMTY3NzVjMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_cd6f9f064deb47a0acd38dbbdf701d85",
+      "statement": "ParamInfo.is_path marks a parameter as a file or directory path from its name (path, filename, outfile, *_path, *_dir) or its type (Path, format: path), for function and dataset parameters alike.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/registry.py#L28-L48",
+          "version": "repo-lines-v1:sha256:995a76d4715aa82e819cf93ecbdff48dc9210591bc864e2345a8a2ea12cccb6b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmMmJjN2Q3ZTBmNDhhZTQyMTVjOWI0OGEwMWFhMDFiODJhZjgyOTAxYThmZGY4NmQ2MjBjMjg1YmQwODg4MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5ODg5YTk0ZmZiNWZhYTRiMjJkZTIyZmE0YTUyNWU0MjJkNDk0OWM4Yzg2MTkzMWI0YWVkNjM1ZWRkZjNkNzQifQ"
+        },
+        {
+          "resource": "repo://tests/test_path_refusal.py",
+          "version": "repo-file-v1:sha256:a0e7299079b966e1bcbdef952ee20f34f809b6d4b1638a91e8fe656d451b9c01"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-30T14:46:38.690Z"
+    "at": "2026-10-01T20:29:16.810Z"
   }
 }

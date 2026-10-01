@@ -4,6 +4,8 @@ title: Disk cache
 description: The persistent pickle and JSON-index cache for dataset downloads and builder results. It reuses a containing download cropped with Core's own footprint rule, keys builders by metadata fingerprints, evicts by TTL and size, and is shared across Sessions today.
 tags: [cache, disk-cache, datasets, performance, isolation]
 sources:
+  - id: openwiki-source-011d18639a7a8582693228a4
+    resource: repo://dtcc_agent/builder_calls.py
   - id: openwiki-source-612afbd7ed762fbc6635cafc
     resource: repo://dtcc_agent/crop.py
   - id: openwiki-source-052f7c9f16ee5a8169a3fb7d
@@ -14,15 +16,15 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-116206fc13aadd444daea62c
     resource: repo://tests/test_disk_cache.py
-generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:41:08.402Z
+    at: 2026-10-01T20:29:16.810Z
 ---
 
 # Disk cache
 
-`dtcc_agent/disk_cache.py` keeps expensive results across processes and Sessions. It stores each object as a pickle under `<cache_dir>/objects/<cache_id>.pkl`, with metadata in `<cache_dir>/index.json`. One process-wide instance, `_disk_cache = DiskCache()`, lives in `server.py`, and is built when the module is imported, so a cache the trust check refuses stops the process there.
+`dtcc_agent/disk_cache.py` keeps dataset downloads across processes and Sessions. It stores each object as a pickle under `<cache_dir>/objects/<cache_id>.pkl`, with metadata in `<cache_dir>/index.json`. One process-wide instance, `_disk_cache = DiskCache()`, lives in `server.py`, and is built when the module is imported, so a cache the trust check refuses stops the process there.
 
 ## Configuration
 
@@ -58,12 +60,11 @@ Each process keeps the index in memory. Every edit (`store`, `cleanup`) takes an
 
 ## What gets cached
 
-Only operations in `CACHE_ALLOWLIST` are cached:
+Only the two operations in `CACHE_ALLOWLIST` are cached, both downloads keyed by bounds and source: `datasets.point_cloud` and `datasets.buildings`. The `get_buildings` tool has no entry of its own; it shares the `datasets.buildings` download (see below).
 
-- **Downloads, keyed by bounds and source:** `datasets.point_cloud` and `datasets.buildings`. The `get_buildings` tool has no entry of its own; it shares the `datasets.buildings` download (see below).
-- **Builders over stored objects:** `builder.build_terrain_raster`, `builder.build_terrain_surface_mesh`, `builder.build_city_surface_mesh` and `builder.pc_filter.classification_filter`.
+The dispatcher caches only single-object results (an `object_ref`). A download too large to keep in the Session's memory (`object_ref: null`, see [Dispatch and the object store](dispatch-and-object-store.md)) is not written either.
 
-The dispatcher caches only single-object results (an `object_ref`). `builder.raster.slope_aspect` returns two rasters, so it was never written and every call paid for a lookup that could not hit; it left the allowlist in #53. Caching several-part results waits on U2 (#11), which decides whether builder results are cached at all.
+**Builder results are not cached** (U2, #11, decided 2026-09-30; #62). Their old key described each input Object by its `type`, `source_op`, `nbytes` and `label` only, and dropped `bounds`, so two different inputs, or one input with two areas, could be served each other's geometry. The builder cache code (`content_fingerprint`, `builder_lookup`) was removed rather than kept unreachable.
 
 ## Two lookup strategies
 
@@ -85,11 +86,11 @@ One download of a large area therefore serves every neighbourhood inside it. A l
 
 The `get_buildings` tool caches the Core building download, not its summary. It calls `load_cached_dataset("datasets.buildings", ...)`, fetches with `runner.fetch_buildings` and `store_dataset` on a miss, and builds the answer with `runner.summarize_buildings` for the bounds asked, applying `max_buildings` there. The dispatcher's `run_operation("datasets.buildings")` reads and writes the same entries.
 
-### Builders: exact hash over fingerprints
+### Builders: measured, not cached
 
-`_check_cache_builder` replaces each object-ref parameter with `content_fingerprint(metadata)` and hashes `{op, params}` with `canonical_params_hash` (bounds removed), then calls `builder_lookup` for an exact match.
+Instead of caching, the dispatcher records every `builder.*` call through `dtcc_agent/builder_calls.py`: one JSON line per call in `$DTCC_AGENT_LOG_DIR/builder_calls.jsonl` (Docker: `/data/logs`) with the time, operation, whether it succeeded, its duration and a 16-character key a cache shared across Sessions would have matched. The key keeps `bounds` and describes input Objects by the same metadata the old cache used, so repeated keys are an upper bound on the hits a correct cache would get. Only a hash is written, never the parameters. Without a log directory nothing is written, and a failure to record only logs a warning.
 
-**Known collision risk.** Despite the name, `content_fingerprint` hashes only `type`, `source_op`, `nbytes` and `label` from the ObjectStore metadata. It never reads the object's contents. Two different inputs that share those four attributes collide, and can be served each other's derived results. ADR-0004 therefore says builder entries must be session-local. Code does not do that yet: the cache has no Session in its keys. Content hashing is tracked as `TODOS.md` T-001. For the same reason, builders are never given a single-flight key (see [MCP server and tool execution](../architecture/mcp-server-and-tool-execution.md)).
+A few weeks of real use decides whether provenance keys (`TODOS.md` T-001) are worth building. Builders get no single-flight key for the same reason they get no cache (see [MCP server and tool execution](../architecture/mcp-server-and-tool-execution.md)).
 
 ## Failure behaviour
 
@@ -100,3 +101,4 @@ A cache miss, a lookup exception or a write failure never fails the operation. `
 - `tests/test_disk_cache.py` covers the version stamp (entries carry it; a restart on a newer Core starts cold and deletes old files; another Core's entries are never served; an unstamped, malformed or non-list index starts cold), store and load, containment preferring the smallest area, TTL expiry, budget eviction, hashing, and `get_buildings` on exact and containing hits, an entry written by the dispatcher without `source`, an uncroppable cached area, and each failure path.
 - `tests/test_crop.py` covers point cloud cropping and the building crop with real Core buildings: the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline.
 - The `TestCacheIntegration` cases in `tests/test_dispatcher.py` check that a hit skips the download and that a two-raster operation never touches the cache.
+- `tests/test_builder_calls.py` checks that only the downloads are cached, that a builder call writes a record and nothing to the cache, that the key tells two areas apart and matches the same inputs across Sessions, and that nothing is written without a log directory.

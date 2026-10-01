@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e005b2626170c42d2dd72abe774ddd876b5a175029c77485bac04a592ed3b62c",
+  "pageVersion": "sha256:fea48035ee705d608a0393151c190fb02b4dccf0a9afd3a4253313230ca518cd",
   "claims": [
     {
       "id": "claim_c31659df10d142d8a63ea6a505dd28d1",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:5af99b6d23b77d096a3bc7398adb72e666d2a3c1bf25d1f64bc28c83ee2df7d6"
+          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
         },
         {
           "resource": "repo://tests/test_geocode.py#L45-L60",
@@ -45,8 +45,8 @@
       "statement": "Concurrency behaviour (worker-pool bound, per-Session share, single-flight downloads, cancellation) is covered by test_worker_pool.py using gated downloads rather than timing.",
       "evidence": [
         {
-          "resource": "repo://tests/test_worker_pool.py#L94-L448",
-          "version": "repo-lines-v1:sha256:a15a14d0fcb094d8a1e76af32e450c76e8c37455508eabc79d5197c87f8c79cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzU1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjVjYTc3Mzc5NGEwNmYwODIxNTY4ODA5YmViNzQ5YzA4Yzk3Mjk2MDEyMGExMWQ2ODVkMWYzMTc5NGUwYjBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "resource": "repo://tests/test_worker_pool.py#L94-L428",
+          "version": "repo-lines-v1:sha256:d336a352eb339cbf409e99595a686aaf4b3e5f7404519f0551a411e60277b341:eyJzZWxlY3RlZExpbmVDb3VudCI6MzM1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjVjYTc3Mzc5NGEwNmYwODIxNTY4ODA5YmViNzQ5YzA4Yzk3Mjk2MDEyMGExMWQ2ODVkMWYzMTc5NGUwYjBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
     },
@@ -79,10 +79,20 @@
           "version": "repo-file-v1:sha256:547e5b5a4d4f35cac4ca0fc7f2c98cae2aacc7ad4678b773fcc8cac60a764513"
         }
       ]
+    },
+    {
+      "id": "claim_3ecdf03fd9bb4d4db7ba5744a443403c",
+      "statement": "tests/test_path_refusal.py pins the exact set of path-taking operations in the pinned Core, so a Core upgrade that adds one fails the suite.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_path_refusal.py",
+          "version": "repo-file-v1:sha256:a0e7299079b966e1bcbdef952ee20f34f809b6d4b1638a91e8fe656d451b9c01"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-30T14:41:08.402Z"
+    "at": "2026-10-01T20:29:16.810Z"
   }
 }

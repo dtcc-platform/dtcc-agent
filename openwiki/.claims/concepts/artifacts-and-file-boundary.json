@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:a730a7c209a7359f615e246d8b5765302291306a53c511340eddfaa1a1e745c5",
+  "claims": [
+    {
+      "id": "claim_776ce99ee18a4db2ae49cdc5a367869e",
+      "statement": "Tools write artifacts under <DTCC_AGENT_ARTIFACTS_DIR>/<session id>/, created 0700, named with a 128-bit random token, and return only the artifact's name and kind, never a filesystem path.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/artifacts.py#L32-L57",
+          "version": "repo-lines-v1:sha256:fe0f887f8ebf1f23803c3942c2cd1d26d02fae1ed3c6f8b537c1e8347b1b6111:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxNmVlNGU1MzRjOGYxYjc0Mzg3Mjk1OWQyM2U1NGYyNmJjMDczMjMwYzM3MTFkNmY4MmViOGQ1N2E1MDc0M2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyODg4ZDI2ODdiZDdjYTk5MzE4ZTMwYWZkMmYwYzFiMTk5ODQ3NWZlYTM1OTJlMWJjMTg0Yjg3YmE5NzczYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3MGI4YjEwZjA5MzI3OTZmOTRjODJlYzZhYjBiZmM3NzUxNGQ5NjcwMTJhYmY4NzBmZWYxZDc2NWExMzIyMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a5aa37eb99c4e7188a08fcf58cd8a79",
+      "statement": "An artifact name is found only if it has the token_stem.ext shape and exists as a regular, non-symlink file in the requesting Session's own folder.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/artifacts.py#L59-L64",
+          "version": "repo-lines-v1:sha256:24a0dc7ebc437ad26f4343a71f95bcc1d0922a88e010fdf1490a57044ac2d830:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjFjNmZlNDhlYmM3ODIzMjUwM2M5YzNlM2FjYzcwOTI1NjkwYmJiYWEzNzdlM2Q1NDE1MDg2MWQzNGNlNmZhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmYxNmRlMzlmYmI3ZGEzMjViMzY5ZjA1OTJjYzk5ZDA1MDczOGQ5NTQ4M2I3ZGY5MjZiODk0NzY1NGMyN2Q2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzU2NjIwOTAwYWE4YzdhNTZiNWE1M2FlOTk3Njg1NTgwODNlOGIyY2UzZTkzNGYzMzdjNmY3MGJlNDc0ZjczNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzk0NmJlMWJkOWJhZjc1YTgxZGU1MTViZGNhNDg3ZjRiZWE4ZDcxZDZiM2Y1MjVjNTY1MDBhMTVjNTI3ZmJkZSJ9"
+        },
+        {
+          "resource": "repo://tests/test_artifacts.py",
+          "version": "repo-file-v1:sha256:cb992a3f978672e425eea27be6483475f4448b0311f6b612c25cf34106b77dee"
+        }
+      ]
+    },
+    {
+      "id": "claim_4877b6c0838b4e67814cebb3a3708312",
+      "statement": "The chatbot's /artifacts/{session_id}/{name} route returns 404 unless the session is live in SessionManager and the artifact resolves, and serves files with private no-store caching and nosniff, non-images as attachments.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/app.py#L79-L92",
+          "version": "repo-lines-v1:sha256:ffe332115ea58603f73bd9753bc61a84daf206b12c9737b7455762dda9e1027f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4YTk4YWRmZTQ0ZDY4NGMwMmI1MTcwOTEwYjVkMTllNTI1N2UxNGJlODM5ZDA0ZGVjM2IwNGQ4ZmUzMmYwZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMmY1MDM0NzM1YTVhZTY2YmFiNDVmZTIyNjJmZGQ1NjJlZDMxZDI1N2QxN2ZhMzE3NWNlZTM2MmI5OGJmNGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmMzJlMTk5NDI4ODc2OWM3YTNiNzk2NzlmZTZiNjgwMTMzNzgyYmFmNTEyNzYzMzQyZTMyNzQ2YTAwZWJkYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3Mjg0ODRiYWZmMjVhMDBmMjI2MTk2ZjZmOWY1OWU4YmM5OGQ2OWVjYmQwZDMyNWY2MzE0M2UxOWZiYmIwYjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_256c3f52efe94cf7b913fbddcfc005a9",
+      "statement": "After each tool result the chatbot unwraps FastMCP's {\"result\": ...} structured form and sends an image or file frame only for an artifact that exists in the current session's folder.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/app.py#L198-L202",
+          "version": "repo-lines-v1:sha256:844409886ab9318dbd15a9b14c59a992979486cd9a826d1a0d2b8af8e823d38a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDgyMWQ1ZjMxNzY0YWFiMDY2ZjFhZGUwNmI5ZGNjZTNjODAyOTcyZTE3NjA0NDAyNzU3YjRlMDUxNWFiZWQ4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAwY2NlMjI4MzU3ZDE2MzYwNGEzOWVhMzQxMWE2NjM0YmIyYjQyZmM1MWRhYzZiYzIwNDVmZDIwZGM4YWNmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjliOGRjYjg4NDg3YjNlMWIzNzE2MjcxNTkxM2ZmNDM2ZjhkNjBlNTQ5NmM0ZjA0YzM3MzY3ZDIwN2FjYjhjMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTA3NmJkNGU2NWI5MzEyMGFhMmM0ODNlZTViN2ViMDE0N2YyZjliOGViNDkyNGE2ZDk5ZjVlYjM5ODVjNDg2YyJ9"
+        },
+        {
+          "resource": "repo://chatbot/app.py#L95-L125",
+          "version": "repo-lines-v1:sha256:7e012d5e48113fc71f09209b98bfddb43ea97d0caf8fa9b6eb24238ebd8a3e73:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjYWQ1OGM2NmNjNGFkMTczODUyOWI2ZWJkYzNiMDM0NmVmNWE2NmJjYWUxNmM4ZDczNTU5YTA1YzJhYzk3OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwYmY1ZmM3YmZkNGZiNjFiOTFlOTQ0NTM2NmY1NGY0NzAyZTg1NWY5ZWM3ZGNiZTkyMDhmNjJiNjBmMWY5M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0YTJhZTczMDM1ODFlMTI3NGRlZGEzMGZjMTVmNWJjNjBiYTJjMWM0NjZmNWZlZDJlZjY3M2JkY2Q0ZTZiZDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b066b1e3da0431682a6e8f40dd4d006",
+      "statement": "run_operation refuses an operation whose file-path parameter is required or given a value other than null or empty string, before Core is called; tests pin the 18 such operations in the pinned Core.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/dispatcher.py#L137-L148",
+          "version": "repo-lines-v1:sha256:b8b2fd7c8d1f39cf49b9bf11dd4c7e1be98556115f6f3772c90235d16e672a81:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMDQxNDFhMDdkOGExMGVlMjU1NDJjMmEwNmI2NzE1ZDJlMTEwZDY0MjM5N2ZkNmYzMWI5ZTUwN2IyOGY2MjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMWZjM2Q3ZWI3ZjhjYTgxM2MyMzM3ZDA3OTQyNjk4NjU5OTYwMTQxYjY1ZmI0MTM0YTkyYzhlYzYzNDkwNzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3YjM0NDk4ZThiMjk0OGQ4NzJkYjhjYmFjMThjM2U1MzQ4YzVmMmRkNzRhZmQxYjQyNDMxYmFjNWUwY2Q2MDQifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/registry.py#L40-L48",
+          "version": "repo-lines-v1:sha256:7f76bf81c34e3df262450ec5817cac26a02c3cb6e027525057b1611ac6a8e781:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjNkMDBjZjI3MDk2NGQ0NGExM2RmYWM4NzUyYjA5ZmNjNDM1YjBmMTliMzE2YWJjZjgxYTdhYTY0YmIxMjJkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZjM2NkZjZmOTM3MWFlMWVmODA0YTM2ZDQ1Y2YwNzRlNmI3OWIyYjBiMzU4MGM3M2VhM2IzZDA4MGQ5NjBkNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzk4ODlhOTRmZmI1ZmFhNGIyMmRlMjJmYTRhNTI1ZTQyMmQ0OTQ5YzhjODYxOTMxYjRhZWQ2MzVlZGRmM2Q3NCJ9"
+        },
+        {
+          "resource": "repo://tests/test_path_refusal.py",
+          "version": "repo-file-v1:sha256:a0e7299079b966e1bcbdef952ee20f34f809b6d4b1638a91e8fe656d451b9c01"
+        }
+      ]
+    },
+    {
+      "id": "claim_45a8541470614682b2c9266cd081205c",
+      "statement": "load_geojson reads only a path relative to SHARED_RESULTS_DIR, refusing absolute paths, paths resolving outside it (including via symlinks) and missing files.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/artifacts.py#L77-L86",
+          "version": "repo-lines-v1:sha256:dd80e9ff83b15703311b6c2a019b525a189d435da4fbd046e16f9ee09ec75c3e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjMTQ4YTQ4NDRjMTkyYzMyYjI0MmRhOTA2NGUxYTU4NDExMDUwMDU4YjU1N2JlMmNhNTk1OTBjMGYxMTMxY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5NGJhYjM4ZGJiODMzMWY3ZjNmYzgzZjE5NGZjYzkwYTA2MGI1NjE2MjhjMDE2NDM3NDg1MmY4ZDY5MzI0NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/server.py#L1388-L1410",
+          "version": "repo-lines-v1:sha256:0fba27a65001cfdd075af93478f3d69fc9e825e1a102da546033894728ba6bf0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllZjgzZDU2NDM1Nzc2Y2MzOTBiYWZmNDc1MzFjMjkwZWMxOTYwMWZmNGZkNjQ2NDc0OGY0NDFhOTFkZjgxZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiY2UwZDY1MmMwMWEzOWNhZGYyOGM2Yjg1ODM4YWUyOWRiNDZmMTU5OTczZGRmMzczN2FhNTUxMzcxYWQ1OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3OTk2ZTg5M2NmMGFhMjM1YjcyMmNmZWM3ZTU2M2MxNmY2NmVhOWIwMDk5NzcwNzYzNzFhNzFiZmEwZjIxOTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3db7ddf795ab4694bcb5b9c9fd40a015",
+      "statement": "render_object draws with matplotlib's Agg backend, plan view for footprints and lines, 3D for meshes and points, image for rasters, subsampling large geometry and clamping size to 2400 px.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/renderer.py#L1-L30",
+          "version": "repo-lines-v1:sha256:13a768bc49074f1d8add3ad540d92559879b5cbed7b386d90739063f56d6bfec:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZmY3OTM0N2I1NzFhZmQ5MDNiNjAzNGJkZGRmZjhhMjA3ZGVhMTcxZTc5ZDEwNTcwZjI3ODFlYmRiOWFhNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MWFmZjI3YTFhYWZiMDNjYmRiYTNmYTQ5YThkMjE2ZGFhMDFkODJlYmYyODZhOGMzYmRkZWNjNTVmMmExMmMifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/renderer.py#L169-L201",
+          "version": "repo-lines-v1:sha256:76ec334ab2f4f5e4b30b0030bd3d3fda4dd7ae124780c31e79f97e48e99b82d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkY2M2NGFkNjJmNTkzNDU4ODFkOWIxNmRjOWNkMDQzYjhlMGZjN2VhMTBjYWU3ZGUyZTMwOGMzMjU0N2Q0NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5N2M3MTI0N2FmM2NkMWVkZjU1NWE3ZDEwNzU5MzE1N2Y2ZGMyYTIyYWYwZGU4MmU3Nzc0YWJmMTBmOGFkZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2ZjNmOGZiYjE3Y2YyOWMxYTVhYzQ4Yzg2ODc2ZTYyZTg1N2U4NTRlZjk3ZGM4MjM5Y2UyZTIyMGVjODM5YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwZTJhNDY1MDA5NWZhOTVkMGUyYmI0MWIyZGIyOTA5NGQzNDA0ZDI4Y2UxMjMzOWVjODhiYjRiNWM1YmU4ZjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_862fb99f359a4904aa5f47cd002a7aa8",
+      "statement": "export_object writes Buildings in a BuildingCollection or list by wrapping them in a City, then uses Core's save_footprints for geojson/gpkg and save_city for json.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L1034-L1055",
+          "version": "repo-lines-v1:sha256:f851d15edf5639d96f4e4813228c731c18761d2ec161e144916e4d560a57afcc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YzFhNDk5MTFmYjE2OTFiMjBkZGM2MmY1Zjk0NDBkNzQ1ZWFiMmE0MjZkZDE5MmZlNzg0MWFhZTU1OTdjZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhYjE2ZWVlOGI0NGM0NGQxNmFjY2JjMTNhM2NkYzJhMDJiM2M5MjIxOWFhODM4MjBjYzc5Yzk5ODljM2Q0YWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4OThjNTVlNmY2ZjgyY2Y3NGUxNzcwYTYzNDBjNzUyMGQ2NWIxNmQyNDk2MzUwYzdhOWFjODlhN2FhMzcxMTgifQ"
+        },
+        {
+          "resource": "repo://tests/test_artifact_tools.py",
+          "version": "repo-file-v1:sha256:cf911ff2a8280b681d1b499c6047d609fca621f3ad67598c1f8294072a0fe0f2"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d33fa2a8e9f46029b3dd5f9e61988a8",
+      "statement": "Removing or expiring a chatbot session deletes its artifact folder.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/sessions.py#L56-L60",
+          "version": "repo-lines-v1:sha256:82510a78fad9e6d2eec1885118e88f024d1fefec609279a57eb9f5bdf7ae0314:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDQ0MGVmYzkwZDM4ZTE5NzMxMWIyMjFmYzhmOWY0ZDBjZDBlOTMzMTVkYmZjMGNlM2E3Y2M3ZWM1ZDcyYTMxNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDIwZDUzYzkyNzFkZTczMzQ2OTk2M2Y4MTY0OGY5MWZiMTM2YTIwOWY3YTEwMmUyNDllZjY1NjFjMTUxNmFhMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkyYzk3NTVjODdlYmM5YTU1YTQ3MWRmM2U4MzUwZDY1ZmViMmEyMzY2MGIzY2UwYjhhYTI4ZjRmY2E3MjU5NyJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-01T20:29:16.810Z"
+  }
+}

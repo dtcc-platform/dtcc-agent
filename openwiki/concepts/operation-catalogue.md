@@ -18,10 +18,12 @@ sources:
     resource: repo://tests/test_catalogue_startup.py
   - id: openwiki-source-2eddb37f6f7db2fd16d2a3c2
     resource: repo://tests/test_core_dependency.py
-generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
+  - id: openwiki-source-f7a9ed42f310602857a88be4
+    resource: repo://tests/test_path_refusal.py
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:46:38.690Z
+    at: 2026-10-01T20:29:16.810Z
 ---
 
 # Operation catalogue
@@ -61,6 +63,8 @@ Step 7 registers whatever is in Core's dataset registry at build time. That regi
 - **Functions.** `_extract_params` reads `inspect.signature` and `get_type_hints`. The type is kept as `str(hint)` so Union members survive. A parameter is an **object reference** (`is_object_ref: true` in `describe_operation`) when its type string names a dtcc model type (PointCloud, Mesh, VolumeMesh, Raster, City, Building, Terrain, Tree, Surface, MultiSurface, RoadNetwork, Bounds or Object). The dispatcher then resolves string IDs for it from the Session's store (see [Dispatch, object references and serialization](dispatch-and-object-store.md)).
 - **Datasets.** Parameters come from the dataset's `show_options()` JSON schema, with a required `bounds: list[float]` always first.
 
+`ParamInfo.is_path` marks a file or directory path: the name is `path`, `filename` or `outfile` or ends in `_path` or `_dir`, or the type mentions `Path` or a JSON-schema `format: path`. It is derived from the name and type, so it applies to function and dataset parameters alike. `run_operation` refuses such parameters (U1); at the pinned Core that is 18 operations, pinned by `tests/test_path_refusal.py`. See [Artifacts and the file boundary](artifacts-and-file-boundary.md).
+
 `list_operations(category, search)` filters by category and by a case-insensitive substring over name, description and tags, sorted by name.
 
 ## Build once, fail loudly
@@ -83,7 +87,7 @@ Registration itself is Core's `register_remote_service`, which since the pin mov
 
 ## The Core pin
 
-`pyproject.toml` pins `dtcc-core` to a full commit SHA, because dtcc_core exposes no `__version__`. The pin is not moved by hand. The `dtcc-core contract` workflow installs a candidate SHA over the locked environment, verifies the installed commit, runs the whole suite as the contract, and prints the catalogue size. A green run is the signal to move the pin. `tests/test_core_dependency.py` asserts that Core is declared and pinned to a full SHA, and that importing without Core raises with a remedy. See [Deployment, configuration and CI](../operations/deployment-and-ci.md).
+`pyproject.toml` pins `dtcc-core` to a full commit SHA (`bb95f2f…` since #59), because dtcc_core exposes no `__version__`. The Docker build asserts the installed Core is that commit (#61). The pin is not moved by hand. The `dtcc-core contract` workflow installs a candidate SHA over the locked environment, verifies the installed commit, runs the whole suite as the contract, and prints the catalogue size. A green run is the signal to move the pin. `tests/test_core_dependency.py` asserts that Core is declared and pinned to a full SHA, and that importing without Core raises with a remedy. See [Deployment, configuration and CI](../operations/deployment-and-ci.md).
 
 ## Why the agent keeps its own catalogue
 

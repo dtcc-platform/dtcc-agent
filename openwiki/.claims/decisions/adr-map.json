@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e2542ad6d464b2cdb216e764bef10570457dcaa1854b07682f6fb9122c2d7680",
+  "pageVersion": "sha256:75674b00182282cd27194ddb25d3c76f6a14d874bee4becda7364bcaa1152531",
   "claims": [
     {
       "id": "claim_9da995f22fc3412c950955bd53d0117c",
@@ -97,14 +97,24 @@
           "version": "repo-file-v1:sha256:316651d35af7a0538378cd7465617f9caa2b5bfd8cbc7286718ee720fd449c23"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L251-L268",
-          "version": "repo-lines-v1:sha256:f54123714630a6d652ffd7204895c0494658444e9d88437a1b9dfecc11617668:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzllNDM4MDI5MTFmODBhMjgwODM0NTYwZTk1ZGI3OTcyODI3YzBiYjdmZmU4MmI2NjFjNDRkYjI4ZDY5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NWMxMzZmYzhlNzZlZDg3YzQ2MDY0NTE2MGRkNDM1YWJhNjk4ZjcwNDY0ZmMzYTI1MzJmYWE0ZjNjZjYxZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMGFlZTA4OTg1ZDNiOTkwMjRiOGQ5ZGJjY2RiNjU0MWI0OGUyNWRjMGEyYWQ2NjI3ZDZjMGQ2YTUwMjQ4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmYWIyZmQxYTk1NmYzYmMxMGM0MzhiNTc0Y2VmODY1MWYzZjI4ZWQ5OGRlNzUzOWJkZTg0YzIzYTNjNDRmMDkifQ"
+          "resource": "repo://dtcc_agent/server.py#L255-L275",
+          "version": "repo-lines-v1:sha256:b7f664d77a3f254e5dceaec929e4657d6e6c91b615a910aacf8301bb3c48b164:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzllNDM4MDI5MTFmODBhMjgwODM0NTYwZTk1ZGI3OTcyODI3YzBiYjdmZmU4MmI2NjFjNDRkYjI4ZDY5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NWMxMzZmYzhlNzZlZDg3YzQ2MDY0NTE2MGRkNDM1YWJhNjk4ZjcwNDY0ZmMzYTI1MzJmYWE0ZjNjZjYxZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMGFlZTA4OTg1ZDNiOTkwMjRiOGQ5ZGJjY2RiNjU0MWI0OGUyNWRjMGEyYWQ2NjI3ZDZjMGQ2YTUwMjQ4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkMzgzODRhY2Y2YTVkNzJhYzlkYjUxOTQ0NWU5NzI0YzlmNGU1MmZiYjhjMjgwYzY1YTVhZjgwNjkwNTM0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_204dce3651a14aceb47fb49b498030f9",
+      "statement": "As of 2026-10-01 every M1a task (T4, T5, T6, T7, T8, T10, T11, T13) is merged, and the open U-decisions U1, U2, U4, U6, U9, U10 and U11 are settled.",
+      "evidence": [
+        {
+          "resource": "repo://CHANGELOG.md",
+          "version": "repo-file-v1:sha256:8634c65b72bf9a229aef806f785d5174eb3e7af559ba5776771c5480b8387051"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-30T14:41:08.402Z"
+    "at": "2026-10-01T20:29:16.810Z"
   }
 }

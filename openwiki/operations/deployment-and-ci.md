@@ -16,22 +16,22 @@ sources:
     resource: repo://chatbot/app.py
   - id: openwiki-source-778a883bcdc0a6ed0b3401f7
     resource: repo://chatbot/config.py
-  - id: openwiki-source-931ea4e3e14cfe3c996abf4a
-    resource: repo://chatbot/memory.py
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-bb1ebe868e35e9e500714501
     resource: repo://Dockerfile
+  - id: openwiki-source-58b44e3a6e999eaaad2363b4
+    resource: repo://dtcc_agent/artifacts.py
   - id: openwiki-source-052f7c9f16ee5a8169a3fb7d
     resource: repo://dtcc_agent/disk_cache.py
   - id: openwiki-source-4163f0ea9e6726ccca521458
     resource: repo://dtcc_agent/registry.py
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "claude-code", at: "2026-09-30T14:41:08.402Z" }
+generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-30T14:41:08.402Z
+    at: 2026-10-01T20:29:16.810Z
 ---
 
 # Deployment, configuration and CI
@@ -40,19 +40,19 @@ verified:
 
 - **`Dockerfile`**
   - Built from `python:3.12-slim` with `build-essential`, `curl` and `git`.
-  - Installs `dtcc-core @ git+...@${DTCC_CORE_REF}` (build arg, default `develop`), then `pip install -e ".[chatbot]"`.
-  - Runs as a non-root `dtcc-agent` user (`APP_UID` and `APP_GID`, default 1000).
-  - Its command is `uvicorn chatbot.app:app --host 0.0.0.0 --port 8050`: the container runs **the chatbot**. The chatbot spawns the MCP server over stdio unless `DTCC_MCP_URL` is set.
-- **`docker-compose.yml`**
-  - One `dtcc-agent` service on port `8050`, platform `linux/amd64` by default.
-  - Mounts `${DTCC_AGENT_DATA:-./data/agent}:/data` (logs, memory, cache) and dtcc-sim's shared results at `/shared/results`.
+  - Runs `pip install -e ".[chatbot]"`, which installs dtcc-core from the commit pinned in `pyproject.toml`, then **asserts** that the installed Core's `direct_url.json` commit equals the pin, failing the build otherwise (U10, #61). The old `DTCC_CORE_REF` build argument, which defaulted to Core's moving `develop` and won over the pin, is gone.
+  - Sets `DTCC_AGENT_ARTIFACTS_DIR=/data/artifacts` and creates `/data/artifacts`, `/data/cache`, `/data/logs`, `/data/memory` and `/shared/results` owned by the app user.
+  - Runs as a non-root `dtcc-agent` user (`APP_UID` and `APP_GID`, default 1000). Its default command starts the chatbot with uvicorn on port 8050.
+- **`docker-compose.yml`** runs **two services from one image** (T13, #67):
+  - **`dtcc-agent-mcp`** runs `python -m dtcc_agent` with `DTCC_MCP_TRANSPORT=http` on `127.0.0.1:8051`. That port is **never published** (U11): until admission control (T14) nothing outside the pair can reach it. Because it owns the network namespace, it publishes the chatbot's port `8050`. It mounts `/data` and dtcc-sim's shared results at `/shared/results` (`SHARED_RESULTS_DIR`). Its healthcheck connects to 8051, which happens only after the catalogue is built (`start_period` 120 s).
+  - **`dtcc-agent`** (the chatbot) uses `network_mode: service:dtcc-agent-mcp`, so it reaches the server over loopback at `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`, which also satisfies FastMCP's default DNS-rebinding allowlist. It starts once the MCP service is healthy, mounts the same `/data`, and carries the Claude credentials. Healthcheck: `GET /health`.
+  - Both services share `/data`, so the MCP server writes each Session's artifacts to `/data/artifacts` and the chatbot serves them (see [Artifacts and the file boundary](../concepts/artifacts-and-file-boundary.md)).
   - The cache at `/data/cache` must pass the disk cache's trust check: owned by the container user (uid `APP_UID`, default 1000), not group- or world-writable, no symlinks inside. On a fresh data dir the agent creates it `0700` itself. If the host pre-creates it group-writable (for example `chmod 777` to paper over a uid mismatch), the agent refuses to start and names the fix. See [Disk cache](../concepts/disk-cache.md).
-  - Healthcheck: `GET /health`.
-- **`build_docker.sh`** exports the image, tag, platform, Core ref and UID/GID defaults, then runs `docker compose build dtcc-agent`.
+- **`build_docker.sh`** exports the image, tag, platform and UID/GID defaults, then runs `docker compose build dtcc-agent-mcp`, the service that carries the `build:` block.
 
-The `DTCC_CORE_REF=develop` build default differs from the commit pinned in `pyproject.toml`. Which Core ends up in the image therefore depends on pip resolving the editable install against the pin. Pass `DTCC_CORE_REF=<pinned sha>` to be certain.
+Verified with `docker compose up --build`: port 8051 answered neither the host nor another container on the compose network; a session's render loaded through the chatbot (200) and was refused to another session (404); the container ran the pinned Core.
 
-To start: run dtcc-sim (`docker compose up -d` in `../dtcc-sim`) and `docker compose up --build` here, with `DTCC_REMOTE_SERVICES` pointing at it. The order no longer matters: dtcc-sim's datasets join the catalogue once it answers, asked from a background thread every 30 s.
+To start: run dtcc-sim (`docker compose up -d` in `../dtcc-sim`) and `docker compose up --build` here, with `DTCC_REMOTE_SERVICES` pointing at it. The order does not matter: dtcc-sim's datasets join the catalogue once it answers, asked from a background thread every 30 s.
 
 ### Claude auth in containers
 
@@ -71,9 +71,11 @@ Set either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. On macOS the Claude
 | `DTCC_MCP_URL` | none | `chatbot.config` | Connect the chatbot to an HTTP MCP server |
 | `DTCC_AGENT_PYTHON` | current interpreter | `chatbot.config` | Interpreter for the stdio MCP child process |
 | `DTCC_AGENT_HOST`, `DTCC_AGENT_PORT` | `0.0.0.0`, `8050` | `chatbot.config` | Chatbot bind address (for `python -m chatbot`) |
-| `DTCC_AGENT_LOG_DIR` | `/tmp/dtcc_lurkie_logs` | `chatbot.app` | Log files |
+| `DTCC_AGENT_LOG_DIR` | `/tmp/dtcc_lurkie_logs` | `chatbot.app`, `builder_calls` | Log files, and `builder_calls.jsonl` (not written when unset on the server) |
 | `DTCC_AGENT_MEMORY_DIR` | `/tmp/dtcc_lurkie_memory` | `chatbot.memory` | ChromaDB persistence |
-| `DTCC_AGENT_RENDERS_DIR` | `/tmp/dtcc_screenshots` | `chatbot.app` | Directory served at `/renders` |
+| `DTCC_AGENT_ARTIFACTS_DIR` | `<system temp>/dtcc_agent_artifacts` (Docker: `/data/artifacts`) | `artifacts` (server and chatbot) | Root of the per-Session artifact folders |
+| `DTCC_AGENT_SESSION` | `local` | `server` | The stdio server's Session id; the chatbot sets it per message |
+| `SHARED_RESULTS_DIR` | none | `artifacts` | The only folder `load_geojson` reads (Docker: `/shared/results`) |
 
 ## CI workflows
 
@@ -102,7 +104,7 @@ A green run is the signal to move the `pyproject.toml` pin by hand. The upstream
 - **Model and scope.** It uses Gemini (`GEMINI_API_KEY`) with auto-review and auto-improve on and auto-describe off.
 - **Repo guidance.** `.pr_agent.toml` directs reviews toward Session isolation, `@tool` concurrency ordering, and silent failures. It is trialling `focus_only_on_problems = false` for code suggestions.
 
-**`openwiki-update`** (`openwiki-update.yml`) is the scheduled workflow that regenerates this wiki.
+This wiki has no workflow: it is regenerated locally with `/openwiki` (update mode) every few pull requests.
 
 ## Local development
 
