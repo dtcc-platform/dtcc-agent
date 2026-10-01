@@ -47,7 +47,7 @@ Last updated: 2026-10-01.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 416 with #66.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66.
 
 ---
 
@@ -75,7 +75,7 @@ share, even when the other seven were idle, and simulation Runs piled up without
 test and counts within an order of magnitude. New tests cover eviction across Sessions, the
 per-Session cap, a dropped Session handing its memory back, oversized results from operations,
 simulations and GeoJSON, and the Run cap. On real data the new count tracks the pickled size:
-6.25 vs 4.73 MB for buildings, 1.56 vs 1.54 MB for a point cloud. 416 tests pass.
+6.25 vs 4.73 MB for buildings, 1.56 vs 1.54 MB for a point cloud. 418 tests pass.
 
 ---
 

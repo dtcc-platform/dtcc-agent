@@ -61,7 +61,8 @@ def _estimate_bytes(obj: Any) -> int:
             if isinstance(attrs, dict):
                 stack.append(attrs)
             for cls in type(item).__mro__:
-                for slot in getattr(cls, "__slots__", ()):
+                slots = getattr(cls, "__slots__", ())
+                for slot in (slots,) if isinstance(slots, str) else slots:
                     if isinstance(slot, str) and hasattr(item, slot):
                         stack.append(getattr(item, slot))
             # dolfinx keeps a Function's values behind a property, not an attribute.
@@ -121,7 +122,9 @@ class ObjectStore:
         self._budget = budget or MemoryBudget(max_bytes)
         self._lock = self._budget.lock
         self._objects: dict[str, dict[str, Any]] = {}
-        self._max_bytes = max_bytes
+        # Never more than the budget: an Object that fit the store but not the
+        # budget would be evicted the moment its reference was returned.
+        self._max_bytes = min(max_bytes, self._budget.max_bytes)
         self._total_bytes = 0
         with self._lock:
             self._budget._stores.add(self)

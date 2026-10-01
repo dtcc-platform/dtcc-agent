@@ -198,3 +198,18 @@ def test_clearing_a_store_returns_its_bytes_to_the_budget():
     a.clear()
     assert len(a) == 0
     assert budget.total_bytes == b.total_bytes
+
+
+def test_a_store_is_never_larger_than_its_budget():
+    store = ObjectStore(max_bytes=10 * ARRAY, budget=MemoryBudget(max_bytes=2 * ARRAY))
+    assert store.store(np.zeros(30_000)) is None
+
+
+def test_a_single_string_slot_is_counted():
+    class Holder:
+        __slots__ = "payload"
+
+        def __init__(self):
+            self.payload = np.zeros(10_000)
+
+    assert _estimate_bytes(Holder()) >= ARRAY
