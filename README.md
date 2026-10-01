@@ -230,7 +230,7 @@ The Docker layout mirrors `dtcc-sim`:
 | `inspect_object` | Get detailed summary of a stored object |
 | `delete_object` | Delete a stored object and free memory |
 | `get_field_names` | Discover fields/data attached to a stored object |
-| `export_object` | Export an object to a file the user downloads from the chat (CSV, OBJ, PLY, STL, VTK, glTF, etc.) |
+| `export_object` | Export an object to a file the user downloads from the chat (CSV, OBJ, PLY, STL, VTK, glTF; buildings as GeoJSON, GeoPackage or City JSON) |
 | `object_to_text` | Get a rich markdown representation of a stored object |
 | `spatial_query` | Spatial filtering, nearest-station lookup, height-based queries |
 

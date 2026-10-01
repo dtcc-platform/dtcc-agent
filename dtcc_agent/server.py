@@ -1026,13 +1026,31 @@ def get_field_names(object_ref: str) -> str:
 # -- Export ------------------------------------------------------------------
 
 # Type → (save_function_name, allowed_formats)
+def _formats(save_func: str, *formats: str) -> dict[str, str]:
+    return dict.fromkeys(formats, save_func)
+
+
+# Type name -> {format: dtcc_core.io function}.
 _EXPORT_DISPATCH = {
-    "PointCloud":  ("save_pointcloud",   {"csv", "las", "laz", "json"}),
-    "Mesh":        ("save_mesh",         {"obj", "ply", "stl", "vtk", "vtu", "gltf"}),
-    "VolumeMesh":  ("save_volume_mesh",  {"obj", "ply", "stl", "vtk", "vtu"}),
-    "Raster":      ("save_raster",       {"csv", "tif", "png", "jpg"}),
-    "City":        ("save_city",         {"json"}),
+    "PointCloud": _formats("save_pointcloud", "csv", "las", "laz", "json"),
+    "Mesh": _formats("save_mesh", "obj", "ply", "stl", "vtk", "vtu", "gltf"),
+    "VolumeMesh": _formats("save_volume_mesh", "obj", "ply", "stl", "vtk", "vtu"),
+    "Raster": _formats("save_raster", "csv", "tif", "png", "jpg"),
+    # Footprints as GIS vector files (GeoJSON in WGS84), or Core's City JSON.
+    "City": {"json": "save_city", **_formats("save_footprints", "geojson", "gpkg")},
 }
+# Buildings without a City: Core's writers take a City, so they are wrapped in one.
+_EXPORT_DISPATCH["BuildingCollection"] = _EXPORT_DISPATCH["City"]
+_EXPORT_DISPATCH["list"] = _EXPORT_DISPATCH["City"]
+
+
+def _as_city(obj: Any) -> Any:
+    """A City holding the buildings of a BuildingCollection or a list of them."""
+    from dtcc_core.model import City
+
+    city = City()
+    city.add_buildings(obj if isinstance(obj, list) else obj.buildings)
+    return city
 
 
 @tool
@@ -1047,7 +1065,8 @@ def export_object(
     - Mesh: obj, ply, stl, vtk, vtu, gltf
     - VolumeMesh: obj, ply, stl, vtk, vtu
     - Raster: csv, tif, png, jpg
-    - City: json
+    - City, BuildingCollection, list of Buildings: geojson, gpkg (footprints
+      with their attributes; GeoJSON in WGS84), json (Core's City format)
     - SensorCollection: csv
 
     Args:
@@ -1091,22 +1110,24 @@ def export_object(
                      "artifact": artifacts.describe(filepath)})
 
     # Standard dtcc-core types
-    if type_name not in _EXPORT_DISPATCH:
+    is_buildings = isinstance(obj, list) and all(type(b).__name__ == "Building" for b in obj)
+    if type_name not in _EXPORT_DISPATCH or (type_name == "list" and not (obj and is_buildings)):
         return _fmt({"error": f"Export not supported for type '{type_name}'."})
 
-    save_func_name, allowed_formats = _EXPORT_DISPATCH[type_name]
-
-    if fmt not in allowed_formats:
+    formats = _EXPORT_DISPATCH[type_name]
+    if fmt not in formats:
         return _fmt({
             "error": f"Format '{fmt}' not supported for {type_name}. "
-                     f"Allowed: {', '.join(sorted(allowed_formats))}."
+                     f"Allowed: {', '.join(sorted(formats))}."
         })
+    if type_name in ("BuildingCollection", "list"):
+        obj = _as_city(obj)
 
     filepath = artifacts.new_path(_session().id, object_ref, f".{fmt}")
 
     from dtcc_core import io as dtcc_io
 
-    save_func = getattr(dtcc_io, save_func_name)
+    save_func = getattr(dtcc_io, formats[fmt])
 
     try:
         save_func(obj, str(filepath))

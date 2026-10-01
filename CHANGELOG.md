@@ -14,6 +14,7 @@ Last updated: 2026-10-01.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-01 | Buildings download as GeoJSON or GeoPackage that GIS tools open ([#68](https://github.com/dtcc-platform/dtcc-agent/pull/68), fixes [#65](https://github.com/dtcc-platform/dtcc-agent/issues/65)) | 🔍 |
 | 2026-10-01 | **Last M1a task:** the agent runs as two containers, with the tool server reachable only by the chat ([#67](https://github.com/dtcc-platform/dtcc-agent/pull/67), T13, fixes [#24](https://github.com/dtcc-platform/dtcc-agent/issues/24)) | ✅ |
 | 2026-10-01 | Memory is counted from what objects really hold, and one budget is shared fairly by every user ([#66](https://github.com/dtcc-platform/dtcc-agent/pull/66), T11, fixes [#23](https://github.com/dtcc-platform/dtcc-agent/issues/23), implements U4) | ✅ |
 | 2026-10-01 | Rendered images appear in the chat, exports download from it, and no path typed in chat reaches the filesystem ([#63](https://github.com/dtcc-platform/dtcc-agent/pull/63), T7, fixes [#21](https://github.com/dtcc-platform/dtcc-agent/issues/21) and [#38](https://github.com/dtcc-platform/dtcc-agent/issues/38), decides U9) | ✅ |
@@ -48,7 +49,25 @@ Last updated: 2026-10-01.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68.
+
+---
+
+## 🔍 In review
+
+### Buildings download as GeoJSON or GeoPackage that GIS tools open · 2026-10-01 · [#68](https://github.com/dtcc-platform/dtcc-agent/pull/68)
+
+**Before:** asking to download buildings failed with "Export not supported", because the
+buildings download comes back as a building collection, which the export tool didn't know. A
+city could only be saved in Core's own JSON.
+
+**Now:** buildings (a collection, a city, or a filtered list such as "buildings over 20 m") export
+as GeoJSON or GeoPackage footprints with all their attributes, or as Core's city JSON. GeoJSON
+comes out in longitude and latitude, as GIS tools and web maps expect.
+
+**How we know it works:** the 127 real Lindholmen buildings exported as a 164 KB GeoJSON with all
+127 features, a GeoPackage and a city JSON. A test checks the GeoJSON lands in Gothenburg's
+longitude and latitude, not in Swedish grid metres. 427 tests pass.
 
 ---
 
@@ -133,7 +152,7 @@ file path straight from chat, half of them for writing (#21, U1).
 - 401 tests pass.
 
 **Still open:**
-- Exporting a building collection is not supported yet (#65).
+- Exporting a building collection is not supported yet (#65, fixed in #68).
 - `load_geojson` has no tool listing the shared results folder, so the file name has to come
   from the user or the simulation.
 
@@ -657,7 +676,7 @@ These block tasks in M1a. Each issue carries the evidence needed to decide.
    #63), the memory budget (T11, #66) and the two-service deployment on loopback (T13, #67).
    What closes M1a is the QA checklist, run against `docker compose up` with a real chat.
 2. **Then M2,** starting with admission control (T14), which is what lets the tool server leave
-   loopback. Exporting a building collection is queued as #65.
+   loopback.
 3. **M1b is done:** typed references with a run linked to its object (T9, #57) and cache
    versioning (T12, #56).
 
