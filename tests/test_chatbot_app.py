@@ -178,3 +178,60 @@ def test_an_artifact_inside_fastmcps_structured_result_is_found(artifact_root):
 ])
 def test_a_tool_result_without_this_sessions_artifact_sends_no_frame(artifact_root, content):
     assert app_module._artifact_frame("s1", content) is None
+
+
+# -- The browser's session id reaches the MCP server (T5 audit gap) -----------
+
+class _StubMemory:
+    def retrieve(self, *args):
+        return ""
+
+    def store(self, *args):
+        return None
+
+
+def _fake_client(seen, fail_on_resume):
+    class FakeClient:
+        def __init__(self, options):
+            self.options = options
+
+        async def __aenter__(self):
+            seen.append(self.options)
+            if fail_on_resume and self.options["sdk_session_id"]:
+                raise RuntimeError("context window exceeded")
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def query(self, text):
+            return None
+
+        async def receive_response(self):
+            if False:
+                yield None
+
+    return FakeClient
+
+
+@pytest.mark.parametrize("resumed", [False, True], ids=["first-attempt", "fresh-retry"])
+def test_chat_builds_every_agent_call_for_the_browsers_session(monkeypatch, resumed):
+    seen = []
+    monkeypatch.setattr(app_module, "memory", _StubMemory())
+    monkeypatch.setattr(app_module, "_build_options",
+                        lambda sid, sdk=None, ctx="": {"session_id": sid, "sdk_session_id": sdk})
+    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client(seen, fail_on_resume=True))
+    sid = app_module.sessions.create()
+    if resumed:
+        app_module.sessions.set_sdk_session(sid, "sdk-old")
+
+    with TestClient(app).websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": sid})
+        assert ws.receive_json() == {"type": "session", "session_id": sid}
+        ws.send_json({"content": "hello"})
+        while ws.receive_json()["type"] != "done":
+            pass
+
+    # The resumed call fails and is retried fresh: both carry the same session.
+    assert [o["session_id"] for o in seen] == [sid] * (2 if resumed else 1)
+    assert seen[-1]["sdk_session_id"] is None
