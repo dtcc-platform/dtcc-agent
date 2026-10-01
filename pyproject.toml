@@ -44,7 +44,10 @@ test = ["pytest"]
 chatbot = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
-    "claude-agent-sdk>=0.1.0",
+    # 0.1.39 crashed every chat turn on the current Claude CLI's rate_limit_event
+    # (MessageParseError). 0.2.163 is the version verified end to end. The SDK
+    # leaves with the pydantic-ai rebuild (ADR-0003, M3).
+    "claude-agent-sdk>=0.2.163",
     "websockets>=13.0",
     "chromadb>=0.5.0",
 ]
