@@ -9,14 +9,15 @@ language.
 ## Architecture
 
 ```
-LLM (Claude) ←→ MCP protocol ←→ dtcc-agent
+LLM (Claude) ←→ MCP (stdio, or streamable HTTP + X-DTCC-Session) ←→ dtcc-agent
+                                    │  per Session: object store, Runs, artifact folder
                                     ├── geocode            (pyproj + Nominatim)
                                     ├── get_buildings       (dtcc_core.datasets)
                                     ├── run_simulation      (dtcc-sim remote or in-process)
                                     ├── compare_scenarios   (composes the above)
                                     ├── list_operations    ─┐
                                     ├── describe_operation  │ dynamic dispatch
-                                    ├── run_operation       │ (109 operations)
+                                    ├── run_operation       │ (133 operations)
                                     ├── list_objects        │ with object store
                                     ├── inspect_object      │
                                     ├── delete_object       │
@@ -25,7 +26,8 @@ LLM (Claude) ←→ MCP protocol ←→ dtcc-agent
                                     ├── object_to_text      │
                                     ├── spatial_query      ─┘
                                     ├── render_object       (matplotlib PNG, per-Session file)
-                                    └── disk_cache          (spatial containment, TTL eviction)
+                                    ├── memory budget       (2 GiB shared by all Sessions, LRU)
+                                    └── disk_cache          (the two downloads: containment, TTL)
 ```
 
 dtcc-agent can run in two modes:
@@ -219,7 +221,7 @@ The Docker layout mirrors `dtcc-sim`:
 | `list_past_runs` | List recent simulation runs |
 | `get_run_summary` | Re-inspect a past simulation result |
 
-### Dynamic dispatch tools (109 operations)
+### Dynamic dispatch tools (133 operations)
 
 | Tool | Description |
 |------|-------------|
@@ -240,14 +242,17 @@ The Docker layout mirrors `dtcc-sim`:
 |------|-------------|
 | `render_object` | Render a stored object as a PNG shown in the chat (matplotlib; plan view for footprints and lines, 3D for meshes and point clouds) |
 
-The dynamic dispatch tools expose **all** of dtcc-core:
+The dynamic dispatch tools expose the whole catalogue of the pinned dtcc-core (`bb95f2f`, 133
+operations; CI prints the count on every run):
 
 | Category | Count | Examples |
 |----------|-------|---------|
-| `builder` | 73 | terrain rasters, surface meshes, building heights, tree detection, pointcloud filters |
-| `io` | 18 | load/save pointcloud, mesh, raster, city; download data |
-| `datasets` | 12 | point_cloud, buildings, terrain, trees, weather, simulations |
+| `builder` | 82 | terrain rasters, surface meshes, building heights, tree detection, pointcloud filters |
+| `datasets` | 24 | point_cloud, buildings, terrain and city meshes, trees, roads, weather, transit, air quality |
+| `io` | 21 | load/save pointcloud, mesh, raster, city. The ones taking a file path are refused from chat (U1); use `export_object` instead |
 | `reproject` | 6 | reproject pointcloud, mesh, surface between CRS |
+
+dtcc-sim's datasets join this list once the service answers.
 
 ## How It Works
 
