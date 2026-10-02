@@ -281,3 +281,55 @@ def test_excess_sessions_are_trimmed_when_their_calls_finish(monkeypatch):
         server._release(session)
 
     assert len(server._sessions) == server.MAX_SESSIONS
+
+
+def test_an_idle_session_is_dropped_and_hands_its_bytes_back(monkeypatch):
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    before = server._object_budget.total_bytes
+    idle = server._session_for("idle")
+    idle.objects.store(np.zeros(10_000), source_op="t")
+    idle.last_used -= server.SESSION_IDLE_SECONDS + 1
+
+    server._session_for("someone-else")  # any request sweeps
+
+    assert "idle" not in server._sessions
+    assert server._object_budget.total_bytes == before
+    assert server._session_for("idle") is not idle  # a fresh, empty Session
+
+
+def test_a_session_with_a_long_call_in_flight_is_not_dropped_for_idleness(monkeypatch):
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    busy = server._session_for("busy", acquire=True)
+    busy.last_used -= server.SESSION_IDLE_SECONDS + 10 * 60  # a 70-minute call
+    server._session_for("someone-else")
+    assert server._sessions["busy"] is busy
+
+    server._release(busy)  # finishing the call counts as use
+    server._session_for("someone-else")
+    assert server._sessions["busy"] is busy
+
+
+def test_the_local_session_never_expires(monkeypatch):
+    monkeypatch.setattr(server._local_session, "last_used",
+                        server._local_session.last_used - server.SESSION_IDLE_SECONDS - 1)
+    server._session_for("anyone")
+    assert server._session() is server._local_session
+
+
+def test_the_chatbot_and_the_server_agree_on_the_idle_limit():
+    from chatbot.sessions import SESSION_IDLE_SECONDS
+
+    assert server.SESSION_IDLE_SECONDS == SESSION_IDLE_SECONDS
+
+
+def test_an_expired_sessions_own_next_request_starts_it_fresh(monkeypatch):
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    old = server._session_for("back")
+    old.objects.store(np.zeros(10), source_op="t")
+    old.last_used -= server.SESSION_IDLE_SECONDS + 1
+
+    fresh = server._session_for("back")
+
+    assert fresh is not old
+    assert len(fresh.objects) == 0
+    assert len(old.objects) == 0  # cleared, so its bytes went back to the budget

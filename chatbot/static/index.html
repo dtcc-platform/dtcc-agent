@@ -375,6 +375,8 @@
         let currentAssistantEl = null;
         let currentAssistantText = "";
         let reconnectDelay = 2000;
+        let lastSent = "";
+        let notice = "";
 
         function connect() {
             const proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -383,8 +385,13 @@
             ws.onopen = () => {
                 reconnectDelay = 2000;
                 ws.send(JSON.stringify({ session_id: sessionId }));
-                statusEl.textContent = "Connected";
-                setTimeout(() => { statusEl.textContent = ""; }, 1500);
+                if (notice) {
+                    statusEl.textContent = notice;
+                    notice = "";
+                } else {
+                    statusEl.textContent = "Connected";
+                    setTimeout(() => { statusEl.textContent = ""; }, 1500);
+                }
             };
 
             ws.onmessage = (event) => {
@@ -392,7 +399,20 @@
                 handleMessage(data);
             };
 
-            ws.onclose = () => {
+            ws.onclose = (event) => {
+                if (event.code === 4408) {
+                    // The session ended after an hour without messages (U7).
+                    // Start a fresh one now and hand back the unanswered message.
+                    sessionId = null;
+                    currentAssistantEl = null;
+                    currentAssistantText = "";
+                    inputEl.value = lastSent;
+                    sendBtn.disabled = false;
+                    inputEl.disabled = false;
+                    notice = "This chat expired after an hour idle and Lurkie no longer remembers it. Press Enter to send your message in a new one.";
+                    connect();
+                    return;
+                }
                 statusEl.textContent = "Disconnected. Reconnecting...";
                 setTimeout(connect, reconnectDelay);
                 reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
@@ -488,6 +508,7 @@
 
             addMessage(text, "user");
             ws.send(JSON.stringify({ content: text }));
+            lastSent = text;
             inputEl.value = "";
             sendBtn.disabled = true;
             inputEl.disabled = true;

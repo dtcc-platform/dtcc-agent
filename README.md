@@ -101,9 +101,12 @@ DTCC_MCP_TRANSPORT=http DTCC_MCP_HOST=127.0.0.1 DTCC_MCP_PORT=8051 python -m dtc
 Over HTTP every tool call must carry an `X-DTCC-Session` header; a call without one is
 refused. Objects and runs belong to that Session and are never visible from another
 (ADR-0004). The transport is stateless: the Session travels in the header, not in the MCP
-connection, so a client may open a new connection per request. At most 8 Sessions are live
-at once. Past that, the least recently used idle Session is dropped along with its objects
-and runs; a Session with a tool call in flight is never dropped. To point the chatbot at the
+connection, so a client may open a new connection per request. A Session with no tool call
+for 60 minutes is dropped along with its objects and runs, and the next call under its id
+starts a fresh one. At most 8 Sessions are live at once. Past that, the least recently used
+idle Session is dropped; a Session with a tool call in flight is never dropped. The chatbot
+ends its own sessions after 60 minutes without a message, deleting their files, and the page
+starts a new chat. To point the chatbot at the
 HTTP server, set `DTCC_MCP_URL=http://127.0.0.1:8051/mcp`; it then sends its own session id
 in that header. Without `DTCC_MCP_URL` the chatbot falls back to spawning the server over stdio.
 

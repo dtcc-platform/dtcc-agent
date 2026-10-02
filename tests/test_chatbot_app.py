@@ -88,6 +88,7 @@ def test_websocket_session_handshake():
 # -- Artifacts (T7, #21) ----------------------------------------------------
 
 import chatbot.app as app_module
+from chatbot.sessions import SESSION_IDLE_SECONDS
 from dtcc_agent import artifacts
 
 
@@ -235,3 +236,34 @@ def test_chat_builds_every_agent_call_for_the_browsers_session(monkeypatch, resu
     # The resumed call fails and is retried fresh: both carry the same session.
     assert [o["session_id"] for o in seen] == [sid] * (2 if resumed else 1)
     assert seen[-1]["sdk_session_id"] is None
+
+
+def test_an_idle_sessions_artifact_is_gone_without_another_chat_opening(artifact_root):
+    sid = app_module.sessions.create()
+    path = artifacts.new_path(sid, "obj", ".png")
+    path.write_bytes(b"png")
+    app_module.sessions._sessions[sid].last_active -= SESSION_IDLE_SECONDS + 1
+
+    assert TestClient(app).get(f"/artifacts/{sid}/{path.name}").status_code == 404
+    assert not path.exists()
+
+
+def test_a_message_to_an_expired_session_closes_the_socket_with_4408(monkeypatch):
+    from starlette.websockets import WebSocketDisconnect
+
+    seen = []
+    monkeypatch.setattr(app_module, "memory", _StubMemory())
+    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client(seen, fail_on_resume=False))
+    sid = app_module.sessions.create()
+
+    with TestClient(app).websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": sid})
+        assert ws.receive_json() == {"type": "session", "session_id": sid}
+        app_module.sessions._sessions[sid].last_active -= SESSION_IDLE_SECONDS + 1
+        ws.send_json({"content": "hello"})
+        with pytest.raises(WebSocketDisconnect) as closed:
+            ws.receive_json()
+
+    assert closed.value.code == 4408
+    assert seen == []  # no agent call for an expired session
+    assert app_module.sessions.get(sid) is None  # and it was not revived
