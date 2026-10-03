@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-03 | A chat needs an access code to open, the tool server needs a secret on every call, and every session says who it acts for ([#76](https://github.com/dtcc-platform/dtcc-agent/pull/76), T14, fixes [#72](https://github.com/dtcc-platform/dtcc-agent/issues/72)) | 🔍 |
+| 2026-10-03 | Every answer can be traced: which model and prompt produced it, what it cost, and which operations ran against which catalogue ([#77](https://github.com/dtcc-platform/dtcc-agent/pull/77), T33, fixes [#73](https://github.com/dtcc-platform/dtcc-agent/issues/73)) | 🔍 |
+| 2026-10-03 | A chat needs an access code to open, the tool server needs a secret on every call, and every session says who it acts for ([#76](https://github.com/dtcc-platform/dtcc-agent/pull/76), T14, fixes [#72](https://github.com/dtcc-platform/dtcc-agent/issues/72)) | ✅ |
 | 2026-10-03 | **First M2 task:** a chat ends after an hour without messages, not an hour after it started, and the tool server lets go of idle sessions too ([#75](https://github.com/dtcc-platform/dtcc-agent/pull/75), T22, fixes [#71](https://github.com/dtcc-platform/dtcc-agent/issues/71), decides U7) | ✅ |
 | 2026-10-02 | The README's operation counts match the catalogue (133, not 109), and a test checks the chat hands its own session id to the tool server on every attempt ([#70](https://github.com/dtcc-platform/dtcc-agent/pull/70)) | ✅ |
 | 2026-10-01 | The wiki describes the work through #68: files and path refusal (a new page), the memory budget, the two-service deployment, builder caching off ([#69](https://github.com/dtcc-platform/dtcc-agent/pull/69)) | ✅ |
@@ -53,11 +54,32 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77.
 
 ---
 
 ## 🔍 In review
+
+### Every answer can be traced to what produced it · 2026-10-03 · [#77](https://github.com/dtcc-platform/dtcc-agent/pull/77)
+
+**Before:** nobody could say which model, prompt and Core produced a given answer, or what it
+cost. The model and cost were printed in a log and thrown away. Which operations ran was not
+recorded at all. That left M3's move off the Claude SDK with nothing to compare against.
+
+**Now:** each chat message gets a turn id. The chat writes one line per answer to
+`answers.jsonl`: the model, the prompt version, tokens, cost, how long it took, and whether it
+failed or was retried. The tool server writes one line per tool call to `operations.jsonl`:
+which operation, how long, whether it worked, cache hits, and which Core catalogue it ran
+against. `python -m dtcc_agent.provenance join <log dir>` puts them together, one complete
+record per answer. Neither file holds what people typed, parameter values or error messages.
+
+**How we know it works:** tests run real tool servers, over HTTP and over the per-message
+process the chat starts, and check each call lands under its turn. A retried answer writes one
+record with both attempts' cost added up. A crashed answer still writes one. A planted secret,
+in a parameter, an error or a chat message, appears in neither file. A log that can't be
+written doesn't stop the answer. 482 tests pass.
+
+## ✅ Merged
 
 ### A chat needs an access code to open, and the tool server needs a secret on every call · 2026-10-03 · [#76](https://github.com/dtcc-platform/dtcc-agent/pull/76)
 
@@ -79,8 +101,6 @@ that's too short (the chatbot won't start). A real tool server started with the 
 the handshake with no secret or a wrong one, and serves the right one. A public bind without
 the secret exits before listening. `docker compose config` names each missing variable. 459
 tests pass.
-
-## ✅ Merged
 
 ### First M2 task: a chat ends after an hour without messages, not an hour after it started · 2026-10-03 · [#75](https://github.com/dtcc-platform/dtcc-agent/pull/75)
 

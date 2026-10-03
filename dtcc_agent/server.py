@@ -30,7 +30,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.lowlevel.server import request_ctx
 
-from . import artifacts, refs, runtime
+from . import artifacts, provenance, refs, runtime
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
 from .object_store import MemoryBudget, ObjectStore
@@ -53,6 +53,9 @@ SESSION_HEADER = "X-DTCC-Session"
 # "anonymous" until central auth exists; nothing is authorised by it yet (T14).
 SUBJECT_HEADER = "X-DTCC-Subject"
 ANONYMOUS = "anonymous"
+# The chat turn a call belongs to, for provenance (T33, #73). Over stdio the
+# chatbot starts one server per message and names it in DTCC_AGENT_TURN.
+TURN_HEADER = "X-DTCC-Turn"
 
 
 # What every Session's Objects may hold together (T11, #23). The least
@@ -184,6 +187,16 @@ def _request_session() -> _Session | None:
                         subject=request.headers.get(SUBJECT_HEADER) or ANONYMOUS)
 
 
+def _request_turn() -> str | None:
+    """The chat turn the running call belongs to: TURN_HEADER over HTTP,
+    DTCC_AGENT_TURN under stdio, else None (a client that is not the chatbot)."""
+    context = request_ctx.get(None)
+    request = context.request if context else None
+    if request is not None:
+        return request.headers.get(TURN_HEADER)
+    return os.getenv("DTCC_AGENT_TURN")
+
+
 @dataclass
 class _Flight:
     lock: anyio.Lock = field(default_factory=anyio.Lock)
@@ -243,17 +256,31 @@ def tool(
     async def run_bound(*args: Any, **kwargs: Any) -> str:
         session = _request_session()
         token = _current_session.set(session)
+        started = time.monotonic()
+        arguments: dict[str, Any] = {}
+        result = error = None
         try:
             call = signature.bind(*args, **kwargs)
             call.apply_defaults()
-            key = flight(call.arguments) if flight else None
+            arguments = dict(call.arguments)
+            key = flight(arguments) if flight else None
             # The Session's share before the flight: a Session waiting for
             # its own share must not hold a key another Session needs.
             async with _session().workers, _flight(key):
-                return await anyio.to_thread.run_sync(
+                result = await anyio.to_thread.run_sync(
                     functools.partial(fn, *args, **kwargs), limiter=runtime.workers
                 )
+                return result
+        except BaseException as exc:
+            error = exc
+            raise
         finally:
+            bound = _session()
+            provenance.record_operation(
+                tool=fn.__name__, arguments=arguments, result=result, error=error,
+                seconds=time.monotonic() - started, session_id=bound.id,
+                subject=bound.subject, turn_id=_request_turn(),
+            )
             _current_session.reset(token)
             if session is not None:
                 _release(session)

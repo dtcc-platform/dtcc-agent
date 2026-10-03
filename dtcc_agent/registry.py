@@ -520,6 +520,9 @@ def build() -> dict[str, OperationInfo]:
         with _REGISTRY_LOCK:
             if _REGISTRY is None:
                 _REGISTRY = _build_registry()
+                from . import provenance  # light; imported here to keep registry's imports flat
+
+                provenance.record_catalogue(len(_REGISTRY))
                 _start_retrier()  # dtcc-sim is asked now, in the background
     return _REGISTRY
 

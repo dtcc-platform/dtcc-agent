@@ -414,3 +414,44 @@ def test_a_session_takes_its_subject_from_the_request(monkeypatch):
             server._release(session)
         assert session.subject == subject
     assert server._local_session.subject == "anonymous"
+
+
+
+# -- Provenance (T33, #73) ---------------------------------------------------
+
+@pytest.fixture(scope="module")
+def logged_server(shared_dir, tmp_path_factory):
+    log_dir = tmp_path_factory.mktemp("logs")
+    for url in _serve(shared_dir, tmp_path_factory.mktemp("artifacts"), DTCC_AGENT_LOG_DIR=str(log_dir)):
+        yield url, log_dir
+
+
+def _operations(log_dir):
+    return [json.loads(l) for l in (log_dir / "operations.jsonl").read_text().splitlines()]
+
+
+def test_an_http_call_is_recorded_under_its_turn(logged_server):
+    url, log_dir = logged_server
+    _ok(url, "prov-http", "list_objects", headers={server.TURN_HEADER: "turn_aaaaaaaa"})
+    lines = _operations(log_dir)
+    # The HTTP server builds its catalogue at startup, and says so first.
+    assert lines[0]["type"] == "catalogue" and lines[0]["operations"] > 0
+    [call] = [l for l in lines if l.get("turn_id") == "turn_aaaaaaaa"]
+    assert call["tool"] == "list_objects" and call["session_id"] == "prov-http" and call["ok"]
+    assert call["catalogue"] == {k: lines[0][k] for k in ("core_commit", "operations")}
+
+
+def test_a_stdio_call_is_recorded_under_the_turn_it_was_started_for(tmp_path, shared_dir):
+    async def run():
+        env = {**os.environ, "SHARED_RESULTS_DIR": str(shared_dir),
+               "DTCC_AGENT_LOG_DIR": str(tmp_path), "DTCC_AGENT_TURN": "turn_bbbbbbbb",
+               "DTCC_AGENT_SESSION": "prov-stdio"}
+        params = StdioServerParameters(command=sys.executable, args=["-m", "dtcc_agent"], env=env)
+        async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
+            await session.initialize()
+            await session.call_tool("list_objects", {})
+
+    anyio.run(run)
+    [call] = _operations(tmp_path)
+    assert call["turn_id"] == "turn_bbbbbbbb" and call["session_id"] == "prov-stdio"
+    assert call["catalogue"] is None  # list_objects never needed the catalogue

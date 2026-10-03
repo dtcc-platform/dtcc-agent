@@ -75,13 +75,15 @@ def load_access_code() -> str | None:
     return code
 
 
-def get_mcp_server_config(session_id: str, subject: str = "anonymous") -> dict:
+def get_mcp_server_config(session_id: str, subject: str = "anonymous",
+                          turn_id: str | None = None) -> dict:
     """Return MCP server configuration for dtcc-agent, for one Session.
 
     With DTCC_MCP_URL set, connect to a running streamable-http server and
     carry the Session id in a header, so the server keeps this Session's
     objects and runs apart from every other's (ADR-0004), with the subject it
-    acts for and, when DTCC_MCP_SECRET is set, the bearer secret. Otherwise fall
+    acts for, the turn its calls belong to (provenance, T33) and, when
+    DTCC_MCP_SECRET is set, the bearer secret. Otherwise fall
     back to stdio: the server is launched with the current interpreter;
     override DTCC_AGENT_PYTHON only when the MCP package is installed
     elsewhere.
@@ -89,6 +91,8 @@ def get_mcp_server_config(session_id: str, subject: str = "anonymous") -> dict:
     url = os.getenv("DTCC_MCP_URL")
     if url:
         headers = {"X-DTCC-Session": session_id, "X-DTCC-Subject": subject}
+        if turn_id:
+            headers["X-DTCC-Turn"] = turn_id
         if secret := os.getenv("DTCC_MCP_SECRET"):
             headers["Authorization"] = f"Bearer {secret}"
         return {"dtcc-agent": {"type": "http", "url": url, "headers": headers}}
@@ -98,6 +102,7 @@ def get_mcp_server_config(session_id: str, subject: str = "anonymous") -> dict:
             "command": os.getenv("DTCC_AGENT_PYTHON", sys.executable),
             "args": ["-m", "dtcc_agent"],
             # Names the Session's artifact directory (dtcc_agent/artifacts.py).
-            "env": {"DTCC_AGENT_SESSION": session_id, "DTCC_AGENT_SUBJECT": subject},
+            "env": {"DTCC_AGENT_SESSION": session_id, "DTCC_AGENT_SUBJECT": subject,
+                    **({"DTCC_AGENT_TURN": turn_id} if turn_id else {})},
         }
     }

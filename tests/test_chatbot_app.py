@@ -220,7 +220,7 @@ def test_chat_builds_every_agent_call_for_the_browsers_session(monkeypatch, resu
     seen = []
     monkeypatch.setattr(app_module, "memory", _StubMemory())
     monkeypatch.setattr(app_module, "_build_options",
-                        lambda sid, sdk=None, ctx="": {"session_id": sid, "sdk_session_id": sdk})
+                        lambda sid, sdk=None, ctx="", turn_id=None: {"session_id": sid, "sdk_session_id": sdk})
     monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client(seen, fail_on_resume=True))
     sid = app_module.sessions.create()
     if resumed:
@@ -321,7 +321,7 @@ def test_a_chat_session_is_anonymous_and_its_tool_server_is_told_so(monkeypatch)
     monkeypatch.setattr(app_module, "memory", _StubMemory())
     monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client([], fail_on_resume=False))
     monkeypatch.setattr(app_module, "get_mcp_server_config",
-                        lambda sid, subject: configs.append((sid, subject)) or {})
+                        lambda sid, subject, turn_id: configs.append((sid, subject)) or {})
     sid = app_module.sessions.create()
     assert app_module.sessions.get(sid).subject == "anonymous"
 
@@ -333,3 +333,95 @@ def test_a_chat_session_is_anonymous_and_its_tool_server_is_told_so(monkeypatch)
             pass
 
     assert configs == [(sid, "anonymous")]
+
+
+# -- Provenance (T33, #73) ---------------------------------------------------
+
+from types import SimpleNamespace
+
+
+def _result(cost):
+    return SimpleNamespace(num_turns=1, duration_ms=100, duration_api_ms=80, total_cost_usd=cost,
+                           is_error=False, model_usage={"m": {}},
+                           usage={"input_tokens": 1, "output_tokens": 2,
+                                  "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0})
+
+
+def _chat(monkeypatch, tmp_path, stream, *, resume=False, text="hello"):
+    """One turn through chat(); returns (frames, answers.jsonl records, turn ids built)."""
+    turn_ids = []
+    monkeypatch.setattr(app_module, "ACCESS_CODE", None)
+    monkeypatch.setattr(app_module, "_log_dir", tmp_path)
+    monkeypatch.setattr(app_module, "memory", _StubMemory())
+    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client([], fail_on_resume=False))
+    monkeypatch.setattr(app_module, "_build_options",
+                        lambda sid, sdk=None, ctx="", turn_id=None: turn_ids.append(turn_id)
+                        or {"session_id": sid, "sdk_session_id": sdk})
+    monkeypatch.setattr(app_module, "_stream_response", stream)
+    sid = app_module.sessions.create()
+    if resume:
+        app_module.sessions.set_sdk_session(sid, "sdk-old")
+    frames = []
+    with TestClient(app).websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": sid})
+        ws.receive_json()
+        ws.send_json({"content": text})
+        while (frame := ws.receive_json())["type"] != "done":
+            frames.append(frame)
+    path = tmp_path / "answers.jsonl"
+    records = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
+    return frames, records, turn_ids
+
+
+def test_a_turn_writes_one_answer_record_and_sends_it_before_done(monkeypatch, tmp_path):
+    async def stream(client, ws, sid, turn):
+        turn.saw_model("m")
+        turn.saw_result(_result(0.02))
+        await ws.send_json({"type": "text", "content": "hi"})
+        return "sdk-new", "hi"
+
+    frames, [record], turn_ids = _chat(monkeypatch, tmp_path, stream, text=f"my code is {SECRET_TEXT}")
+    assert frames[-1] == {"type": "provenance", **record}
+    assert record["turn_id"].startswith("turn_") and turn_ids == [record["turn_id"]]
+    assert record["total_cost_usd"] == 0.02 and record["is_error"] is False
+    assert SECRET_TEXT not in (tmp_path / "answers.jsonl").read_text()
+
+
+SECRET_TEXT = "s3cret-in-the-message"
+
+
+def test_a_turn_retried_fresh_writes_one_record_under_one_turn_id(monkeypatch, tmp_path):
+    async def stream(client, ws, sid, turn):
+        turn.saw_result(_result(0.01))
+        if client.options["sdk_session_id"]:
+            raise RuntimeError("context window exceeded")
+        return "sdk-new", "hi"
+
+    _, [record], turn_ids = _chat(monkeypatch, tmp_path, stream, resume=True)
+    assert record["retried_fresh"] is True
+    assert record["total_cost_usd"] == pytest.approx(0.02)
+    assert len(turn_ids) == 2 and set(turn_ids) == {record["turn_id"]}
+
+
+def test_a_turn_that_fails_completely_still_writes_one_record(monkeypatch, tmp_path):
+    async def stream(client, ws, sid, turn):
+        raise RuntimeError("boom")
+
+    frames, [record], _ = _chat(monkeypatch, tmp_path, stream)
+    assert record["is_error"] is True and record["error"] == "RuntimeError"
+    assert record["usage"] is None
+    assert frames[-1]["type"] == "provenance"
+
+
+def test_a_log_that_cannot_be_written_does_not_stop_the_answer(monkeypatch, tmp_path, caplog):
+    blocked = tmp_path / "file-not-dir"
+    blocked.write_text("")
+
+    async def stream(client, ws, sid, turn):
+        turn.saw_result(_result(0.01))
+        return "sdk-new", "hi"
+
+    with caplog.at_level("WARNING"):
+        frames, records, _ = _chat(monkeypatch, blocked, stream)
+    assert records == [] and frames[-1]["type"] == "provenance"
+    assert any("answers.jsonl" in r.getMessage() for r in caplog.records)

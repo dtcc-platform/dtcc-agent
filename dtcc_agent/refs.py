@@ -12,6 +12,8 @@ import uuid
 
 OBJECT = "obj_"
 RUN = "run_"
+# A chat turn (T33): never passed to a tool, so not one of _NAMES.
+TURN = "turn_"
 
 _NAMES = {OBJECT: "Object reference", RUN: "Run reference"}
 _HINTS = {
@@ -21,7 +23,7 @@ _HINTS = {
 
 
 def new(kind: str) -> str:
-    """A fresh reference of ``kind`` (OBJECT or RUN)."""
+    """A fresh reference of ``kind`` (OBJECT, RUN or TURN)."""
     return f"{kind}{uuid.uuid4().hex[:8]}"
 
 
