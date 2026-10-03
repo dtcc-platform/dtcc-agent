@@ -393,6 +393,33 @@ python -m dtcc_agent.provenance join data/agent/logs            # every turn
 python -m dtcc_agent.provenance join data/agent/logs --turn turn_1a2b3c4d
 ```
 
+### Evaluation: the measurement layer
+
+`eval/` runs a fixed question set (`eval/questions.json`, 10 questions from the examples
+below and the M1 QA checklist) through the chat and reports latency, tokens and cost per
+question (ADR-0008, T34). It measures; it does not score answers right or wrong. The
+`answer_key` field is reserved for the correctness layer, which a domain expert adds later.
+
+```bash
+export DTCC_AGENT_ACCESS_CODE=...           # the running stack's code
+python -m eval.measure --runs 3 --log-dir data/agent/logs --max-cost 10
+```
+
+- **Fresh chat per question.** Every run of every question opens a new chat, so no history
+  leaks between them.
+- **Cold and warm.** Run 1 of each question is cold and later runs are warm (cached
+  downloads), and the report keeps them apart.
+- **Failed runs.** A timeout or error becomes a row with its status. It is left out of the
+  medians and does not stop the run.
+- **Simulations.** Questions that need dtcc-sim are skipped, with the reason, when a probe
+  question finds no simulations (`--assume-sim` skips the probe).
+- **Cost cap.** `--max-cost` (default $2) stops the run cleanly once that much is spent, and
+  the report says so. A timed-out question's cost is not counted, because no provenance
+  frame arrives for it.
+
+Each run writes `eval/runs/<time>-<commit>.jsonl` and a Markdown report. Only
+`eval/runs/baseline-m2.md` is committed: the M2 baseline that M3 compares against.
+
 ## Examples
 
 ### Example 1: Heatwave impact analysis

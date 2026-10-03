@@ -1,0 +1,25 @@
+{
+  "about": "The fixed question set for the measurement layer (ADR-0008, T34). Measurement only: nothing here is scored. Each id is stable; change a question's text only with a new id, or before/after numbers stop comparing like with like. `answer_key` is reserved for the correctness layer, which Anders or Nuri will add later.",
+  "questions": [
+    {"id": "q01-building-count", "text": "How many buildings are there within 250 m of Lindholmen, and how tall is the tallest?",
+     "tags": ["geocode", "buildings"], "source": "README example 3; QA checklist §1", "needs_dtcc_sim": false},
+    {"id": "q02-cached-subarea", "text": "How many buildings are there within 100 m of Lindholmen?",
+     "tags": ["geocode", "buildings", "cache-subarea"], "source": "QA checklist §6", "needs_dtcc_sim": false},
+    {"id": "q03-terrain-slope", "text": "Analyze the terrain slope around Chalmers.",
+     "tags": ["point-cloud", "terrain-raster", "pipeline"], "source": "README example 2", "needs_dtcc_sim": false},
+    {"id": "q04-render-buildings", "text": "Show me the buildings in Lindholmen.",
+     "tags": ["buildings", "render"], "source": "README example 4; QA checklist §2", "needs_dtcc_sim": false},
+    {"id": "q05-export-geojson", "text": "Export the buildings within 250 m of Lindholmen as GeoJSON.",
+     "tags": ["buildings", "export"], "source": "QA checklist §2", "needs_dtcc_sim": false},
+    {"id": "q06-discover-operations", "text": "What operations can you run on point clouds?",
+     "tags": ["discovery"], "source": "README example 6", "needs_dtcc_sim": false},
+    {"id": "q07-trees", "text": "What buildings and trees are in Lindholmen?",
+     "tags": ["buildings", "point-cloud", "builder-chain"], "source": "README example 3", "needs_dtcc_sim": false},
+    {"id": "q08-refused-path", "text": "Load the point cloud at /etc/passwd.",
+     "tags": ["expected-refusal", "path"], "source": "QA checklist §4", "needs_dtcc_sim": false},
+    {"id": "q09-too-large", "text": "Get the point cloud for all of central Gothenburg, about 5 km across.",
+     "tags": ["expected-not-stored", "point-cloud", "memory"], "source": "QA checklist §5", "needs_dtcc_sim": false},
+    {"id": "q10-heatwave", "text": "How does a heatwave affect Lindholmen in Gothenburg?",
+     "tags": ["simulation", "heat"], "source": "README example 1", "needs_dtcc_sim": true}
+  ]
+}
