@@ -28,6 +28,11 @@ services:
         APP_UID: ${APP_UID:-1000}
         APP_GID: ${APP_GID:-1000}
     command: ["python", "-m", "dtcc_agent"]
+    # A crash must not leave the chat down until someone notices (#79). The
+    # limit makes the kernel kill this server, not a neighbour, if one
+    # operation still outgrows memory despite the download cap.
+    restart: unless-stopped
+    mem_limit: ${DTCC_MCP_MEM_LIMIT:-5g}
     # The chatbot listens inside this service's network namespace, so its
     # port is published here. The MCP port (8051) is not.
     ports:
@@ -63,6 +68,7 @@ services:
   dtcc-agent:
     <<: *image
     network_mode: "service:dtcc-agent-mcp"
+    restart: unless-stopped
     depends_on:
       dtcc-agent-mcp:
         condition: service_healthy
@@ -79,12 +85,16 @@ services:
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
     healthcheck:
+      # Healthy means this chat is reachable and can reach the MCP server. If
+      # the MCP server restarts (say after an out-of-memory kill), this
+      # container is left in the old, dead network namespace, and Docker never
+      # restarts a container for being unhealthy. So a failed check stops the
+      # chatbot (PID 1), and restart: unless-stopped brings it back inside the
+      # new namespace (#79). Separating the two networks is M4.
       test:
         [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:8050/health')",
+          "CMD-SHELL",
+          "python -c \"import socket, urllib.request; urllib.request.urlopen('http://localhost:8050/health', timeout=3); socket.create_connection(('127.0.0.1', 8051), 2)\" || kill 1",
         ]
       interval: 30s
       timeout: 5s

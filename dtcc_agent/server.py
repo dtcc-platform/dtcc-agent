@@ -447,9 +447,9 @@ def get_buildings(
     Returns a JSON object with building list and height statistics.
     """
     from . import runner
-    from .dispatcher import bounds_error, load_cached_dataset, store_dataset
+    from .dispatcher import area_error, bounds_error, load_cached_dataset, store_dataset
 
-    if error := bounds_error(bounds):
+    if error := bounds_error(bounds) or area_error("datasets.buildings", bounds):
         return _fmt({"error": error})
 
     # Cache the download, not the summary: a download can be cropped to a

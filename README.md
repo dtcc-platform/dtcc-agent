@@ -301,7 +301,15 @@ Sizes are counted from what an object really holds: arrays, dict and list conten
 Core geometry (U4, #13). A single result bigger than the Session's limit is not kept: the
 call still returns its summary, with `object_ref: null` and a `not_stored` note. A Session
 remembers its last 100 simulation Runs. The budget covers stored results; memory while an
-operation runs is bounded by `DTCC_MCP_WORKERS` instead.
+operation runs is bounded by `DTCC_MCP_WORKERS` and by the download cap below.
+
+A download built from LiDAR (point clouds, buildings, city and terrain meshes, trees) may
+cover at most `DTCC_AGENT_MAX_AREA_KM2` (default 10 km²); a larger box is refused before
+anything is fetched, asking for a smaller area (#79). Memory grows faster than area: in the
+Docker image a point cloud peaked near 1.7 GB at 9 km² and 6 GB at 49 km², and buildings
+at 5.3 GB at 25 km². Sensor, transit and vector downloads (weather, roads, footprints, DeSO
+and the like) are not capped. In Compose the MCP server also has a memory limit
+(`DTCC_MCP_MEM_LIMIT`, default `5g`) and both services restart after a crash.
 
 ### What gets returned
 
