@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-03 | Every answer can be traced: which model and prompt produced it, what it cost, and which operations ran against which catalogue ([#77](https://github.com/dtcc-platform/dtcc-agent/pull/77), T33, fixes [#73](https://github.com/dtcc-platform/dtcc-agent/issues/73)) | 🔍 |
+| 2026-10-03 | **Last M2 task:** a fixed set of 10 questions measures speed and cost per question, and the M2 baseline is recorded for M3 to beat ([#78](https://github.com/dtcc-platform/dtcc-agent/pull/78), T34, fixes [#74](https://github.com/dtcc-platform/dtcc-agent/issues/74)) | 🔍 |
+| 2026-10-03 | Every answer can be traced: which model and prompt produced it, what it cost, and which operations ran against which catalogue ([#77](https://github.com/dtcc-platform/dtcc-agent/pull/77), T33, fixes [#73](https://github.com/dtcc-platform/dtcc-agent/issues/73)) | ✅ |
 | 2026-10-03 | A chat needs an access code to open, the tool server needs a secret on every call, and every session says who it acts for ([#76](https://github.com/dtcc-platform/dtcc-agent/pull/76), T14, fixes [#72](https://github.com/dtcc-platform/dtcc-agent/issues/72)) | ✅ |
 | 2026-10-03 | **First M2 task:** a chat ends after an hour without messages, not an hour after it started, and the tool server lets go of idle sessions too ([#75](https://github.com/dtcc-platform/dtcc-agent/pull/75), T22, fixes [#71](https://github.com/dtcc-platform/dtcc-agent/issues/71), decides U7) | ✅ |
 | 2026-10-02 | The README's operation counts match the catalogue (133, not 109), and a test checks the chat hands its own session id to the tool server on every attempt ([#70](https://github.com/dtcc-platform/dtcc-agent/pull/70)) | ✅ |
@@ -54,11 +55,36 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 495 with #78.
 
 ---
 
 ## 🔍 In review
+
+### Last M2 task: a fixed set of questions measures speed and cost, and the M2 baseline is recorded · 2026-10-03 · [#78](https://github.com/dtcc-platform/dtcc-agent/pull/78)
+
+**Before:** there was no way to say whether a change made the agent faster, slower, cheaper
+or dearer. M3 replaces the agent's runtime and has to show before-and-after numbers, with
+nothing to compare against.
+
+**Now:** `python -m eval.measure` asks 10 fixed questions through the real chat, each in a
+fresh chat, three times over. It reports how long each took, how many tokens and how much it
+cost, how many tools and operations it used, and which model, prompt and Core produced it.
+The first, uncached run is shown apart from the later ones. A failed run is counted but kept
+out of the averages, simulation questions are skipped when dtcc-sim is down, and a cost cap
+stops the run cleanly. Nothing is marked right or wrong yet: that needs an answer key from
+a domain expert.
+
+**The baseline** (`eval/runs/baseline-m2.md`): 28 of 30 runs answered, $2.31 in total.
+Typical answers took 20–60 s; a simulation took about 105 s. It also caught a real problem:
+asking for a point cloud over 5 km of Gothenburg ran the tool server out of memory and took
+the whole chat down until restarted.
+
+**How we know it works:** tests check the question file, the averages and maxima, failed and
+timed-out runs, the simulation skip and the cost cap, and run the harness over a real
+connection against the chat with a stand-in agent. 495 tests pass.
+
+## ✅ Merged
 
 ### Every answer can be traced to what produced it · 2026-10-03 · [#77](https://github.com/dtcc-platform/dtcc-agent/pull/77)
 
@@ -78,8 +104,6 @@ process the chat starts, and check each call lands under its turn. A retried ans
 record with both attempts' cost added up. A crashed answer still writes one. A planted secret,
 in a parameter, an error or a chat message, appears in neither file. A log that can't be
 written doesn't stop the answer. 482 tests pass.
-
-## ✅ Merged
 
 ### A chat needs an access code to open, and the tool server needs a secret on every call · 2026-10-03 · [#76](https://github.com/dtcc-platform/dtcc-agent/pull/76)
 
