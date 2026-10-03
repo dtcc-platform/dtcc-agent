@@ -161,9 +161,14 @@ def _build_options(
     opts = ClaudeAgentOptions(
         system_prompt=prompt,
         mcp_servers=get_mcp_server_config(session_id, _subject(session_id), turn_id),
-        # SECURITY: bypassPermissions is used for the prototype since the
-        # agent only has access to dtcc-agent MCP tools (no shell/filesystem).
-        # For production, switch to an explicit allowlist.
+        # SECURITY: the agent's tools are the dtcc-agent MCP server's, and no
+        # built-in CLI tool but ToolSearch, which it loads them through.
+        # Without `tools` the CLI enables all of its own (Bash, Read, Edit,
+        # Write, Task...), which run in this container beside its credentials,
+        # and bypassPermissions approves every call. strict_mcp_config keeps
+        # out any MCP server configured elsewhere in the container.
+        tools=["ToolSearch"],
+        strict_mcp_config=True,
         permission_mode="bypassPermissions",
         model="claude-sonnet-4-5",
     )

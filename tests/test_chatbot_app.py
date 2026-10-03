@@ -425,3 +425,21 @@ def test_a_log_that_cannot_be_written_does_not_stop_the_answer(monkeypatch, tmp_
         frames, records, _ = _chat(monkeypatch, blocked, stream)
     assert records == [] and frames[-1]["type"] == "provenance"
     assert any("answers.jsonl" in r.getMessage() for r in caplog.records)
+
+
+# -- The agent's tools --------------------------------------------------------
+
+def test_the_agent_gets_no_built_in_tools_only_the_dtcc_agent_server(monkeypatch):
+    # The CLI's own tools (Bash, Read, Edit, Write, Task…) would run inside
+    # the chatbot container, next to its credentials. Only ToolSearch stays:
+    # the agent loads the dtcc-agent tools through it.
+    built = []
+    monkeypatch.setattr(app_module, "ClaudeAgentOptions", lambda **kw: built.append(kw) or SimpleNamespace(**kw))
+    monkeypatch.setattr(app_module, "get_mcp_server_config", lambda *a: {"dtcc-agent": {}})
+
+    app_module._build_options("s1")
+
+    [options] = built
+    assert options["tools"] == ["ToolSearch"]
+    assert options["strict_mcp_config"] is True
+    assert set(options["mcp_servers"]) == {"dtcc-agent"}

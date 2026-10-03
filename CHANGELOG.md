@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-03 | Asking for too large an area is refused instead of crashing the tool server, and the chat recovers by itself if the server still dies ([#82](https://github.com/dtcc-platform/dtcc-agent/pull/82), fixes [#79](https://github.com/dtcc-platform/dtcc-agent/issues/79)) | 🔍 |
+| 2026-10-04 | The chat agent uses only the DTCC tools, which also makes each answer about a third cheaper ([#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)) | 🔍 |
+| 2026-10-03 | Asking for too large an area is refused instead of crashing the tool server, and the chat recovers by itself if the server still dies ([#82](https://github.com/dtcc-platform/dtcc-agent/pull/82), fixes [#79](https://github.com/dtcc-platform/dtcc-agent/issues/79)) | ✅ |
 | 2026-10-03 | A place name always resolves to somewhere in Sweden: "central Gothenburg" no longer lands in New Zealand ([#81](https://github.com/dtcc-platform/dtcc-agent/pull/81), fixes [#80](https://github.com/dtcc-platform/dtcc-agent/issues/80)) | ✅ |
 | 2026-10-03 | **Last M2 task:** a fixed set of 10 questions measures speed and cost per question, and the M2 baseline is recorded for M3 to beat ([#78](https://github.com/dtcc-platform/dtcc-agent/pull/78), T34, fixes [#74](https://github.com/dtcc-platform/dtcc-agent/issues/74)) | ✅ |
 | 2026-10-03 | Every answer can be traced: which model and prompt produced it, what it cost, and which operations ran against which catalogue ([#77](https://github.com/dtcc-platform/dtcc-agent/pull/77), T33, fixes [#73](https://github.com/dtcc-platform/dtcc-agent/issues/73)) | ✅ |
@@ -57,11 +58,28 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83.
 
 ---
 
 ## 🔍 In review
+
+### The chat agent uses only the DTCC tools · 2026-10-04 · [#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)
+
+**Before:** the Claude client gave the chat agent its general-purpose tools as well as the
+DTCC ones, against what the code intended. They are not needed to answer anything about the
+city, and the agent occasionally reached for them on its own.
+
+**Now:** the agent has the DTCC tools and the one built-in it uses to load them, nothing
+else, and only the DTCC tool server is loaded. Answers are unchanged, and each prompt is
+smaller: in a live check the "show me the buildings" answer read 22,000 input tokens
+instead of about 107,000 and cost $0.05 instead of $0.09. The M2 baseline's cost figures
+were measured before this change.
+
+**How we know it works:** a test pins the tool set. Live, a render and a building count
+answered as before using only DTCC tools. 533 tests pass.
+
+## ✅ Merged
 
 ### Asking for too large an area is refused instead of crashing the tool server · 2026-10-03 · [#82](https://github.com/dtcc-platform/dtcc-agent/pull/82)
 
@@ -83,8 +101,6 @@ check that the city-wide request is refused before any download, that 9 km² goe
 that light data isn't capped. Live, the tool server was killed the way the kernel kills a
 process that runs out of memory; 60 seconds later both containers were healthy again and a
 real question was answered. 532 tests pass.
-
-## ✅ Merged
 
 ### A place name always resolves to somewhere in Sweden · 2026-10-03 · [#81](https://github.com/dtcc-platform/dtcc-agent/pull/81)
 
