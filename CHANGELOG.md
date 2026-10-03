@@ -57,7 +57,7 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 528 with #82.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82.
 
 ---
 
@@ -82,7 +82,7 @@ at 9 km² and 6 GB at 49 km²; buildings reached 5.3 GB at 25 km², and 100 km²
 check that the city-wide request is refused before any download, that 9 km² goes ahead, and
 that light data isn't capped. Live, the tool server was killed the way the kernel kills a
 process that runs out of memory; 60 seconds later both containers were healthy again and a
-real question was answered. 528 tests pass.
+real question was answered. 532 tests pass.
 
 ## ✅ Merged
 

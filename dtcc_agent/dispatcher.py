@@ -174,11 +174,15 @@ def run_operation(
         if error := refs.wrong_kind(value, refs.OBJECT):
             return {"error": error}
     # Only a literal box is checked here: some operations take bounds as a
-    # stored Bounds object id, or default it to None.
+    # stored Bounds object id, or default it to None. A download takes only a
+    # literal box, so the area cap always sees what will be fetched (#79).
     literal = params.get("bounds")
-    if isinstance(literal, (list, tuple)) and (
-            error := bounds_error(literal) or area_error(name, literal)):
-        return {"error": error}
+    if isinstance(literal, (list, tuple)):
+        if error := bounds_error(literal) or area_error(name, literal):
+            return {"error": error}
+    elif literal is not None and name.startswith("datasets."):
+        return {"error": "Invalid bounds: a download takes [minx, miny, maxx, maxy] "
+                         "in EPSG:3006, not a reference or text."}
     try:
         op = get_operation(name)
     except KeyError as exc:

@@ -85,3 +85,22 @@ def test_get_buildings_is_capped_too(monkeypatch, tmp_path):
     result = json.loads(server.get_buildings(bounds=CITY))
     assert result["error"].startswith("Refused: datasets.buildings")
     assert downloads == []
+
+
+@pytest.mark.parametrize("bounds", [
+    "obj_f7e7470f",                                                    # a stored Bounds object id
+    {"xmin": 308930, "ymin": 6382798, "xmax": 329583, "ymax": 6413000},  # a dict
+    "308930,6382798,329583,6413000",                                     # a string
+], ids=["object-ref", "dict", "string"])
+def test_a_download_takes_only_a_literal_box_so_the_cap_cannot_be_skipped(lookups, bounds):
+    # Only a literal list can be measured against the cap. Before this check,
+    # these reached Core as a list of characters or keys; refusing them keeps
+    # the cap airtight if dataset bounds are ever resolved from references.
+    result = dispatcher.run_operation("datasets.point_cloud", {"bounds": bounds}, ObjectStore())
+    assert result["error"].startswith("Invalid bounds")
+    assert lookups == []
+
+
+def test_a_light_download_still_takes_no_bounds_at_all(lookups):
+    dispatcher.run_operation("datasets.weather", {}, ObjectStore())
+    assert lookups == ["datasets.weather"]
