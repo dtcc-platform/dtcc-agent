@@ -5,6 +5,9 @@ decided: 2026-09-19 by Spiros
 
 # Evaluation is one harness with two layers, and only one of them needs a domain expert
 
+> **Status, 2026-10-03:** the measurement layer has landed (`eval/`, T34, #74), with the M2
+> baseline in `eval/runs/baseline-m2.md`. The correctness layer still waits on its answer key.
+
 Two different things were collapsed into a single item called "the evaluation suite", and that
 item then blocked everything behind it across two planning cycles. They are separated here.
 

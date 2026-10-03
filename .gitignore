@@ -16,3 +16,9 @@ temp/
 .playwright-mcp/
 .env
 token
+
+# Local compose state (docker compose mounts ./data/agent)
+/data/
+# Measurement runs (T34): only the committed baseline is tracked
+eval/runs/*
+!eval/runs/baseline-m2.md
