@@ -86,6 +86,11 @@ def test_simulation_questions_are_skipped_when_the_probe_names_none():
     assert notes["sim_available"] is False
 
 
+@pytest.mark.parametrize("answer", ["", "   "])
+def test_an_empty_probe_answer_names_no_simulation(answer):
+    assert measure.sim_available({"status": "ok", "answer": answer}) is False
+
+
 def test_simulation_questions_run_when_the_probe_names_some():
     ask, asked = _asker(answers={measure.SIM_PROBE: "Available: urban_heat_simulation."})
     asyncio.run(measure.measure(QS, 1, ask, max_cost=10))

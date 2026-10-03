@@ -111,8 +111,9 @@ async def ask(url: str, text: str, *, access_code: str | None, timeout: float = 
 
 
 def sim_available(probe: dict[str, Any]) -> bool:
-    """Whether the probe's answer names any simulation."""
-    return probe["status"] == "ok" and not _NO_SIM.search(probe["answer"])
+    """Whether the probe's answer names any simulation. An empty answer names none."""
+    answer = probe.get("answer") or ""
+    return probe["status"] == "ok" and bool(answer.strip()) and not _NO_SIM.search(answer)
 
 
 # -- The run -------------------------------------------------------------------
@@ -168,11 +169,14 @@ def attach_operations(rows: list[dict[str, Any]], log_dir: str | os.PathLike) ->
 
 # -- The report ----------------------------------------------------------------
 
+_INPUT_KEYS = ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
+
+
 def _input_tokens(p: dict[str, Any]) -> int | None:
     """Every input token the model read: fresh, cache read and cache written.
     Most of a turn's input is cached, so input_tokens alone is misleading."""
     usage = p.get("usage")
-    return sum(usage.values()) - usage["output_tokens"] if usage else None
+    return sum(usage[k] for k in _INPUT_KEYS) if usage else None
 
 
 def _stats(values: list[float]) -> tuple[float, float] | None:
