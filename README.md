@@ -146,8 +146,24 @@ cd ../dtcc-agent
 mkdir -p data/agent
 export DTCC_REMOTE_SERVICES=http://host.docker.internal:8001
 export CLAUDE_CODE_OAUTH_TOKEN=...
+export DTCC_MCP_SECRET="$(openssl rand -hex 32)"
+export DTCC_AGENT_ACCESS_CODE="$(openssl rand -base64 18)"   # give this to testers
 docker compose up --build
 ```
+
+Compose refuses to start without `DTCC_MCP_SECRET` and `DTCC_AGENT_ACCESS_CODE`, naming
+the one that is missing.
+
+#### Admission (T14)
+
+| Variable | Read by | Effect |
+|---|---|---|
+| `DTCC_AGENT_ACCESS_CODE` | chatbot | Opening a new chat needs this code, at least 16 characters. The page asks for it once per tab. A missing or wrong code closes the websocket with 4401 and creates no session. A live session resumes on its id alone. Unset: admission is off and the chatbot logs a WARNING at startup. Too short: the chatbot does not start. |
+| `DTCC_MCP_SECRET` | both | Every HTTP request to the MCP server, `initialize` included, must carry `Authorization: Bearer <secret>`, or it gets a bare 401. The chatbot sends it. Unset on a non-loopback `DTCC_MCP_HOST`: the server does not start. |
+
+Each session also carries a `subject`, sent to the MCP server as `X-DTCC-Subject` (stdio:
+`DTCC_AGENT_SUBJECT`). It is `"anonymous"` until central auth exists, and nothing is authorised
+by it yet.
 
 On macOS, mounting `~/.claude` into Docker is not enough for local Claude auth:
 Claude Code stores the OAuth credential in Keychain. Generate a container token
@@ -191,11 +207,11 @@ through the service is the real test.
 Compose runs two services from one image (T13):
 
 - `dtcc-agent-mcp`, the MCP server over streamable HTTP. It binds `127.0.0.1:8051` and that
-  port is never published (U11): until admission control (T14), nothing outside the pair can
-  reach it. It owns the network namespace, so the chatbot's port 8050 is published here.
+  port is never published (U11), so nothing outside the pair can reach it, and every call
+  must also carry `DTCC_MCP_SECRET` (T14). It owns the network namespace, so the chatbot's port 8050 is published here.
 - `dtcc-agent`, the chatbot. It shares that namespace (`network_mode: service:dtcc-agent-mcp`)
   and reaches the server at `http://127.0.0.1:8051/mcp`, sending its session id in
-  `X-DTCC-Session`. It starts once the MCP server is healthy, which is after the catalogue is built.
+  `X-DTCC-Session` and the secret. It starts once the MCP server is healthy, which is after the catalogue is built.
 
 Both mount the same `/data`. The MCP server writes each Session's files to `/data/artifacts`
 and the chatbot serves them. Only the MCP server mounts `/shared/results`.
@@ -531,8 +547,8 @@ Features:
   retrieved via RAG to provide cross-session context.
 - **Error recovery**: If a resumed SDK session fails (e.g. context
   limit), the chatbot automatically retries with a fresh session.
-- **Session management**: Sessions expire after 1 hour. A "New Chat"
-  button lets users start fresh without reloading.
+- **Session management**: A chat ends after 60 minutes without a
+  message. A "New Chat" button lets users start fresh without reloading.
 - **Security**: Rendered markdown is sanitized with DOMPurify to
   prevent XSS.
 

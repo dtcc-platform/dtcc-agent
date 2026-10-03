@@ -336,6 +336,26 @@
             background: rgba(120,200,190,0.1);
             border-color: rgba(120,200,190,0.25);
         }
+        /* Access code, asked for before a chat opens (T14) */
+        #access {
+            position: fixed; inset: 0; z-index: 20;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px; padding: 16px;
+            background: rgba(8,8,12,0.92); color: var(--off-white);
+        }
+        #access[hidden] { display: none; }
+        #access h2 { margin: 0; color: var(--gold); }
+        #access p { margin: 0; text-align: center; }
+        #access input {
+            width: min(320px, 100%); padding: 12px 14px; border-radius: var(--radius);
+            border: 1px solid var(--muted); background: var(--dark-surface); color: var(--off-white);
+            font: inherit;
+        }
+        #access button {
+            padding: 10px 22px; border: 0; border-radius: var(--radius);
+            background: var(--orange); color: var(--white); font: inherit; cursor: pointer;
+        }
+        #access-error { color: var(--orange); min-height: 1.2em; }
     </style>
 </head>
 <body>
@@ -358,6 +378,14 @@
     </div>
     <div id="status"></div>
 
+    <form id="access" hidden>
+        <h2>Access code</h2>
+        <p>Enter the access code you were given to start a chat.</p>
+        <input id="access-code" type="password" autocomplete="off" required aria-label="Access code">
+        <button type="submit">Start</button>
+        <p id="access-error" role="alert"></p>
+    </form>
+
     <div id="input-area">
         <textarea id="input" placeholder="Ask Lurkie about urban data, simulations, buildings..."
                   rows="1"></textarea>
@@ -376,6 +404,27 @@
         let currentAssistantText = "";
         let reconnectDelay = 2000;
         let lastSent = "";
+        // The access code, kept for reconnects in this tab only.
+        const CODE_KEY = "lurkie-access-code";
+        const accessForm = document.getElementById("access");
+        const codeInput = document.getElementById("access-code");
+        let accessCode = null;
+        try { accessCode = sessionStorage.getItem(CODE_KEY); } catch {}
+
+        function askForCode(error) {
+            document.getElementById("access-error").textContent = error || "";
+            accessForm.hidden = false;
+            codeInput.value = "";
+            codeInput.focus();
+        }
+
+        accessForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            accessCode = codeInput.value;
+            try { sessionStorage.setItem(CODE_KEY, accessCode); } catch {}
+            accessForm.hidden = true;
+            connect();
+        });
         let notice = "";
 
         function connect() {
@@ -384,7 +433,7 @@
 
             ws.onopen = () => {
                 reconnectDelay = 2000;
-                ws.send(JSON.stringify({ session_id: sessionId }));
+                ws.send(JSON.stringify({ session_id: sessionId, access_code: accessCode }));
                 if (notice) {
                     statusEl.textContent = notice;
                     notice = "";
@@ -400,6 +449,13 @@
             };
 
             ws.onclose = (event) => {
+                if (event.code === 4401) {
+                    // No code, or the wrong one: ask, and don't retry until given one.
+                    accessCode = null;
+                    try { sessionStorage.removeItem(CODE_KEY); } catch {}
+                    askForCode("Access code not accepted.");
+                    return;
+                }
                 if (event.code === 4408) {
                     // The session ended after an hour without messages (U7).
                     // Start a fresh one now and hand back the unanswered message.
@@ -552,7 +608,10 @@
             inputEl.style.height = Math.min(inputEl.scrollHeight, 150) + "px";
         });
 
-        connect();
+        fetch("/admission")
+            .then((r) => r.json())
+            .then(({ required }) => (required && !accessCode ? askForCode() : connect()))
+            .catch(() => connect()); // the server still refuses with 4401 if a code is needed
     </script>
 </body>
 </html>

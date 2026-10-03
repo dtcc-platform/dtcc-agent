@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-03 | **First M2 task:** a chat ends after an hour without messages, not an hour after it started, and the tool server lets go of idle sessions too ([#75](https://github.com/dtcc-platform/dtcc-agent/pull/75), T22, fixes [#71](https://github.com/dtcc-platform/dtcc-agent/issues/71), decides U7) | 🔍 |
+| 2026-10-03 | A chat needs an access code to open, the tool server needs a secret on every call, and every session says who it acts for ([#76](https://github.com/dtcc-platform/dtcc-agent/pull/76), T14, fixes [#72](https://github.com/dtcc-platform/dtcc-agent/issues/72)) | 🔍 |
+| 2026-10-03 | **First M2 task:** a chat ends after an hour without messages, not an hour after it started, and the tool server lets go of idle sessions too ([#75](https://github.com/dtcc-platform/dtcc-agent/pull/75), T22, fixes [#71](https://github.com/dtcc-platform/dtcc-agent/issues/71), decides U7) | ✅ |
 | 2026-10-02 | The README's operation counts match the catalogue (133, not 109), and a test checks the chat hands its own session id to the tool server on every attempt ([#70](https://github.com/dtcc-platform/dtcc-agent/pull/70)) | ✅ |
 | 2026-10-01 | The wiki describes the work through #68: files and path refusal (a new page), the memory budget, the two-service deployment, builder caching off ([#69](https://github.com/dtcc-platform/dtcc-agent/pull/69)) | ✅ |
 | 2026-10-01 | Buildings download as GeoJSON or GeoPackage that GIS tools open ([#68](https://github.com/dtcc-platform/dtcc-agent/pull/68), fixes [#65](https://github.com/dtcc-platform/dtcc-agent/issues/65)) | ✅ |
@@ -52,11 +53,34 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76.
 
 ---
 
 ## 🔍 In review
+
+### A chat needs an access code to open, and the tool server needs a secret on every call · 2026-10-03 · [#76](https://github.com/dtcc-platform/dtcc-agent/pull/76)
+
+**Before:** anyone who could reach the chat page could open a chat, and the tool server took
+any call that named a session. Only the two-container setup's loopback kept strangers out of
+the tool server, which was a stopgap.
+
+**Now:** opening a new chat needs the deployment's access code (`DTCC_AGENT_ACCESS_CODE`, at
+least 16 characters). The page asks for it once per browser tab. A missing or wrong code is
+refused with 4401 and no session is made; a chat already open carries on without it. Every
+call from the chat to the tool server carries a secret (`DTCC_MCP_SECRET`), and a call
+without it gets a bare 401, even the very first handshake. The tool server won't start on a
+public address without the secret. Docker Compose refuses to start without both. Each session
+now carries a `subject`, "anonymous" for now, ready for central sign-in later.
+
+**How we know it works:** tests cover a new chat with no code and with a wrong code (4401, no
+session made), the right code, resuming without a code, admission switched off, and a code
+that's too short (the chatbot won't start). A real tool server started with the secret refuses
+the handshake with no secret or a wrong one, and serves the right one. A public bind without
+the secret exits before listening. `docker compose config` names each missing variable. 459
+tests pass.
+
+## ✅ Merged
 
 ### First M2 task: a chat ends after an hour without messages, not an hour after it started · 2026-10-03 · [#75](https://github.com/dtcc-platform/dtcc-agent/pull/75)
 
@@ -78,8 +102,6 @@ The cap of 8 stays as a backstop.
 chat's file returns 404 with no other chat opened. A message to an expired chat gets 4408 and
 no agent call. An idle server session is dropped and its bytes return to the budget, while one
 mid-call is kept. A test holds the two 60-minute limits equal. 440 tests pass.
-
-## ✅ Merged
 
 ### Buildings download as GeoJSON or GeoPackage that GIS tools open · 2026-10-01 · [#68](https://github.com/dtcc-platform/dtcc-agent/pull/68)
 

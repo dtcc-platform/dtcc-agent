@@ -267,3 +267,69 @@ def test_a_message_to_an_expired_session_closes_the_socket_with_4408(monkeypatch
     assert closed.value.code == 4408
     assert seen == []  # no agent call for an expired session
     assert app_module.sessions.get(sid) is None  # and it was not revived
+
+
+# -- Admission (T14, #72) ----------------------------------------------------
+
+CODE = "an-access-code-16+"
+
+
+@pytest.mark.parametrize("init", [{"session_id": None}, {"session_id": None, "access_code": "wrong-code-0000000"}],
+                         ids=["no-code", "wrong-code"])
+def test_a_new_chat_without_the_right_code_is_refused_with_4401(monkeypatch, init):
+    from starlette.websockets import WebSocketDisconnect
+
+    monkeypatch.setattr(app_module, "ACCESS_CODE", CODE)
+    before = len(app_module.sessions._sessions)
+    with TestClient(app).websocket_connect("/chat") as ws:
+        ws.send_json(init)
+        assert ws.receive_json() == {"type": "error", "code": "admission_required"}
+        with pytest.raises(WebSocketDisconnect) as closed:
+            ws.receive_json()
+    assert closed.value.code == 4401
+    assert len(app_module.sessions._sessions) == before
+
+
+def test_the_right_code_opens_a_chat_and_its_id_resumes_without_one(monkeypatch):
+    monkeypatch.setattr(app_module, "ACCESS_CODE", CODE)
+    client = TestClient(app)
+    with client.websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": None, "access_code": CODE})
+        frame = ws.receive_json()
+    assert frame["type"] == "session"
+    with client.websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": frame["session_id"]})
+        assert ws.receive_json() == frame
+
+
+def test_with_admission_off_a_chat_opens_without_a_code(monkeypatch):
+    monkeypatch.setattr(app_module, "ACCESS_CODE", None)
+    with TestClient(app).websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": None})
+        assert ws.receive_json()["type"] == "session"
+
+
+@pytest.mark.parametrize("code", [CODE, None])
+def test_the_page_can_ask_whether_a_code_is_required(monkeypatch, code):
+    monkeypatch.setattr(app_module, "ACCESS_CODE", code)
+    assert TestClient(app).get("/admission").json() == {"required": code is not None}
+
+
+def test_a_chat_session_is_anonymous_and_its_tool_server_is_told_so(monkeypatch):
+    configs = []
+    monkeypatch.setattr(app_module, "ACCESS_CODE", None)
+    monkeypatch.setattr(app_module, "memory", _StubMemory())
+    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client([], fail_on_resume=False))
+    monkeypatch.setattr(app_module, "get_mcp_server_config",
+                        lambda sid, subject: configs.append((sid, subject)) or {})
+    sid = app_module.sessions.create()
+    assert app_module.sessions.get(sid).subject == "anonymous"
+
+    with TestClient(app).websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": sid})
+        ws.receive_json()
+        ws.send_json({"content": "hello"})
+        while ws.receive_json()["type"] != "done":
+            pass
+
+    assert configs == [(sid, "anonymous")]

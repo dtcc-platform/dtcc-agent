@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 
@@ -56,31 +57,47 @@ DEFAULT_PORT = int(os.getenv("DTCC_AGENT_PORT", "8050"))
 DEFAULT_HOST = os.getenv("DTCC_AGENT_HOST", "0.0.0.0")
 
 
-def get_mcp_server_config(session_id: str) -> dict:
+# The shortest access code accepted: anything shorter is guessable.
+MIN_ACCESS_CODE = 16
+
+
+def load_access_code() -> str | None:
+    """The deployment's access code for opening a chat (T14, #72), or None
+    when admission is off. Exits on a code too short to be one."""
+    code = os.getenv("DTCC_AGENT_ACCESS_CODE")
+    if not code:
+        logging.getLogger("lurkie").warning(
+            "DTCC_AGENT_ACCESS_CODE is not set: anyone who reaches this chatbot can open a chat."
+        )
+        return None
+    if len(code) < MIN_ACCESS_CODE:
+        raise SystemExit(f"DTCC_AGENT_ACCESS_CODE must be at least {MIN_ACCESS_CODE} characters.")
+    return code
+
+
+def get_mcp_server_config(session_id: str, subject: str = "anonymous") -> dict:
     """Return MCP server configuration for dtcc-agent, for one Session.
 
     With DTCC_MCP_URL set, connect to a running streamable-http server and
     carry the Session id in a header, so the server keeps this Session's
-    objects and runs apart from every other's (ADR-0004). Otherwise fall
+    objects and runs apart from every other's (ADR-0004), with the subject it
+    acts for and, when DTCC_MCP_SECRET is set, the bearer secret. Otherwise fall
     back to stdio: the server is launched with the current interpreter;
     override DTCC_AGENT_PYTHON only when the MCP package is installed
     elsewhere.
     """
     url = os.getenv("DTCC_MCP_URL")
     if url:
-        return {
-            "dtcc-agent": {
-                "type": "http",
-                "url": url,
-                "headers": {"X-DTCC-Session": session_id},
-            }
-        }
+        headers = {"X-DTCC-Session": session_id, "X-DTCC-Subject": subject}
+        if secret := os.getenv("DTCC_MCP_SECRET"):
+            headers["Authorization"] = f"Bearer {secret}"
+        return {"dtcc-agent": {"type": "http", "url": url, "headers": headers}}
     return {
         "dtcc-agent": {
             "type": "stdio",
             "command": os.getenv("DTCC_AGENT_PYTHON", sys.executable),
             "args": ["-m", "dtcc_agent"],
             # Names the Session's artifact directory (dtcc_agent/artifacts.py).
-            "env": {"DTCC_AGENT_SESSION": session_id},
+            "env": {"DTCC_AGENT_SESSION": session_id, "DTCC_AGENT_SUBJECT": subject},
         }
     }

@@ -22,6 +22,8 @@ class Session:
     """A chatbot session."""
 
     id: str
+    # Who the session acts for (ADR-0004); "anonymous" until central auth.
+    subject: str = "anonymous"
     created_at: datetime = field(default_factory=datetime.now)
     # time.monotonic() of the last message or the end of the last turn.
     last_active: float = field(default_factory=time.monotonic)

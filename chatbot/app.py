@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import hmac
+import itertools
 import json
 import logging
 import os
@@ -30,7 +32,9 @@ from claude_agent_sdk import (
     ToolResultBlock,
 )
 
-from chatbot.config import SYSTEM_PROMPT, get_mcp_server_config, DEFAULT_HOST, DEFAULT_PORT
+from chatbot.config import (
+    SYSTEM_PROMPT, get_mcp_server_config, load_access_code, DEFAULT_HOST, DEFAULT_PORT,
+)
 from chatbot.memory import ConversationMemory
 from chatbot.sessions import SessionManager
 from dtcc_agent import artifacts
@@ -56,6 +60,9 @@ logger.info("Log file: %s", _log_file)
 app = FastAPI(title="DTCC Lurkie")
 sessions = SessionManager()
 memory = ConversationMemory()
+# Opening a chat needs this code; None when admission is off (T14, #72).
+ACCESS_CODE = load_access_code()
+_chats_opened = itertools.count(1)
 
 # Serve static frontend files
 _static_dir = Path(__file__).parent / "static"
@@ -117,10 +124,27 @@ def _artifact_frame(session_id: str, content: object) -> dict | None:
     return {"type": "file", "url": url, "name": artifacts.download_name(found["name"])}
 
 
+@app.get("/admission")
+async def admission():
+    """Whether the page must ask for an access code before opening a chat."""
+    return {"required": ACCESS_CODE is not None}
+
+
+def _admitted(code: object) -> bool:
+    if ACCESS_CODE is None:
+        return True
+    return isinstance(code, str) and hmac.compare_digest(code.encode(), ACCESS_CODE.encode())
+
+
 @app.get("/health")
 async def health():
     """Health endpoint for Docker Compose and local checks."""
     return {"status": "ok", "service": "dtcc-agent", "component": "lurkie"}
+
+
+def _subject(session_id: str) -> str:
+    session = sessions.get(session_id)
+    return session.subject if session else "anonymous"
 
 
 def _build_options(
@@ -134,7 +158,7 @@ def _build_options(
         prompt += f"\n\n{memory_context}"
     opts = ClaudeAgentOptions(
         system_prompt=prompt,
-        mcp_servers=get_mcp_server_config(session_id),
+        mcp_servers=get_mcp_server_config(session_id, _subject(session_id)),
         # SECURITY: bypassPermissions is used for the prototype since the
         # agent only has access to dtcc-agent MCP tools (no shell/filesystem).
         # For production, switch to an explicit allowlist.
@@ -294,9 +318,18 @@ async def chat(ws: WebSocket):
     except (WebSocketDisconnect, json.JSONDecodeError):
         return
 
+    # A live session resumes on its id alone; opening a new one needs the code.
     session_id = init.get("session_id")
     if not session_id or not sessions.touch(session_id):
+        if not _admitted(init.get("access_code")):
+            logger.warning("Refused a new chat from %s: access code missing or wrong",
+                           ws.client.host if ws.client else "?")
+            await ws.send_json({"type": "error", "code": "admission_required"})
+            await ws.close(code=4401, reason="access code required")
+            return
         session_id = sessions.create()
+        if ACCESS_CODE is None and next(_chats_opened) % 100 == 0:
+            logger.warning("Admission is off (DTCC_AGENT_ACCESS_CODE unset): 100 more chats opened.")
 
     logger.info("[%s] New WebSocket connection", session_id)
 

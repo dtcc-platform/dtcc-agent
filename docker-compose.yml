@@ -3,9 +3,13 @@
 #
 # The MCP server binds 127.0.0.1 only and no MCP port is published (U11, #15):
 # the chatbot shares its network namespace and reaches it over loopback, so no
-# other container or host can. Revisit when admission control lands (T14).
+# other container or host can. T14's secret makes leaving loopback safe; that move is M4.
 # Loopback also keeps FastMCP's DNS-rebinding allowlist (127.0.0.1, localhost)
 # valid without changes.
+#
+# Admission (T14, #72): the chatbot sends DTCC_MCP_SECRET on every MCP call,
+# and opening a chat needs DTCC_AGENT_ACCESS_CODE. Compose refuses to start
+# without either, so a deployment can't run open by accident.
 #
 # Both mount the same /data: the MCP server writes each Session's artifacts to
 # /data/artifacts and the chatbot serves them from there (T7, #21).
@@ -32,6 +36,7 @@ services:
       - DTCC_MCP_TRANSPORT=http
       - DTCC_MCP_HOST=127.0.0.1
       - DTCC_MCP_PORT=8051
+      - DTCC_MCP_SECRET=${DTCC_MCP_SECRET:?set DTCC_MCP_SECRET}
       - DTCC_AGENT_LOG_DIR=/data/logs
       - DTCC_AGENT_CACHE_DIR=/data/cache
       - DTCC_REMOTE_SERVICES=${DTCC_REMOTE_SERVICES:-http://host.docker.internal:8001}
@@ -63,6 +68,8 @@ services:
         condition: service_healthy
     environment:
       - DTCC_MCP_URL=http://127.0.0.1:8051/mcp
+      - DTCC_MCP_SECRET=${DTCC_MCP_SECRET:?set DTCC_MCP_SECRET}
+      - DTCC_AGENT_ACCESS_CODE=${DTCC_AGENT_ACCESS_CODE:?set DTCC_AGENT_ACCESS_CODE}
       - DTCC_AGENT_HOST=0.0.0.0
       - DTCC_AGENT_PORT=8050
       - DTCC_AGENT_LOG_DIR=/data/logs
