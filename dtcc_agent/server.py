@@ -10,7 +10,9 @@ Run with: python -m dtcc_agent
 from __future__ import annotations
 
 import functools
+import hmac
 import inspect
+import ipaddress
 import json
 import logging
 import os
@@ -47,6 +49,10 @@ mcp = FastMCP("dtcc-agent", stateless_http=True)
 
 
 SESSION_HEADER = "X-DTCC-Session"
+# Who the Session acts for (ADR-0004), apart from which Session it is.
+# "anonymous" until central auth exists; nothing is authorised by it yet (T14).
+SUBJECT_HEADER = "X-DTCC-Subject"
+ANONYMOUS = "anonymous"
 
 
 # What every Session's Objects may hold together (T11, #23). The least
@@ -74,6 +80,8 @@ class _Session:
 
     # The chatbot's Session id; it names the Session's artifact directory.
     id: str = "local"
+    # Who the Session acts for, from SUBJECT_HEADER when it is created.
+    subject: str = ANONYMOUS
     # dtcc-core objects (PointCloud, Mesh, Raster, etc.)
     objects: ObjectStore = field(default_factory=_new_session_objects)
     # Simulation Runs, keyed by run_ref, oldest first; at most MAX_RUNS.
@@ -99,6 +107,7 @@ _sessions_lock = threading.Lock()
 _local_session = _Session(
     # The chatbot launches a stdio server per message and names its Session here.
     id=os.getenv("DTCC_AGENT_SESSION", "local"),
+    subject=os.getenv("DTCC_AGENT_SUBJECT", ANONYMOUS),
     objects=ObjectStore(max_bytes=OBJECT_BUDGET_BYTES, budget=_object_budget),
     workers=anyio.CapacityLimiter(runtime.WORKERS),
 )
@@ -115,17 +124,18 @@ def _session() -> _Session:
     return _current_session.get() or _local_session
 
 
-def _session_for(session_id: str, acquire: bool = False) -> _Session:
+def _session_for(session_id: str, acquire: bool = False, subject: str = ANONYMOUS) -> _Session:
     """The live Session for `session_id`, dropping idle Sessions that have
     expired or exceed MAX_SESSIONS. An expired id gets a fresh, empty Session.
 
     `acquire` marks a tool call in flight, in the same locked step, so the
     Session cannot be evicted before the call releases it. If every other
-    Session is busy the cap is exceeded until one goes idle.
+    Session is busy the cap is exceeded until one goes idle. `subject` is
+    recorded when the Session is created.
     """
     with _sessions_lock:
         _evict_idle_excess()  # first, so an expired id starts a fresh Session
-        session = _sessions.pop(session_id, None) or _Session(id=session_id)
+        session = _sessions.pop(session_id, None) or _Session(id=session_id, subject=subject)
         _sessions[session_id] = session
         session.last_used = time.monotonic()
         if acquire:
@@ -170,7 +180,8 @@ def _request_session() -> _Session | None:
     session_id = request.headers.get(SESSION_HEADER)
     if not session_id:
         raise ToolError(f"Refused: HTTP tool calls must carry the {SESSION_HEADER} header.")
-    return _session_for(session_id, acquire=True)
+    return _session_for(session_id, acquire=True,
+                        subject=request.headers.get(SUBJECT_HEADER) or ANONYMOUS)
 
 
 @dataclass
@@ -1509,6 +1520,34 @@ def _starting_runtime(app_lifespan):
     return lifespan
 
 
+def _require_secret(app, secret: str):
+    """Wrap an ASGI app so every HTTP request must carry `Authorization:
+    Bearer <secret>`, initialize included (T14, #72). A refusal is a bare 401.
+    Lifespan events pass through untouched."""
+    expected = f"Bearer {secret}".encode()
+
+    async def guarded(scope, receive, send):
+        if scope["type"] == "http":
+            sent = dict(scope["headers"]).get(b"authorization", b"")
+            if not hmac.compare_digest(sent, expected):
+                await send({"type": "http.response.start", "status": 401,
+                            "headers": [(b"content-length", b"0")]})
+                await send({"type": "http.response.body", "body": b""})
+                return
+        await app(scope, receive, send)
+
+    return guarded
+
+
+def _is_loopback(host: str) -> bool:
+    if host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
 def main():
     """Serve over stdio (default) or streamable-http, per DTCC_MCP_TRANSPORT."""
     transport = os.getenv("DTCC_MCP_TRANSPORT", "stdio")
@@ -1520,6 +1559,14 @@ def main():
     if transport != "http":
         raise SystemExit(f"DTCC_MCP_TRANSPORT must be 'stdio' or 'http', got {transport!r}")
 
+    host = os.getenv("DTCC_MCP_HOST", "127.0.0.1")
+    secret = os.getenv("DTCC_MCP_SECRET")
+    if not secret and not _is_loopback(host):
+        raise SystemExit(
+            f"DTCC_MCP_HOST={host} is not a loopback address: set DTCC_MCP_SECRET, "
+            "the bearer secret every caller must send, or bind DTCC_MCP_HOST to 127.0.0.1."
+        )
+
     import uvicorn
 
     global _serving_http
@@ -1529,8 +1576,8 @@ def main():
     app = mcp.streamable_http_app()
     app.router.lifespan_context = _starting_runtime(app.router.lifespan_context)
     uvicorn.run(
-        app,
-        host=os.getenv("DTCC_MCP_HOST", "127.0.0.1"),
+        _require_secret(app, secret) if secret else app,
+        host=host,
         port=int(os.getenv("DTCC_MCP_PORT", "8051")),
     )
 

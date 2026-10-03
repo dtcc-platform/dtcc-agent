@@ -52,17 +52,19 @@ def shared_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("shared")
 
 
-@pytest.fixture(scope="module")
-def server_url(shared_dir, tmp_path_factory):
+def _serve(shared_dir, artifacts_dir, **extra_env):
+    """A real streamable-http MCP server in a subprocess; yields its URL."""
     port = _free_port()
     env = {
         **os.environ,
         "SHARED_RESULTS_DIR": str(shared_dir),
-        "DTCC_AGENT_ARTIFACTS_DIR": str(tmp_path_factory.mktemp("artifacts")),
+        "DTCC_AGENT_ARTIFACTS_DIR": str(artifacts_dir),
         "DTCC_MCP_TRANSPORT": "http",
         "DTCC_MCP_HOST": "127.0.0.1",
         "DTCC_MCP_PORT": str(port),
     }
+    env.pop("DTCC_MCP_SECRET", None)  # only the servers that ask for one
+    env.update(extra_env)
     proc = subprocess.Popen(
         [sys.executable, "-m", "dtcc_agent"],
         env=env,
@@ -86,6 +88,19 @@ def server_url(shared_dir, tmp_path_factory):
         proc.wait(timeout=10)
 
 
+@pytest.fixture(scope="module")
+def server_url(shared_dir, tmp_path_factory):
+    yield from _serve(shared_dir, tmp_path_factory.mktemp("artifacts"))
+
+
+SECRET = "a-shared-secret-for-tests"
+
+
+@pytest.fixture(scope="module")
+def secret_server_url(shared_dir, tmp_path_factory):
+    yield from _serve(shared_dir, tmp_path_factory.mktemp("artifacts"), DTCC_MCP_SECRET=SECRET)
+
+
 @pytest.fixture
 def geojson_file(shared_dir):
     """A dtcc-sim result, named relative to the shared results directory."""
@@ -93,13 +108,14 @@ def geojson_file(shared_dir):
     return "points.geojson"
 
 
-def _call(url, session_id, tool, args=None):
+def _call(url, session_id, tool, args=None, headers=None):
     """One MCP connection, one tool call: the shape of one chatbot message."""
 
     async def run():
-        headers = {SESSION_HEADER: session_id} if session_id is not None else {}
+        sent = {SESSION_HEADER: session_id} if session_id is not None else {}
+        sent.update(headers or {})
         async with (
-            httpx.AsyncClient(headers=headers) as http,
+            httpx.AsyncClient(headers=sent) as http,
             streamable_http_client(url, http_client=http) as (read, write, _),
             ClientSession(read, write) as session,
         ):
@@ -110,8 +126,8 @@ def _call(url, session_id, tool, args=None):
     return anyio.run(run)
 
 
-def _ok(url, session_id, tool, args=None):
-    is_error, text = _call(url, session_id, tool, args)
+def _ok(url, session_id, tool, args=None, headers=None):
+    is_error, text = _call(url, session_id, tool, args, headers)
     assert not is_error, text
     return json.loads(text)
 
@@ -333,3 +349,68 @@ def test_an_expired_sessions_own_next_request_starts_it_fresh(monkeypatch):
     assert fresh is not old
     assert len(fresh.objects) == 0
     assert len(old.objects) == 0  # cleared, so its bytes went back to the budget
+
+
+# -- Admission (T14, #72) ----------------------------------------------------
+
+def _initialize(url, headers):
+    body = {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+            "params": {"protocolVersion": "2025-06-18", "capabilities": {},
+                       "clientInfo": {"name": "t", "version": "0"}}}
+    return httpx.post(url, json=body, timeout=10, headers={
+        "Accept": "application/json, text/event-stream", **headers})
+
+
+@pytest.mark.parametrize("auth", [None, "Bearer wrong"], ids=["none", "wrong"])
+def test_a_secret_guarded_server_refuses_initialize_without_the_secret(secret_server_url, auth):
+    headers = {SESSION_HEADER: "s"} | ({"Authorization": auth} if auth else {})
+    response = _initialize(secret_server_url, headers)
+    assert response.status_code == 401
+    assert response.content == b""
+
+
+def test_a_secret_guarded_server_serves_the_right_secret(secret_server_url):
+    # _ok fails the test on a refusal or a tool error.
+    _ok(secret_server_url, "secret-ok", "list_objects",
+        headers={"Authorization": f"Bearer {SECRET}"})
+
+
+def test_the_secret_middleware_checks_every_http_request():
+    from starlette.applications import Starlette
+    from starlette.responses import PlainTextResponse
+    from starlette.routing import Route
+    from starlette.testclient import TestClient
+
+    inner = Starlette(routes=[Route("/", lambda request: PlainTextResponse("in"))])
+    client = TestClient(server._require_secret(inner, SECRET))
+    assert client.get("/").status_code == 401
+    assert client.get("/", headers={"Authorization": "Bearer nope"}).status_code == 401
+    assert client.get("/", headers={"Authorization": SECRET}).status_code == 401  # no scheme
+    assert client.get("/", headers={"Authorization": f"Bearer {SECRET}"}).text == "in"
+
+
+def test_a_non_loopback_bind_without_a_secret_does_not_start(monkeypatch):
+    monkeypatch.setenv("DTCC_MCP_TRANSPORT", "http")
+    monkeypatch.setenv("DTCC_MCP_HOST", "0.0.0.0")
+    monkeypatch.delenv("DTCC_MCP_SECRET", raising=False)
+    with pytest.raises(SystemExit) as exited:
+        server.main()
+    assert "DTCC_MCP_HOST" in str(exited.value) and "DTCC_MCP_SECRET" in str(exited.value)
+    assert server._serving_http is False
+
+
+def test_a_session_takes_its_subject_from_the_request(monkeypatch):
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
+    for sid, headers, subject in [("with", {server.SUBJECT_HEADER: "anonymous"}, "anonymous"),
+                                  ("without", {}, "anonymous")]:
+        request = SimpleNamespace(headers={SESSION_HEADER: sid, **headers})
+        token = server.request_ctx.set(SimpleNamespace(request=request))
+        try:
+            session = server._request_session()
+        finally:
+            server.request_ctx.reset(token)
+            server._release(session)
+        assert session.subject == subject
+    assert server._local_session.subject == "anonymous"
