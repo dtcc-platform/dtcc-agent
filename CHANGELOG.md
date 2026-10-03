@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-04 | The chat agent uses only the DTCC tools, which also makes each answer about a third cheaper ([#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)) | 🔍 |
+| 2026-10-04 | The M2 baseline re-measured after #79–#83: all 30 runs answered, $1.93 ([#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)) | 🔍 |
+| 2026-10-04 | The chat agent uses only the DTCC tools, and its prompts are about a third the size ([#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)) | ✅ |
 | 2026-10-03 | Asking for too large an area is refused instead of crashing the tool server, and the chat recovers by itself if the server still dies ([#82](https://github.com/dtcc-platform/dtcc-agent/pull/82), fixes [#79](https://github.com/dtcc-platform/dtcc-agent/issues/79)) | ✅ |
 | 2026-10-03 | A place name always resolves to somewhere in Sweden: "central Gothenburg" no longer lands in New Zealand ([#81](https://github.com/dtcc-platform/dtcc-agent/pull/81), fixes [#80](https://github.com/dtcc-platform/dtcc-agent/issues/80)) | ✅ |
 | 2026-10-03 | **Last M2 task:** a fixed set of 10 questions measures speed and cost per question, and the M2 baseline is recorded for M3 to beat ([#78](https://github.com/dtcc-platform/dtcc-agent/pull/78), T34, fixes [#74](https://github.com/dtcc-platform/dtcc-agent/issues/74)) | ✅ |
@@ -64,6 +65,24 @@ Last updated: 2026-10-03.
 
 ## 🔍 In review
 
+### The M2 baseline re-measured after the fixes · 2026-10-04 · [#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)
+
+**Before:** the first baseline (#78) was measured before #79–#83. One of its questions
+crashed the tool server, so 2 of 30 runs failed, and its figures included the
+general-purpose tools the agent no longer has.
+
+**Now:** `eval/runs/baseline-m2.md` is the re-run on the final M2 code. All 30 runs
+answered, for $1.93. Typical questions take 20–45 s, and the heatwave simulation about
+110 s. The 5 km point-cloud question is now politely narrowed, not a crash. This is the
+figure M3 has to beat.
+
+**How we know it works:** the same harness, the same 10 questions and the same setup. The
+tool server never restarted, every answer was recorded, and the agent used only DTCC
+tools. The notes explain why some single questions cost more even though every prompt
+shrank.
+
+## ✅ Merged
+
 ### The chat agent uses only the DTCC tools · 2026-10-04 · [#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)
 
 **Before:** the Claude client gave the chat agent its general-purpose tools as well as the
@@ -71,15 +90,14 @@ DTCC ones, against what the code intended. They are not needed to answer anythin
 city, and the agent occasionally reached for them on its own.
 
 **Now:** the agent has the DTCC tools and the one built-in it uses to load them, nothing
-else, and only the DTCC tool server is loaded. Answers are unchanged, and each prompt is
-smaller: in a live check the "show me the buildings" answer read 22,000 input tokens
-instead of about 107,000 and cost $0.05 instead of $0.09. The M2 baseline's cost figures
-were measured before this change.
+else, and only the DTCC tool server is loaded. Answers are unchanged, and prompts are about
+a third the size: "show me the buildings" reads 22,000 input tokens instead of about 107,000.
+Across the whole re-measured baseline the cost fell 16%, though not every question got
+cheaper: what a question costs also depends on how much of its prompt the model's cache
+already holds.
 
 **How we know it works:** a test pins the tool set. Live, a render and a building count
 answered as before using only DTCC tools. 533 tests pass.
-
-## ✅ Merged
 
 ### Asking for too large an area is refused instead of crashing the tool server · 2026-10-03 · [#82](https://github.com/dtcc-platform/dtcc-agent/pull/82)
 

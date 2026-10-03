@@ -1,11 +1,11 @@
-# M2 baseline — measurement run 2026-10-03 13:40 UTC
+# M2 baseline — measurement run 2026-10-03 22:51 UTC
 
-- Harness commit: `0069448` (the agent's code is `develop` at `fd4e74d`) · runs per question: 3 · questions: 10
+- Commit: `1ff99d9` (`develop` with #75–#83) · runs per question: 3 · questions: 10
 - Model: claude-sonnet-4-5-20250929 (all models used: claude-haiku-4-5-20251001, claude-sonnet-4-5)
 - Prompt version: `5fdfaaf2e87b` · SDK: claude-agent-sdk 0.2.163
 - Core commit: `bb95f2f8c338e6433a1e6a48375cf634710ff421` · catalogue: 133 operations
 - dtcc-sim: available (probe names simulations)
-- Spent: $2.36 of a $10.00 cap
+- Spent: $1.95 of a $10.00 cap
 
 Each cell is median / max over the question's successful runs; failed runs are left out
 and counted under OK and Problems. Run 1 is cold, later runs warm. Input tokens include
@@ -13,18 +13,18 @@ cache reads and writes. Cost is the SDK's `total_cost_usd`.
 
 | Question | OK | Cold latency (s) | Warm latency (s) | Input tok | Output tok | Cost ($) | Tools | Ops | Problems |
 |---|---|---|---|---|---|---|---|---|---|
-| q01-building-count | 3 / 3 | 40.1 / 40.1 | 23.1 / 24.3 | 69,439 / 69,689 | 885 / 952 | 0.049 / 0.071 | 3 / 3 | 2 / 2 |  |
-| q02-cached-subarea | 3 / 3 | 25.6 / 25.6 | 26.1 / 26.1 | 69,392 / 69,476 | 904 / 959 | 0.049 / 0.070 | 3 / 3 | 2 / 2 |  |
-| q03-terrain-slope | 3 / 3 | 47.1 / 47.1 | 59.1 / 60.2 | 150,447 / 175,429 | 1,922 / 2,540 | 0.125 / 0.126 | 7 / 8 | 6 / 7 |  |
-| q04-render-buildings | 3 / 3 | 32.9 / 32.9 | 44.6 / 56.0 | 107,303 / 185,234 | 1,246 / 2,036 | 0.091 / 0.110 | 5 / 9 | 3 / 4 |  |
-| q05-export-geojson | 3 / 3 | 28.1 / 28.1 | 34.8 / 37.0 | 88,638 / 89,300 | 1,154 / 1,232 | 0.062 / 0.081 | 4 / 4 | 3 / 3 |  |
-| q06-discover-operations | 3 / 3 | 23.6 / 23.6 | 27.8 / 29.3 | 68,565 / 111,334 | 1,097 / 1,283 | 0.073 / 0.088 | 3 / 5 | 2 / 4 |  |
-| q07-trees | 3 / 3 | 39.5 / 39.5 | 40.7 / 42.6 | 109,169 / 129,511 | 1,642 / 1,874 | 0.092 / 0.096 | 7 / 9 | 5 / 6 |  |
-| q08-refused-path | 3 / 3 | 13.8 / 13.8 | 11.9 / 12.2 | 16,074 / 16,074 | 352 / 407 | 0.012 / 0.034 | 0 / 0 | 0 / 0 |  |
-| q09-too-large | 2 / 3 | 80.4 / 80.4 | 77.7 / 77.7 | 126,466 / 126,573 | 2,270 / 2,367 | 0.107 / 0.120 | 6 / 6 | 5 / 5 | 1 error |
-| q10-heatwave | 2 / 3 | 106.4 / 106.4 | 109.0 / 109.0 | 278,996 / 316,570 | 3,088 / 3,294 | 0.201 / 0.210 | 14 / 17 | 12 / 13 | 1 error |
+| q01-building-count | 3 / 3 | 36.3 / 36.3 | 23.5 / 24.8 | 26,217 / 26,275 | 791 / 844 | 0.089 / 0.090 | 3 / 3 | 2 / 2 |  |
+| q02-cached-subarea | 3 / 3 | 18.7 / 18.7 | 22.1 / 22.1 | 25,708 / 25,806 | 820 / 830 | 0.089 / 0.097 | 3 / 3 | 2 / 2 |  |
+| q03-terrain-slope | 3 / 3 | 41.0 / 41.0 | 43.1 / 46.1 | 44,748 / 45,232 | 1,865 / 2,037 | 0.074 / 0.077 | 7 / 8 | 6 / 7 |  |
+| q04-render-buildings | 3 / 3 | 25.4 / 25.4 | 30.0 / 35.7 | 22,273 / 28,613 | 960 / 1,207 | 0.036 / 0.046 | 4 / 5 | 3 / 3 |  |
+| q05-export-geojson | 3 / 3 | 24.0 / 24.0 | 28.2 / 30.6 | 22,533 / 22,562 | 979 / 1,009 | 0.038 / 0.046 | 4 / 4 | 3 / 3 |  |
+| q06-discover-operations | 3 / 3 | 30.8 / 30.8 | 27.9 / 28.8 | 31,219 / 32,004 | 1,058 / 1,233 | 0.070 / 0.077 | 5 / 6 | 4 / 5 |  |
+| q07-trees | 3 / 3 | 35.9 / 35.9 | 30.2 / 31.2 | 23,378 / 24,231 | 1,115 / 1,337 | 0.044 / 0.051 | 6 / 6 | 5 / 5 |  |
+| q08-refused-path | 3 / 3 | 13.6 / 13.6 | 14.9 / 17.2 | 2,911 / 2,911 | 372 / 383 | 0.008 / 0.017 | 0 / 0 | 0 / 0 |  |
+| q09-too-large | 3 / 3 | 40.5 / 40.5 | 57.3 / 59.9 | 17,535 / 22,036 | 1,884 / 2,375 | 0.060 / 0.061 | 3 / 4 | 2 / 3 |  |
+| q10-heatwave | 3 / 3 | 110.0 / 110.0 | 113.1 / 122.3 | 139,766 / 140,982 | 3,165 / 3,246 | 0.154 / 0.154 | 16 / 17 | 11 / 13 |  |
 
-**Totals:** 28 of 30 runs ok · $2.31 · 1,160 s of answering
+**Totals:** 30 of 30 runs ok · $1.93 · 1,157 s of answering
 
 ## Notes
 
@@ -39,21 +39,28 @@ here says whether an answer was right.
 - **Cache:** a fresh data directory, so run 1 started with an empty download cache.
 - **dtcc-sim:** the `dtcc-sim:local` image built 2026-09-08. The probe found its
   simulations.
-- **Model and cost:** the CLI also uses Claude Haiku for internal steps, hence two models
-  above. Cost is the SDK's list-price figure, not an invoice.
+- **Models:** the CLI also uses Claude Haiku for internal steps, hence two models above.
+- **Clean run:** the MCP server never restarted and was never killed, all 31 turns
+  (including the probe) wrote their provenance records, and the agent used only
+  `ToolSearch` and dtcc-agent tools.
 
-**The two failed runs (run 3) are one incident:**
-- **q09 crashed the tool server.** It asked for a point cloud over about 5 km of central
-  Gothenburg. The model downloaded 123 LAZ tiles, and the MCP server was killed out of
-  memory (`OOMKilled`, exit 137) partway through. Runs 1 and 2 of the same question
-  finished.
-- **The chat went down with it.** The chatbot shares that container's network (T13), and
-  port 8050 is published there, so the chat became unreachable. q10's run 3 could not
-  connect: that failure is collateral, not q10's own. Nothing restarted the server, and the
-  chatbot kept reporting healthy.
-- **q09's turn cost is missing from the totals.** Its provenance record was still written
-  (`is_error`, `WebSocketDisconnect`, cost unknown), but no cost ever came back for it.
+**Why it was re-run.** An earlier run the same day, on `fd4e74d` (#78), found three problems,
+all now fixed:
+- **#79:** q09 ran the MCP server out of memory and took the chat down with it. That run
+  scored 28 of 30. Since #82 a LiDAR download over 10 km² is refused, and the agent asks for
+  a smaller area. q09 now answers in about 40–60 s.
+- **#80:** geocoding sent "central Gothenburg" to New Zealand. Since #81 lookups are
+  limited to Sweden.
+- **#83:** the agent was given the CLI's general-purpose built-in tools.
 
-The T11 memory budget covers stored results, not memory while an operation runs (U4), so it
-does not prevent this. q09 is kept in the set on purpose: M3 should report how it handles
-the same question.
+**What changed between the two runs:**
+- **Total:** $2.31 → $1.93.
+- **Prompts:** median input tokens fell about 3×, because the built-in tool definitions are
+  gone. For example, q04 went from 107k to 22k.
+- **Per-question cost moves with prompt caching, not just prompt size.** Cache writes cost
+  more than plain input, and cache reads far less. So a question whose turn happened to
+  write more of its prompt to the cache can cost more with fewer tokens. q01 cost $0.049
+  before ($67k read, 2k written) and $0.089 now ($14k read, 12k written).
+- **Comparing with M3:** use medians over several runs, and token counts as well as cost.
+
+Cost is the SDK's `total_cost_usd` at list price, not an invoice.
