@@ -370,6 +370,29 @@ MCP tool) check the disk cache before fetching from external sources.
 `datasets.buildings`, and summarises it per request, so a smaller area inside
 a cached one is cropped before it is counted.
 
+### Provenance
+
+Every answer can be traced to what produced it (T33). Each service records only what it
+knows first-hand, and the two records share a `turn_id` the chatbot mints per message:
+
+- **`answers.jsonl`** (chatbot, in its log dir; Docker: `/data/logs`): one line per turn
+  with the model, `prompt_version` (a hash of the system prompt), whether memory context was
+  added, the SDK version, the tools called, tokens, cost, latency, and whether it failed or
+  was retried fresh. The page also receives it as a `provenance` frame before `done`.
+- **`operations.jsonl`** (MCP server, only with `DTCC_AGENT_LOG_DIR`): one line per tool call
+  with the turn, Session, subject, tool and operation, a hash of the arguments, duration,
+  success, cache hit, the Object references returned and the catalogue revision, plus one
+  `catalogue` line each time a process builds its catalogue.
+
+Neither file holds parameter values, error messages or file contents: arguments are
+hashed, and an error is reduced to its category (`Refused`, `Invalid bounds`, or the
+exception's class). To see one complete record per turn:
+
+```bash
+python -m dtcc_agent.provenance join data/agent/logs            # every turn
+python -m dtcc_agent.provenance join data/agent/logs --turn turn_1a2b3c4d
+```
+
 ## Examples
 
 ### Example 1: Heatwave impact analysis

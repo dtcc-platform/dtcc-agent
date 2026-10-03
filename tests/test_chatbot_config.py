@@ -90,3 +90,12 @@ def test_a_long_enough_access_code_is_used(monkeypatch):
 
     monkeypatch.setenv("DTCC_AGENT_ACCESS_CODE", "c" * 16)
     assert load_access_code() == "c" * 16
+
+
+def test_the_turn_travels_to_the_mcp_server(monkeypatch):
+    monkeypatch.setenv("DTCC_MCP_URL", "http://mcp:8051/mcp")
+    assert get_mcp_server_config("s1", "anonymous", "turn_1a2b3c4d")["dtcc-agent"]["headers"][
+        "X-DTCC-Turn"] == "turn_1a2b3c4d"
+    monkeypatch.delenv("DTCC_MCP_URL")
+    assert get_mcp_server_config("s1", "anonymous", "turn_1a2b3c4d")["dtcc-agent"]["env"][
+        "DTCC_AGENT_TURN"] == "turn_1a2b3c4d"
