@@ -15,6 +15,7 @@ import inspect
 import logging
 import math
 import numbers
+import os
 import time
 from copy import deepcopy
 from typing import Any
@@ -52,6 +53,53 @@ def bounds_error(value: Any) -> str | None:
     if half == 3 and value[2] > value[5]:
         return f"Invalid bounds {list(value)}: zmin must not exceed zmax."
     return None
+
+
+def _max_download_km2(raw: str | None) -> float:
+    """DTCC_AGENT_MAX_AREA_KM2, the largest area one heavy download may cover."""
+    if raw is None:
+        return 10.0
+    try:
+        value = float(raw)
+    except ValueError:
+        value = math.nan
+    if not (math.isfinite(value) and value > 0):
+        raise ValueError(f"DTCC_AGENT_MAX_AREA_KM2 must be a positive number of km², got {raw!r}")
+    return value
+
+
+# The largest area one LiDAR-derived download may cover (#79). Memory grows
+# faster than area on the run_operation path: measured in the amd64 image, a
+# point cloud peaked near 1.7 GB at 9 km², 3.2 GB at 25 km² and 6 GB at
+# 49 km²; buildings (heights from LiDAR) at 5.3 GB at 25 km², and 100 km² was
+# killed. 10 km² keeps a few concurrent calls inside a 5 GB server.
+MAX_DOWNLOAD_KM2 = _max_download_km2(os.getenv("DTCC_AGENT_MAX_AREA_KM2"))
+
+# Downloads that read no LiDAR, so their size is not bounded by area: sensor
+# snapshots, transit positions, vector layers and synthetic fixtures. Any other
+# datasets.* operation, including one added later, is capped.
+LIGHT_DOWNLOADS = frozenset({
+    "datasets.air_quality", "datasets.building_footprints", "datasets.buses",
+    "datasets.calibration_grid", "datasets.deso", "datasets.ferries",
+    "datasets.hydrology", "datasets.metros", "datasets.ocean", "datasets.roads",
+    "datasets.smoke", "datasets.space_syntax", "datasets.trains", "datasets.trams",
+    "datasets.transit_vehicles", "datasets.weather",
+})
+
+
+def area_error(name: str, bounds: Any) -> str | None:
+    """Why downloading `name` over `bounds` is refused, or None. Takes bounds
+    that bounds_error has already accepted."""
+    if not name.startswith("datasets.") or name in LIGHT_DOWNLOADS:
+        return None
+    half = len(bounds) // 2
+    km2 = (bounds[half] - bounds[0]) * (bounds[half + 1] - bounds[1]) / 1e6
+    if km2 <= MAX_DOWNLOAD_KM2:
+        return None
+    return (f"Refused: {name} over {km2:,.1f} km² is larger than the "
+            f"{MAX_DOWNLOAD_KM2:g} km² one download may cover: data built from LiDAR "
+            "needs several GB of memory at that size. Ask for a smaller area, such as "
+            "a 3 km square, or split the area into parts.")
 
 
 def _resolve_bounds(value: Any) -> Any:
@@ -126,10 +174,15 @@ def run_operation(
         if error := refs.wrong_kind(value, refs.OBJECT):
             return {"error": error}
     # Only a literal box is checked here: some operations take bounds as a
-    # stored Bounds object id, or default it to None.
+    # stored Bounds object id, or default it to None. A download takes only a
+    # literal box, so the area cap always sees what will be fetched (#79).
     literal = params.get("bounds")
-    if isinstance(literal, (list, tuple)) and (error := bounds_error(literal)):
-        return {"error": error}
+    if isinstance(literal, (list, tuple)):
+        if error := bounds_error(literal) or area_error(name, literal):
+            return {"error": error}
+    elif literal is not None and name.startswith("datasets."):
+        return {"error": "Invalid bounds: a download takes [minx, miny, maxx, maxy] "
+                         "in EPSG:3006, not a reference or text."}
     try:
         op = get_operation(name)
     except KeyError as exc:

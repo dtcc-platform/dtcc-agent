@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-03 | A place name always resolves to somewhere in Sweden: "central Gothenburg" no longer lands in New Zealand ([#81](https://github.com/dtcc-platform/dtcc-agent/pull/81), fixes [#80](https://github.com/dtcc-platform/dtcc-agent/issues/80)) | 🔍 |
+| 2026-10-03 | Asking for too large an area is refused instead of crashing the tool server, and the chat recovers by itself if the server still dies ([#82](https://github.com/dtcc-platform/dtcc-agent/pull/82), fixes [#79](https://github.com/dtcc-platform/dtcc-agent/issues/79)) | 🔍 |
+| 2026-10-03 | A place name always resolves to somewhere in Sweden: "central Gothenburg" no longer lands in New Zealand ([#81](https://github.com/dtcc-platform/dtcc-agent/pull/81), fixes [#80](https://github.com/dtcc-platform/dtcc-agent/issues/80)) | ✅ |
 | 2026-10-03 | **Last M2 task:** a fixed set of 10 questions measures speed and cost per question, and the M2 baseline is recorded for M3 to beat ([#78](https://github.com/dtcc-platform/dtcc-agent/pull/78), T34, fixes [#74](https://github.com/dtcc-platform/dtcc-agent/issues/74)) | ✅ |
 | 2026-10-03 | Every answer can be traced: which model and prompt produced it, what it cost, and which operations ran against which catalogue ([#77](https://github.com/dtcc-platform/dtcc-agent/pull/77), T33, fixes [#73](https://github.com/dtcc-platform/dtcc-agent/issues/73)) | ✅ |
 | 2026-10-03 | A chat needs an access code to open, the tool server needs a secret on every call, and every session says who it acts for ([#76](https://github.com/dtcc-platform/dtcc-agent/pull/76), T14, fixes [#72](https://github.com/dtcc-platform/dtcc-agent/issues/72)) | ✅ |
@@ -56,11 +57,34 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82.
 
 ---
 
 ## 🔍 In review
+
+### Asking for too large an area is refused instead of crashing the tool server · 2026-10-03 · [#82](https://github.com/dtcc-platform/dtcc-agent/pull/82)
+
+**Before:** asking for the point cloud of all of central Gothenburg made the agent download
+the whole city, about 20 × 30 km, and the tool server ran out of memory. The chat went down
+with it, because the two share a network, and stayed down until someone restarted Docker by
+hand, while still reporting itself healthy.
+
+**Now:** any download built from laser-scan data (point clouds, buildings, city and terrain
+meshes, trees) may cover at most 10 km², a bit more than a 3 km square, and a larger request
+is refused before anything is fetched, asking for a smaller area. In a live run the agent read
+the refusal and fetched a 3 km area instead. Weather, roads, transit and other light data are
+not limited. If the tool server still dies, both containers restart by themselves and the chat
+is back within about a minute.
+
+**How we know it works:** memory was measured in the real image. A point cloud reached 1.7 GB
+at 9 km² and 6 GB at 49 km²; buildings reached 5.3 GB at 25 km², and 100 km² was killed. Tests
+check that the city-wide request is refused before any download, that 9 km² goes ahead, and
+that light data isn't capped. Live, the tool server was killed the way the kernel kills a
+process that runs out of memory; 60 seconds later both containers were healthy again and a
+real question was answered. 532 tests pass.
+
+## ✅ Merged
 
 ### A place name always resolves to somewhere in Sweden · 2026-10-03 · [#81](https://github.com/dtcc-platform/dtcc-agent/pull/81)
 
@@ -74,8 +98,6 @@ message suggesting the town be added, so wrong-country data can't be fetched.
 **How we know it works:** tests with a stand-in for the lookup service check the search is
 limited to Sweden and that a result in New Zealand is refused. Live, "central Gothenburg" now
 finds Göteborg central station. 499 tests pass.
-
-## ✅ Merged
 
 ### Last M2 task: a fixed set of questions measures speed and cost, and the M2 baseline is recorded · 2026-10-03 · [#78](https://github.com/dtcc-platform/dtcc-agent/pull/78)
 
