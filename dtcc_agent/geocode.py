@@ -13,6 +13,10 @@ from pyproj import Transformer
 # WGS84 → SWEREF99 TM (EPSG:3006)
 _transformer = Transformer.from_crs("EPSG:4326", "EPSG:3006", always_xy=True)
 
+# SWEREF99 TM's area of use (EPSG:3006 projected bounds): Sweden. The agent
+# covers Sweden only, so a place resolved outside it is refused (#80).
+SWEDEN_3006 = (181896.33, 6101648.07, 864213.84, 7689478.31)
+
 # Default half-width in meters when Nominatim returns a point, not a box
 _DEFAULT_RADIUS = 250.0
 
@@ -94,6 +98,8 @@ def geocode(
         "format": "jsonv2",
         "limit": 1,
         "addressdetails": 1,
+        # Unfiltered, "central Gothenburg" resolved to a café in New Zealand (#80).
+        "countrycodes": "se",
     }
     headers = {"User-Agent": "dtcc-agent/0.1 (research; chalmers.se)"}
 
@@ -146,6 +152,12 @@ def geocode(
 
     cx = (bounds[0] + bounds[2]) / 2
     cy = (bounds[1] + bounds[3]) / 2
+    x_min, y_min, x_max, y_max = SWEDEN_3006
+    if not (x_min <= cx <= x_max and y_min <= cy <= y_max):
+        raise ValueError(
+            f"'{place_name}' resolved to {display_name!r}, which is not in Sweden. "
+            "Only places in Sweden are covered; try adding the town, e.g. 'Haga, Göteborg'."
+        )
 
     return {
         "query": place_name,

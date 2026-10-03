@@ -58,3 +58,43 @@ class TestNominatim:
     def test_nonexistent_place(self):
         with pytest.raises(ValueError, match="No results"):
             geocode("xyzzy_nonexistent_place_12345")
+
+
+class TestSwedenOnly:
+    """#80: the agent covers Sweden only, so geocoding must never resolve a
+    place to another country. Nominatim is stubbed: no network."""
+
+    @pytest.fixture
+    def nominatim(self, monkeypatch):
+        """Answer each Nominatim query with `hits`; record the params sent."""
+        import httpx
+        from dtcc_agent import geocode as module
+
+        sent = {}
+
+        def stub(url, params=None, **kwargs):
+            sent.update(params)
+            return httpx.Response(200, json=stub.hits, request=httpx.Request("GET", url))
+
+        stub.hits = []
+        monkeypatch.setattr(module.httpx, "get", stub)
+        return stub, sent
+
+    def test_the_search_is_limited_to_sweden(self, nominatim):
+        stub, sent = nominatim
+        # What Nominatim answers for "central Gothenburg" with countrycodes=se.
+        stub.hits = [{"display_name": "Göteborgs central, Nils Ericsonsplatsen, Göteborg",
+                      "boundingbox": ["57.7043483", "57.7143483", "11.9681864", "11.9781864"]}]
+        result = geocode("central Gothenburg")
+        assert sent["countrycodes"] == "se"
+        # Gothenburg is roughly x=319000, y=6399000 in EPSG:3006.
+        assert 318000 < result["center"][0] < 321000
+        assert 6398000 < result["center"][1] < 6401000
+
+    def test_a_hit_outside_sweden_is_refused(self, nominatim):
+        stub, _ = nominatim
+        # What Nominatim answered without the filter: a café in Hamilton, New Zealand.
+        stub.hits = [{"display_name": "Gothenburg Cafe Restaurant Bar, Hamilton East, New Zealand",
+                      "boundingbox": ["-37.7902334", "-37.7901334", "175.2871785", "175.2872785"]}]
+        with pytest.raises(ValueError, match="not in Sweden"):
+            geocode("central Gothenburg")
