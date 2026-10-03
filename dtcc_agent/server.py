@@ -58,6 +58,9 @@ OBJECT_BUDGET_BYTES = 2 * 1024**3
 SESSION_OBJECT_BYTES = OBJECT_BUDGET_BYTES // 2
 _object_budget = MemoryBudget(OBJECT_BUDGET_BYTES)
 MAX_SESSIONS = 8
+# A Session unused this long is dropped with its Objects (U7, #71). Equal to
+# chatbot.sessions.SESSION_IDLE_SECONDS; a test holds them so.
+SESSION_IDLE_SECONDS = 3600
 # Runs a Session remembers; each is metadata and an object_ref (U6).
 MAX_RUNS = 100
 
@@ -77,6 +80,8 @@ class _Session:
     results: OrderedDict[str, dict[str, Any]] = field(default_factory=OrderedDict)
     # Tool calls running in this Session; it is never evicted while nonzero.
     in_flight: int = 0
+    # time.monotonic() of the last call's start or end.
+    last_used: float = field(default_factory=time.monotonic)
     # This Session's share of runtime.workers.
     workers: anyio.CapacityLimiter = field(
         default_factory=lambda: anyio.CapacityLimiter(runtime.SESSION_WORKERS)
@@ -111,16 +116,18 @@ def _session() -> _Session:
 
 
 def _session_for(session_id: str, acquire: bool = False) -> _Session:
-    """The live Session for `session_id`, dropping least recently used idle
-    Sessions while more than MAX_SESSIONS are live.
+    """The live Session for `session_id`, dropping idle Sessions that have
+    expired or exceed MAX_SESSIONS. An expired id gets a fresh, empty Session.
 
     `acquire` marks a tool call in flight, in the same locked step, so the
     Session cannot be evicted before the call releases it. If every other
     Session is busy the cap is exceeded until one goes idle.
     """
     with _sessions_lock:
+        _evict_idle_excess()  # first, so an expired id starts a fresh Session
         session = _sessions.pop(session_id, None) or _Session(id=session_id)
         _sessions[session_id] = session
+        session.last_used = time.monotonic()
         if acquire:
             session.in_flight += 1
         _evict_idle_excess()
@@ -130,13 +137,20 @@ def _session_for(session_id: str, acquire: bool = False) -> _Session:
 def _release(session: _Session) -> None:
     with _sessions_lock:
         session.in_flight -= 1
+        session.last_used = time.monotonic()
         _evict_idle_excess()
 
 
 def _evict_idle_excess() -> None:
-    """Drop least recently used idle Sessions beyond MAX_SESSIONS.
+    """Drop idle Sessions unused for SESSION_IDLE_SECONDS, then the least
+    recently used idle Sessions beyond MAX_SESSIONS. The local Session is
+    not among them and never expires.
 
     Must be called with _sessions_lock held."""
+    now = time.monotonic()
+    for sid in [sid for sid, s in _sessions.items()
+                if not s.in_flight and now - s.last_used > SESSION_IDLE_SECONDS]:
+        _sessions.pop(sid).objects.clear()
     idle = [sid for sid, s in _sessions.items() if not s.in_flight]
     for sid in idle[: max(0, len(_sessions) - MAX_SESSIONS)]:
         _sessions.pop(sid).objects.clear()

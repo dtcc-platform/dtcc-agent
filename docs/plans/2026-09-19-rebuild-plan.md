@@ -798,7 +798,7 @@ into M1a); nothing else was accepted, because the request was to report for amen
 - **U4 (X5/T19)** — what accuracy the byte budget must reach, and what happens to an oversized result.
 - **U5 (X2/T23)** — which component owns conversation memory.
 - **U6 (X6/T24)** — Run/Object payload ownership and eviction semantics. *Decided 2026-09-30: the Object owns the result; see ADR-0010.*
-- **U7 (S2/T22)** — session lifetime, given no built-in expiry exists.
+- **U7 (S2/T22)** — session lifetime, given no built-in expiry exists. *Decided 2026-10-02: a session ends after 60 minutes with no activity, on both the chatbot and the MCP server; `MAX_SESSIONS = 8` stays as a backstop (#71).*
 - **U8 (X9/T30)** — the intentional contract changes, and how the four pinned characterisation tests flip. *For T9's four tests: flipped to ADR-0010's contract by #57.*
 - **U9 (S1+X8/T21,T25)** — whether rendering is fixed in M1a or deferred with the feature disabled.
 - **U10 (A1/T16)** — verify which Core install wins in the container before choosing the fix.

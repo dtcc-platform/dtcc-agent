@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-10-02.
+Last updated: 2026-10-03.
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-10-02.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-03 | **First M2 task:** a chat ends after an hour without messages, not an hour after it started, and the tool server lets go of idle sessions too ([#75](https://github.com/dtcc-platform/dtcc-agent/pull/75), T22, fixes [#71](https://github.com/dtcc-platform/dtcc-agent/issues/71), decides U7) | 🔍 |
 | 2026-10-02 | The README's operation counts match the catalogue (133, not 109), and a test checks the chat hands its own session id to the tool server on every attempt ([#70](https://github.com/dtcc-platform/dtcc-agent/pull/70)) | ✅ |
 | 2026-10-01 | The wiki describes the work through #68: files and path refusal (a new page), the memory budget, the two-service deployment, builder caching off ([#69](https://github.com/dtcc-platform/dtcc-agent/pull/69)) | ✅ |
 | 2026-10-01 | Buildings download as GeoJSON or GeoPackage that GIS tools open ([#68](https://github.com/dtcc-platform/dtcc-agent/pull/68), fixes [#65](https://github.com/dtcc-platform/dtcc-agent/issues/65)) | ✅ |
@@ -51,9 +52,32 @@ Last updated: 2026-10-02.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75.
 
 ---
+
+## 🔍 In review
+
+### First M2 task: a chat ends after an hour without messages, not an hour after it started · 2026-10-03 · [#75](https://github.com/dtcc-platform/dtcc-agent/pull/75)
+
+**Before:** the chat cut every conversation off one hour after it **started**, even mid-sentence.
+An expired chat also stayed usable, files included, until somebody else happened to open a
+new one. The tool server never ended a session at all: it only dropped one when a ninth
+arrived, so an abandoned session's data sat in memory indefinitely.
+
+**Now:** a chat ends after 60 minutes **without a message**, on both sides (U7). A long answer
+counts as activity, so it can't expire the chat it belongs to. A message to an expired chat
+closes the connection with code 4408; the page starts a new chat, hands the unanswered
+message back in the input box and says why. The expired chat's files are deleted and their
+links stop working straight away. The tool server drops a session unused for 60 minutes and
+returns its memory to the shared budget; a session with a tool call running is never dropped.
+The cap of 8 stays as a backstop.
+
+**How we know it works:** tests move the clock instead of sleeping. A chat with a message every
+50 minutes is still live after 3 hours. A 70-minute answer doesn't expire its chat. An idle
+chat's file returns 404 with no other chat opened. A message to an expired chat gets 4408 and
+no agent call. An idle server session is dropped and its bytes return to the budget, while one
+mid-call is kept. A test holds the two 60-minute limits equal. 440 tests pass.
 
 ## ✅ Merged
 

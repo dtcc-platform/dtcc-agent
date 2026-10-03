@@ -223,6 +223,66 @@ async def _stream_response(
     return sdk_session_id, "".join(assistant_text_parts)
 
 
+async def _answer(ws: WebSocket, session_id: str, user_text: str) -> None:
+    """Run one turn: ask the agent and stream its answer, then send done."""
+    logger.info("[%s] User: %s", session_id, user_text[:200])
+    await ws.send_json({"type": "status", "content": "thinking"})
+
+    sdk_session_id = sessions.get_sdk_session(session_id)
+    if sdk_session_id:
+        logger.info("[%s] Resuming SDK session %s", session_id, sdk_session_id)
+
+    # Only inject RAG context on fresh sessions — resumed sessions
+    # already have conversation history in their context window.
+    memory_context = "" if sdk_session_id else memory.retrieve(user_text, session_id)
+    options = _build_options(session_id, sdk_session_id, memory_context)
+
+    assistant_text = ""
+    try:
+        async with ClaudeSDKClient(options=options) as client:
+            await client.query(user_text)
+            logger.info("[%s] Query sent, streaming response...", session_id)
+            new_sdk_session, assistant_text = await _stream_response(
+                client, ws, session_id,
+            )
+
+            if new_sdk_session:
+                sessions.set_sdk_session(session_id, new_sdk_session)
+
+    except Exception:
+        logger.exception("[%s] Error during Agent SDK call", session_id)
+        # If we were resuming a session, try again fresh
+        if sdk_session_id:
+            logger.info("[%s] Retrying with fresh session (previous may have hit context limit)", session_id)
+            sessions.set_sdk_session(session_id, None)
+            try:
+                fresh_options = _build_options(session_id, None, memory_context)
+                async with ClaudeSDKClient(options=fresh_options) as client:
+                    await client.query(user_text)
+                    new_sdk_session, assistant_text = await _stream_response(
+                        client, ws, session_id,
+                    )
+                    if new_sdk_session:
+                        sessions.set_sdk_session(session_id, new_sdk_session)
+            except Exception:
+                logger.exception("[%s] Fresh session also failed", session_id)
+                await ws.send_json({
+                    "type": "text",
+                    "content": "Sorry, an error occurred. Please try starting a new chat.",
+                })
+        else:
+            await ws.send_json({
+                "type": "text",
+                "content": "Sorry, an error occurred. Check the server logs for details.",
+            })
+
+    # Store the exchange in long-term memory
+    if assistant_text:
+        memory.store(session_id, user_text, assistant_text)
+
+    await ws.send_json({"type": "done"})
+
+
 @app.websocket("/chat")
 async def chat(ws: WebSocket):
     """WebSocket endpoint for chat conversations."""
@@ -235,7 +295,7 @@ async def chat(ws: WebSocket):
         return
 
     session_id = init.get("session_id")
-    if not session_id or not sessions.get(session_id):
+    if not session_id or not sessions.touch(session_id):
         session_id = sessions.create()
 
     logger.info("[%s] New WebSocket connection", session_id)
@@ -246,6 +306,11 @@ async def chat(ws: WebSocket):
     try:
         while True:
             data = await ws.receive_json()
+            if not sessions.touch(session_id):
+                # Idle too long (U7): the page starts a new session.
+                logger.info("[%s] Session expired, closing", session_id)
+                await ws.close(code=4408, reason="session expired")
+                return
 
             # Handle "new chat" reset from client
             if data.get("type") == "new_chat":
@@ -264,62 +329,8 @@ async def chat(ws: WebSocket):
                 await ws.send_json({"type": "done"})
                 continue
 
-            logger.info("[%s] User: %s", session_id, user_text[:200])
-            await ws.send_json({"type": "status", "content": "thinking"})
-
-            sdk_session_id = sessions.get_sdk_session(session_id)
-            if sdk_session_id:
-                logger.info("[%s] Resuming SDK session %s", session_id, sdk_session_id)
-
-            # Only inject RAG context on fresh sessions — resumed sessions
-            # already have conversation history in their context window.
-            memory_context = "" if sdk_session_id else memory.retrieve(user_text, session_id)
-            options = _build_options(session_id, sdk_session_id, memory_context)
-
-            assistant_text = ""
-            try:
-                async with ClaudeSDKClient(options=options) as client:
-                    await client.query(user_text)
-                    logger.info("[%s] Query sent, streaming response...", session_id)
-                    new_sdk_session, assistant_text = await _stream_response(
-                        client, ws, session_id,
-                    )
-
-                    if new_sdk_session:
-                        sessions.set_sdk_session(session_id, new_sdk_session)
-
-            except Exception:
-                logger.exception("[%s] Error during Agent SDK call", session_id)
-                # If we were resuming a session, try again fresh
-                if sdk_session_id:
-                    logger.info("[%s] Retrying with fresh session (previous may have hit context limit)", session_id)
-                    sessions.set_sdk_session(session_id, None)
-                    try:
-                        fresh_options = _build_options(session_id, None, memory_context)
-                        async with ClaudeSDKClient(options=fresh_options) as client:
-                            await client.query(user_text)
-                            new_sdk_session, assistant_text = await _stream_response(
-                                client, ws, session_id,
-                            )
-                            if new_sdk_session:
-                                sessions.set_sdk_session(session_id, new_sdk_session)
-                    except Exception:
-                        logger.exception("[%s] Fresh session also failed", session_id)
-                        await ws.send_json({
-                            "type": "text",
-                            "content": "Sorry, an error occurred. Please try starting a new chat.",
-                        })
-                else:
-                    await ws.send_json({
-                        "type": "text",
-                        "content": "Sorry, an error occurred. Check the server logs for details.",
-                    })
-
-            # Store the exchange in long-term memory
-            if assistant_text:
-                memory.store(session_id, user_text, assistant_text)
-
-            await ws.send_json({"type": "done"})
+            with sessions.turn(session_id):
+                await _answer(ws, session_id, user_text)
 
     except WebSocketDisconnect:
         logger.info("[%s] Client disconnected", session_id)
