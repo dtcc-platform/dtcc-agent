@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-03 | **Last M2 task:** a fixed set of 10 questions measures speed and cost per question, and the M2 baseline is recorded for M3 to beat ([#78](https://github.com/dtcc-platform/dtcc-agent/pull/78), T34, fixes [#74](https://github.com/dtcc-platform/dtcc-agent/issues/74)) | 🔍 |
+| 2026-10-03 | A place name always resolves to somewhere in Sweden: "central Gothenburg" no longer lands in New Zealand ([#81](https://github.com/dtcc-platform/dtcc-agent/pull/81), fixes [#80](https://github.com/dtcc-platform/dtcc-agent/issues/80)) | 🔍 |
+| 2026-10-03 | **Last M2 task:** a fixed set of 10 questions measures speed and cost per question, and the M2 baseline is recorded for M3 to beat ([#78](https://github.com/dtcc-platform/dtcc-agent/pull/78), T34, fixes [#74](https://github.com/dtcc-platform/dtcc-agent/issues/74)) | ✅ |
 | 2026-10-03 | Every answer can be traced: which model and prompt produced it, what it cost, and which operations ran against which catalogue ([#77](https://github.com/dtcc-platform/dtcc-agent/pull/77), T33, fixes [#73](https://github.com/dtcc-platform/dtcc-agent/issues/73)) | ✅ |
 | 2026-10-03 | A chat needs an access code to open, the tool server needs a secret on every call, and every session says who it acts for ([#76](https://github.com/dtcc-platform/dtcc-agent/pull/76), T14, fixes [#72](https://github.com/dtcc-platform/dtcc-agent/issues/72)) | ✅ |
 | 2026-10-03 | **First M2 task:** a chat ends after an hour without messages, not an hour after it started, and the tool server lets go of idle sessions too ([#75](https://github.com/dtcc-platform/dtcc-agent/pull/75), T22, fixes [#71](https://github.com/dtcc-platform/dtcc-agent/issues/71), decides U7) | ✅ |
@@ -55,11 +56,26 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81.
 
 ---
 
 ## 🔍 In review
+
+### A place name always resolves to somewhere in Sweden · 2026-10-03 · [#81](https://github.com/dtcc-platform/dtcc-agent/pull/81)
+
+**Before:** a place not in the agent's own list was looked up worldwide, and the first match
+won. "central Gothenburg" came back as a café in Hamilton, New Zealand. The model noticed that
+time, but a less careful answer would have fetched data for the wrong side of the world.
+
+**Now:** the lookup searches Sweden only, and a result outside Sweden is refused with a clear
+message suggesting the town be added, so wrong-country data can't be fetched.
+
+**How we know it works:** tests with a stand-in for the lookup service check the search is
+limited to Sweden and that a result in New Zealand is refused. Live, "central Gothenburg" now
+finds Göteborg central station. 499 tests pass.
+
+## ✅ Merged
 
 ### Last M2 task: a fixed set of questions measures speed and cost, and the M2 baseline is recorded · 2026-10-03 · [#78](https://github.com/dtcc-platform/dtcc-agent/pull/78)
 
@@ -83,8 +99,6 @@ the whole chat down until restarted.
 **How we know it works:** tests check the question file, the averages and maxima, failed and
 timed-out runs, the simulation skip and the cost cap, and run the harness over a real
 connection against the chat with a stand-in agent. 497 tests pass.
-
-## ✅ Merged
 
 ### Every answer can be traced to what produced it · 2026-10-03 · [#77](https://github.com/dtcc-platform/dtcc-agent/pull/77)
 
