@@ -230,6 +230,9 @@ def report(rows: list[dict[str, Any]], question_ids: list[str], meta: dict[str, 
         f"(all models used: {_one({m for p in prov for m in p.get('models_used') or []})})",
         f"- Prompt version: `{_one({p.get('prompt_version') for p in prov})}` · "
         f"SDK: {_one({p.get('sdk') for p in prov})}",
+        f"- Runtime: {_one({p.get('runtime') for p in prov})} · "
+        f"provider: {_one({p.get('provider') for p in prov})} · "
+        f"cost source: {_one({p.get('cost_source') for p in prov})}",
         f"- Core commit: `{catalogue['core_commit'] if catalogue else 'unknown'}` · "
         f"catalogue: {catalogue['operations'] if catalogue else 'unknown'} operations",
         f"- dtcc-sim: {'available' if meta['notes'].get('sim_available') else 'not available'}"
@@ -239,7 +242,7 @@ def report(rows: list[dict[str, Any]], question_ids: list[str], meta: dict[str, 
         "",
         "Each cell is median / max over the question's successful runs; failed runs are left out",
         "and counted under OK and Problems. Run 1 is cold, later runs warm. Input tokens include",
-        "cache reads and writes. Cost is the SDK's `total_cost_usd`.",
+        "cache reads and writes. Cost is computed as the cost source above says.",
         "",
         "| Question | OK | Cold latency (s) | Warm latency (s) | Input tok | Output tok "
         "| Cost ($) | Tools | Ops | Problems |",

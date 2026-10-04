@@ -1,5 +1,7 @@
 import sys
 
+import pytest
+
 from chatbot.config import SYSTEM_PROMPT, get_mcp_server_config
 
 
@@ -99,3 +101,65 @@ def test_the_turn_travels_to_the_mcp_server(monkeypatch):
     monkeypatch.delenv("DTCC_MCP_URL")
     assert get_mcp_server_config("s1", "anonymous", "turn_1a2b3c4d")["dtcc-agent"]["env"][
         "DTCC_AGENT_TURN"] == "turn_1a2b3c4d"
+
+
+# -- Bedrock (T35, #85) --------------------------------------------------------
+
+_AWS_VARS = ("AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE",
+             "AWS_REGION", "DTCC_AGENT_MODEL")
+
+
+def _no_aws(monkeypatch):
+    for name in _AWS_VARS:
+        monkeypatch.delenv(name, raising=False)
+
+
+def test_the_model_defaults_to_sonnet_5_5_on_bedrock(monkeypatch):
+    from chatbot.config import load_model
+
+    _no_aws(monkeypatch)
+    assert load_model() == "eu.anthropic.claude-sonnet-5-5"
+
+
+def test_the_model_comes_from_dtcc_agent_model(monkeypatch):
+    from chatbot.config import load_model
+
+    monkeypatch.setenv("DTCC_AGENT_MODEL", "eu.anthropic.claude-sonnet-4-5-20250929-v1:0")
+    assert load_model() == "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+
+
+def test_the_cli_runs_on_bedrock_for_every_model_it_calls(monkeypatch):
+    from chatbot.config import bedrock_env
+
+    _no_aws(monkeypatch)
+    env = bedrock_env()
+    assert env["CLAUDE_CODE_USE_BEDROCK"] == "1"
+    assert env["AWS_REGION"] == "eu-north-1"
+    # The CLI's internal steps use the answering model, never a default
+    # the account may not have enabled.
+    assert env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] == "eu.anthropic.claude-sonnet-5-5"
+
+
+def test_the_region_can_be_set(monkeypatch):
+    from chatbot.config import bedrock_env
+
+    monkeypatch.setenv("AWS_REGION", "eu-central-1")
+    assert bedrock_env()["AWS_REGION"] == "eu-central-1"
+
+
+def test_no_bedrock_credentials_stops_the_chatbot(monkeypatch):
+    import pytest
+    from chatbot.config import require_bedrock_credentials
+
+    _no_aws(monkeypatch)
+    with pytest.raises(SystemExit, match="AWS_BEARER_TOKEN_BEDROCK"):
+        require_bedrock_credentials()
+
+
+@pytest.mark.parametrize("name", ["AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"])
+def test_any_aws_credential_is_enough_to_start(monkeypatch, name):
+    from chatbot.config import require_bedrock_credentials
+
+    _no_aws(monkeypatch)
+    monkeypatch.setenv(name, "x")
+    require_bedrock_credentials()  # no exit

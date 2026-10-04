@@ -80,8 +80,10 @@ services:
       - DTCC_AGENT_PORT=8050
       - DTCC_AGENT_LOG_DIR=/data/logs
       - DTCC_AGENT_MEMORY_DIR=/data/memory
-      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # The model runs on Amazon Bedrock (#29); see README, "The model".
+      - AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK:?set AWS_BEARER_TOKEN_BEDROCK}
+      - AWS_REGION=${AWS_REGION:-eu-north-1}
+      - DTCC_AGENT_MODEL=${DTCC_AGENT_MODEL:-eu.anthropic.claude-sonnet-5-5}
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
     healthcheck:

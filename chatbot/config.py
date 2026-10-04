@@ -57,6 +57,42 @@ DEFAULT_PORT = int(os.getenv("DTCC_AGENT_PORT", "8050"))
 DEFAULT_HOST = os.getenv("DTCC_AGENT_HOST", "0.0.0.0")
 
 
+# The model runs on Amazon Bedrock (#29). Claude has no on-demand model IDs in
+# eu-north-1, only the eu.* cross-region inference profiles.
+DEFAULT_MODEL = "eu.anthropic.claude-sonnet-5-5"
+DEFAULT_REGION = "eu-north-1"
+
+
+def load_model() -> str:
+    """The Bedrock model ID the agent answers with: DTCC_AGENT_MODEL, or Sonnet 5.5."""
+    return os.getenv("DTCC_AGENT_MODEL") or DEFAULT_MODEL
+
+
+def bedrock_env() -> dict[str, str]:
+    """Environment that points the Claude CLI at Bedrock. Credentials are
+    inherited from the chatbot's own environment.
+
+    The CLI also calls a small model for internal steps. It gets the same
+    model as the answers: Haiku 4.5, its default, is refused on our account
+    until Anthropic's use-case form is filed, and one model keeps every call
+    on a model we know is enabled."""
+    return {
+        "CLAUDE_CODE_USE_BEDROCK": "1",
+        "AWS_REGION": os.getenv("AWS_REGION") or DEFAULT_REGION,
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": load_model(),
+    }
+
+
+def require_bedrock_credentials() -> None:
+    """Exit unless some AWS credential is configured. Without one every chat
+    turn would fail; better to refuse to start, and never fall back to
+    another provider."""
+    if not any(os.getenv(name) for name in
+               ("AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE")):
+        raise SystemExit("No Bedrock credentials: set AWS_BEARER_TOKEN_BEDROCK "
+                         "(or standard AWS credentials) to start the chatbot.")
+
+
 # The shortest access code accepted: anything shorter is guessable.
 MIN_ACCESS_CODE = 16
 

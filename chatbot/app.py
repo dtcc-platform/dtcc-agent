@@ -15,6 +15,8 @@ from pathlib import Path
 # when the chatbot is started from within a Claude Code terminal.
 os.environ.pop("CLAUDECODE", None)
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -34,6 +36,7 @@ from claude_agent_sdk import (
 
 from chatbot.config import (
     SYSTEM_PROMPT, get_mcp_server_config, load_access_code, DEFAULT_HOST, DEFAULT_PORT,
+    bedrock_env, load_model, require_bedrock_credentials,
 )
 from chatbot.memory import ConversationMemory
 from chatbot.provenance import TurnRecord
@@ -58,7 +61,15 @@ logger = logging.getLogger("lurkie")
 logger.setLevel(logging.DEBUG)  # debug for our code only
 logger.info("Log file: %s", _log_file)
 
-app = FastAPI(title="DTCC Lurkie")
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    # Checked at server start, not import: every chat turn needs Bedrock (#85).
+    require_bedrock_credentials()
+    logger.info("Model: %s on Bedrock", load_model())
+    yield
+
+
+app = FastAPI(title="DTCC Lurkie", lifespan=_lifespan)
 sessions = SessionManager()
 memory = ConversationMemory()
 # Opening a chat needs this code; None when admission is off (T14, #72).
@@ -170,7 +181,8 @@ def _build_options(
         tools=["ToolSearch"],
         strict_mcp_config=True,
         permission_mode="bypassPermissions",
-        model="claude-sonnet-4-5",
+        model=load_model(),
+        env=bedrock_env(),
     )
     if sdk_session_id:
         opts.resume = sdk_session_id

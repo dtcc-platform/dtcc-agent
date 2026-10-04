@@ -36,6 +36,10 @@ def _sdk() -> str:
 
 PROMPT_VERSION = prompt_version()
 SDK = _sdk()
+# Where answers come from, and where their cost figure comes from (#85).
+RUNTIME = "sdk"
+PROVIDER = "bedrock"
+COST_SOURCE = "sdk total_cost_usd"
 
 
 class TurnRecord:
@@ -97,4 +101,5 @@ class TurnRecord:
             "usage": self.usage,
             "is_error": self.error is not None or self.result_error,
             "retried_fresh": self.retried_fresh, "error": self.error,
+            "runtime": RUNTIME, "provider": PROVIDER, "cost_source": COST_SOURCE,
         }

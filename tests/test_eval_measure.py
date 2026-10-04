@@ -14,6 +14,7 @@ from eval import measure
 def _prov(cost=0.1, out=20, turn="turn_00000001"):
     return {"turn_id": turn, "model": "claude-sonnet-4-5", "models_used": ["claude-sonnet-4-5"],
             "prompt_version": "5fdfaaf2e87b", "sdk": "claude-agent-sdk 0.2.163",
+            "runtime": "sdk", "provider": "bedrock", "cost_source": "sdk total_cost_usd",
             "tools_called": ["a", "b"], "total_cost_usd": cost, "is_error": False,
             "usage": {"input_tokens": 10, "output_tokens": out, "cache_read_input_tokens": 100,
                       "cache_creation_input_tokens": 0}}
@@ -127,6 +128,7 @@ def test_the_report_gives_median_and_max_over_successful_runs_only():
     assert "| q2 | 0 / 1 | — | — |" in text
     assert "Prompt version: `5fdfaaf2e87b`" in text and "claude-sonnet-4-5" in text
     assert "Core commit: `unknown`" in text  # no --log-dir
+    assert "Runtime: sdk · provider: bedrock · cost source: sdk total_cost_usd" in text
 
 
 def test_operations_and_the_catalogue_come_from_the_provenance_logs(tmp_path):
@@ -157,6 +159,8 @@ def _free_port():
 @pytest.fixture
 def chat_url(monkeypatch, tmp_path):
     """The chatbot app served over a real socket; its agent answers instantly."""
+    # The app refuses to start without a Bedrock credential (#85); the agent is faked.
+    monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "test")
     import uvicorn
     from types import SimpleNamespace
 
