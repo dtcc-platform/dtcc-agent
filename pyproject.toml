@@ -46,13 +46,15 @@ test = ["pytest"]
 chatbot = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
-    # 0.1.39 crashed every chat turn on the current Claude CLI's rate_limit_event
-    # (MessageParseError). 0.2.163 is the version verified end to end. The SDK
-    # leaves with the pydantic-ai rebuild (ADR-0003, M3).
-    "claude-agent-sdk>=0.2.163",
+    # The agent runtime (ADR-0003, #86). Pinned exactly: it moves quickly.
+    "pydantic-ai-slim[bedrock,mcp]==2.54.0",
     "websockets>=13.0",
     "chromadb>=0.5.0",
 ]
+# The Agent SDK runtime, kept for one milestone as M3's rollback
+# (DTCC_AGENT_RUNTIME=sdk). It bundles the claude CLI. 0.1.39 crashed every
+# chat turn on the current CLI's rate_limit_event; 0.2.163 is verified.
+sdk = ["claude-agent-sdk>=0.2.163"]
 
 [project.urls]
 Homepage = "https://github.com/dtcc-platform/dtcc-agent"

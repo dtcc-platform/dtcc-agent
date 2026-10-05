@@ -153,7 +153,14 @@ async def measure(questions: list[dict[str, Any]], runs: int, ask: Ask, *,
 
 
 def _cost(row: dict[str, Any]) -> float:
-    return ((row.get("provenance") or {}).get("total_cost_usd")) or 0.0
+    """What a turn cost. A turn that answered with no price would let the cost
+    cap overspend without noticing, so it stops the run (#86)."""
+    prov = row.get("provenance")
+    if prov and prov.get("total_cost_usd") is None and row.get("status") == "ok":
+        raise SystemExit(f"A turn came back unpriced (cost source: {prov.get('cost_source')}, "
+                         f"model: {prov.get('model')}); the --max-cost cap cannot work. "
+                         "Price the model in chatbot/prices.py before measuring.")
+    return (prov or {}).get("total_cost_usd") or 0.0
 
 
 def attach_operations(rows: list[dict[str, Any]], log_dir: str | os.PathLike) -> None:

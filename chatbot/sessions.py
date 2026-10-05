@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
 from dtcc_agent import artifacts
 
@@ -29,7 +31,17 @@ class Session:
     last_active: float = field(default_factory=time.monotonic)
     # Turns running now; the session never expires while nonzero.
     turns: int = 0
+    # The conversation so far: the SDK runtime's resumable session id, or
+    # the pydantic-ai runtime's messages (#86). One is used per process.
     sdk_session_id: str | None = None
+    history: list[Any] = field(default_factory=list)
+    # Held for a whole turn, so two tabs on one session take turns (#86).
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+
+    def reset_conversation(self) -> None:
+        """New chat: forget the conversation, keep the session and its files."""
+        self.sdk_session_id = None
+        self.history = []
 
     def expired(self, now: float) -> bool:
         return not self.turns and now - self.last_active > SESSION_IDLE_SECONDS
@@ -80,17 +92,6 @@ class SessionManager:
         finally:
             session.turns -= 1
             session.last_active = time.monotonic()
-
-    def get_sdk_session(self, session_id: str) -> str | None:
-        """Get the Agent SDK session ID for resuming."""
-        session = self._sessions.get(session_id)
-        return session.sdk_session_id if session else None
-
-    def set_sdk_session(self, session_id: str, sdk_session_id: str | None) -> None:
-        """Store the Agent SDK session ID for a session."""
-        session = self._sessions.get(session_id)
-        if session:
-            session.sdk_session_id = sdk_session_id
 
     def remove(self, session_id: str) -> None:
         """Remove a session and the files it produced."""

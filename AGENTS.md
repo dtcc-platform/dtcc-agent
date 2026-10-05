@@ -17,8 +17,11 @@ and `docs/adr/` for the decisions that govern it.
 Python >= 3.12; 3.11 fails to resolve. Set up with:
 
 ```sh
-uv venv --python 3.12 && uv sync --locked --extra test --extra chatbot
+uv venv --python 3.12 && uv sync --locked --extra test --extra chatbot --extra sdk
 ```
+
+The `sdk` extra is the Claude Agent SDK, the rollback runtime (#86). Without it its tests
+skip and everything else runs; CI checks both ways.
 
 Without the `chatbot` extra, `tests/test_chatbot_app.py` fails at collection (no
 `fastapi`) and pytest aborts the whole run.
