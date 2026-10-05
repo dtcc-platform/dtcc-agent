@@ -164,6 +164,17 @@ def test_a_fresh_turn_that_fails_says_so_and_records_the_error_class(run):
     assert turn.error == "RuntimeError" and turn.retried_fresh is False
 
 
+def test_a_turn_that_fails_before_any_model_request_records_no_usage(run, monkeypatch):
+    def unreachable(session, turn_id):
+        raise ConnectionError("MCP server down")
+
+    monkeypatch.setattr(pai, "toolset", unreachable)
+    _, _, turn, _ = run(_model([]), Session(id="s1"))
+    record = turn.record()
+    assert record["error"] == "ConnectionError"
+    assert record["usage"] is None and record["num_turns"] is None and record["cost_source"] is None
+
+
 def test_two_turns_on_one_session_run_one_after_the_other(run, monkeypatch):
     session = Session(id="s1")
     active, peak = [0], [0]

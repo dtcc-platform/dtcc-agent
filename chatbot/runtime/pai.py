@@ -109,9 +109,12 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
                                 "content": "Sorry, an error occurred. Check the server logs for details."})
             return ""
         finally:
-            cost, source = price(usage, load_model()) if usage.requests else (None, "unpriced")
-            turn.saw_run(usage, elapsed_ms=round((time.monotonic() - started) * 1000),
-                         cost=cost, cost_source=source, models=models)
+            # A turn that failed before any model request used nothing: its
+            # record keeps usage null, as the SDK runtime's does.
+            if usage.requests:
+                cost, source = price(usage, load_model())
+                turn.saw_run(usage, elapsed_ms=round((time.monotonic() - started) * 1000),
+                             cost=cost, cost_source=source, models=models)
 
 
 async def _run(ws, session: Session, user_text: str, turn: TurnRecord, memory,
