@@ -27,6 +27,7 @@ import statistics
 import subprocess
 import sys
 import time
+from collections import Counter
 from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -225,6 +226,8 @@ def report(rows: list[dict[str, Any]], question_ids: list[str], meta: dict[str, 
     lines = [
         f"# Measurement run {meta['started']}",
         "",
+        *([f"- Pooled from {len(meta['sources'])} runs: "
+            + ", ".join(f"`{src}`" for src in meta["sources"])] if meta.get("sources") else []),
         f"- Commit: `{meta['git']}` · runs per question: {meta['runs']} · questions: {len(question_ids)}",
         f"- Model: {_one({p.get('model') for p in prov})} "
         f"(all models used: {_one({m for p in prov for m in p.get('models_used') or []})})",
@@ -237,7 +240,8 @@ def report(rows: list[dict[str, Any]], question_ids: list[str], meta: dict[str, 
         f"catalogue: {catalogue['operations'] if catalogue else 'unknown'} operations",
         f"- dtcc-sim: {'available' if meta['notes'].get('sim_available') else 'not available'}"
         + (f" (probe {meta['notes']['sim_probe']})" if "sim_probe" in meta["notes"] else ""),
-        f"- Spent: ${meta['notes'].get('spent_usd', 0):.2f} of a ${meta['max_cost']:.2f} cap"
+        f"- Spent: ${meta['notes'].get('spent_usd', 0):.2f}"
+        + (f" of a ${meta['max_cost']:.2f} cap" if meta.get("max_cost") is not None else " across the runs")
         + (" · **stopped at cost cap**" if meta["notes"].get("stopped_at_cost_cap") else ""),
         "",
         "Each cell is median / max over the question's successful runs; failed runs are left out",
@@ -292,6 +296,25 @@ async def run(*, url: str, runs: int, questions: list[dict[str, Any]], out_dir: 
     return data, md, text
 
 
+def pool(paths: list[Path], out_dir: Path) -> tuple[Path, str]:
+    """One report over several runs' rows, so medians rest on more samples.
+    Each run contributes one cold and its warm samples per question."""
+    paths = [Path(p) for p in paths]
+    rows = [json.loads(line) for p in paths for line in p.read_text().splitlines() if line.strip()]
+    question_ids = list(dict.fromkeys(r["question_id"] for r in rows))
+    stems = [p.stem for p in paths]
+    meta = {"started": f"{stems[0]} … {stems[-1]}", "sources": stems,
+            "git": ", ".join(dict.fromkeys(s.rsplit("-", 1)[-1] for s in stems)),
+            "runs": max(Counter(r["question_id"] for r in rows).values()), "max_cost": None,
+            "notes": {"sim_available": not any(r["status"] == "skipped" for r in rows),
+                      "spent_usd": sum(_cost(r) for r in rows)}}
+    text = report(rows, question_ids, meta)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    md = out_dir / f"pooled-{stems[0]}.md"
+    md.write_text(text)
+    return md, text
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m eval.measure", description=__doc__.split("\n\n")[0])
     parser.add_argument("--url", default="ws://localhost:8050/chat")
@@ -303,7 +326,15 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--timeout", type=float, default=300, help="seconds per question")
     parser.add_argument("--assume-sim", action="store_true", help="skip the dtcc-sim probe")
     parser.add_argument("--out-dir", default=str(RUNS_DIR))
+    parser.add_argument("--pool", nargs="+", metavar="RUN_JSONL",
+                        help="measure nothing: report several runs' .jsonl files together")
     args = parser.parse_args(argv)
+
+    if args.pool:
+        md, text = pool(args.pool, Path(args.out_dir))
+        print(text)
+        print(f"Wrote {md}", file=sys.stderr)
+        return
 
     questions = load_questions(args.questions)
     if args.only:

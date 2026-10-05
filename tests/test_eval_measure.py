@@ -219,3 +219,31 @@ def test_a_refused_access_code_is_an_error_row_not_a_crash(chat_url, tmp_path):
     url, _ = chat_url
     row = asyncio.run(measure.ask(url, "How many?", access_code="wrong-wrong-wrong-wrong", timeout=10))
     assert row["status"] == "error" and row["error"] == "admission_required"
+
+
+# -- Pooling runs (#85) --------------------------------------------------------
+
+def test_pooled_runs_report_every_sample_together(tmp_path):
+    first = [_row("q1", 1, 30.0), _row("q1", 2, 10.0), _row("q1", 3, 12.0)]
+    second = [_row("q1", 1, 26.0), _row("q1", 2, 20.0), _row("q1", 3, 14.0)]
+    paths = []
+    for name, rows in (("20261004T220414Z-713b47a", first), ("20261004T222251Z-0e1c2fd", second)):
+        path = tmp_path / f"{name}.jsonl"
+        path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+        paths.append(path)
+
+    md, text = measure.pool(paths, tmp_path / "out")
+
+    [q1] = measure.summarise(json_rows := [r for p in paths for r in map(json.loads, p.read_text().splitlines())], ["q1"])
+    assert (q1["n_ok"], q1["n_runs"]) == (6, 6) and len(json_rows) == 6
+    assert q1["cold"] == (28.0, 30.0) and q1["warm"] == (13.0, 20.0)  # four warm samples
+    assert "| q1 | 6 / 6 | 28.0 / 30.0 | 13.0 / 20.0 |" in text
+    assert "Pooled from 2 runs" in text and "713b47a" in text and "0e1c2fd" in text
+    assert md.read_text() == text
+
+
+def test_pool_runs_from_the_command_line(tmp_path, capsys):
+    path = tmp_path / "20261004T220414Z-713b47a.jsonl"
+    path.write_text(json.dumps(_row("q01-building-count", 1, 5.0)) + "\n")
+    measure.main(["--pool", str(path), str(path), "--out-dir", str(tmp_path / "out")])
+    assert "Pooled from 2 runs" in capsys.readouterr().out
