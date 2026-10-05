@@ -28,10 +28,10 @@ dependencies = [
   # dtcc-sim pins an older Core; the two repos are deliberately not
   # required to match.
   "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@bb95f2f8c338e6433a1e6a48375cf634710ff421",
-  # Upper bound is load-bearing: mcp 2.x removed mcp.server.fastmcp, which
-  # server.py imports. Without it a fresh install resolves 2.x and the package
-  # cannot start. See the import smoke test in tests/test_server_import.py.
-  "mcp>=1.0.0,<2",
+  # mcp 2.x: server.py uses MCPServer (FastMCP's 2.x name) and reads request
+  # headers from the injected Context. The upper bound guards the next major,
+  # as <2 once guarded this one. See tests/test_server_import.py.
+  "mcp>=2.3.0,<3",
   "httpx>=0.27.0",
   "pyproj>=3.6.0",
   "numpy",

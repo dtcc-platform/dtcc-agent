@@ -14,6 +14,7 @@ Last updated: 2026-10-05.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-05 | The tool server moves to version 2 of the MCP library, which the new agent runtime needs; nothing changes for users ([#92](https://github.com/dtcc-platform/dtcc-agent/pull/92), T39, fixes [#91](https://github.com/dtcc-platform/dtcc-agent/issues/91)) | 🔍 |
 | 2026-10-05 | **First M3 task:** the chat runs on Amazon Bedrock with the model set in config, and the reference that the pydantic-ai switch must match is measured: twice, pooled ([#90](https://github.com/dtcc-platform/dtcc-agent/pull/90), T35, fixes [#85](https://github.com/dtcc-platform/dtcc-agent/issues/85)) | 🔍 |
 | 2026-10-04 | The M2 baseline re-measured after #79–#83: all 30 runs answered, $1.93 ([#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)) | ✅ |
 | 2026-10-04 | The chat agent uses only the DTCC tools, and its prompts are about a third the size ([#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)) | ✅ |
@@ -60,11 +61,27 @@ Last updated: 2026-10-05.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92.
 
 ---
 
 ## 🔍 In review
+
+### The tool server moves to MCP library version 2 · 2026-10-05 · [#92](https://github.com/dtcc-platform/dtcc-agent/pull/92)
+
+**Before:** the tool server was built on version 1 of the MCP library. The agent runtime M3
+moves to (pydantic-ai, #86) needs version 2 in its current releases, and the two can't be
+installed side by side in one package.
+
+**Now:** the tool server runs on version 2. Nothing a user sees changes. One small
+difference: if a tool crashes in an unexpected way, the agent now gets "error running the
+tool" without the internal error text, which stays in the server log. Errors the tools
+report on purpose, such as a refused area, still reach the agent word for word.
+
+**How we know it works:** every existing test passes on version 2, including the ones that
+run a real server and check that sessions can't see each other. Live in Docker, a chat, a
+follow-up question and a picture all worked, every call was logged with its session and
+turn, and a call without the server secret was refused.
 
 ### The chat runs on Amazon Bedrock, and M3's reference is measured · 2026-10-05 · [#90](https://github.com/dtcc-platform/dtcc-agent/pull/90)
 

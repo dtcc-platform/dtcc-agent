@@ -119,7 +119,7 @@ def test_every_tool_has_a_description(name):
 def test_required_parameters(name, required):
     """The required set is the contract an MCP client codes against."""
     tool = next(t for t in _tools() if t.name == name)
-    assert set(tool.inputSchema.get("required", [])) == required
+    assert set(tool.input_schema.get("required", [])) == required
 
 
 # -- Error reporting ---------------------------------------------------------
