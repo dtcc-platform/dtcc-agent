@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-10-03.
+Last updated: 2026-10-05.
 
 ---
 
@@ -14,7 +14,8 @@ Last updated: 2026-10-03.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-04 | The M2 baseline re-measured after #79–#83: all 30 runs answered, $1.93 ([#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)) | 🔍 |
+| 2026-10-05 | **First M3 task:** the chat runs on Amazon Bedrock with the model set in config, and the reference that the pydantic-ai switch must match is measured: twice, pooled ([#90](https://github.com/dtcc-platform/dtcc-agent/pull/90), T35, fixes [#85](https://github.com/dtcc-platform/dtcc-agent/issues/85)) | 🔍 |
+| 2026-10-04 | The M2 baseline re-measured after #79–#83: all 30 runs answered, $1.93 ([#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)) | ✅ |
 | 2026-10-04 | The chat agent uses only the DTCC tools, and its prompts are about a third the size ([#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)) | ✅ |
 | 2026-10-03 | Asking for too large an area is refused instead of crashing the tool server, and the chat recovers by itself if the server still dies ([#82](https://github.com/dtcc-platform/dtcc-agent/pull/82), fixes [#79](https://github.com/dtcc-platform/dtcc-agent/issues/79)) | ✅ |
 | 2026-10-03 | A place name always resolves to somewhere in Sweden: "central Gothenburg" no longer lands in New Zealand ([#81](https://github.com/dtcc-platform/dtcc-agent/pull/81), fixes [#80](https://github.com/dtcc-platform/dtcc-agent/issues/80)) | ✅ |
@@ -59,11 +60,34 @@ Last updated: 2026-10-03.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90.
 
 ---
 
 ## 🔍 In review
+
+### The chat runs on Amazon Bedrock, and M3's reference is measured · 2026-10-05 · [#90](https://github.com/dtcc-platform/dtcc-agent/pull/90)
+
+**Before:** the chat agent used a Claude login token through Anthropic's own service, with
+the model fixed in the code. M3 moves to Bedrock and to pydantic-ai, and the plan was to
+measure both changes together against the M2 baseline.
+
+**Now:** the agent answers through Amazon Bedrock in Stockholm (`eu-north-1`). Which model
+answers is one setting, `DTCC_AGENT_MODEL`, set to Sonnet 5.5 by default. Without Bedrock
+credentials the chat refuses to start, instead of failing every message. Every answer
+records which runtime, provider and price source produced it.
+
+The new reference, `eval/runs/baseline-m3-sdk.md`, is still on the current Claude client, so
+when #86 swaps in pydantic-ai only the runtime changes. Two identical runs disagreed by up to
+50% on single questions, so the reference pools both: all 60 runs answered, a typical
+question takes 11–17 s, and a run costs about $0.95.
+
+**How we know it works:** tests cover the model setting, the startup refusal, the new
+provenance fields and pooling runs. Live, a chat answered on Bedrock using only Sonnet 5.5.
+Sonnet 4.5, M2's model, turned out to be refused on the company account until a form is
+filed, so the reference and the gate both use Sonnet 5.5. 544 tests pass.
+
+## ✅ Merged
 
 ### The M2 baseline re-measured after the fixes · 2026-10-04 · [#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)
 
@@ -80,8 +104,6 @@ figure M3 has to beat.
 tool server never restarted, every answer was recorded, and the agent used only DTCC
 tools. The notes explain why some single questions cost more even though every prompt
 shrank.
-
-## ✅ Merged
 
 ### The chat agent uses only the DTCC tools · 2026-10-04 · [#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)
 

@@ -22,3 +22,6 @@ token
 # Measurement runs (T34): only the committed baseline is tracked
 eval/runs/*
 !eval/runs/baseline-m2.md
+# The M3 gate reference: its report and the raw runs it pools (#85)
+!eval/runs/baseline-m3-sdk.md
+!eval/runs/baseline-m3-sdk/

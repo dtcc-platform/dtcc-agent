@@ -443,3 +443,16 @@ def test_the_agent_gets_no_built_in_tools_only_the_dtcc_agent_server(monkeypatch
     assert options["tools"] == ["ToolSearch"]
     assert options["strict_mcp_config"] is True
     assert set(options["mcp_servers"]) == {"dtcc-agent"}
+
+
+def test_the_agent_runs_the_configured_model_on_bedrock(monkeypatch):
+    built = []
+    monkeypatch.setattr(app_module, "ClaudeAgentOptions", lambda **kw: built.append(kw) or SimpleNamespace(**kw))
+    monkeypatch.setattr(app_module, "get_mcp_server_config", lambda *a: {"dtcc-agent": {}})
+    monkeypatch.setenv("DTCC_AGENT_MODEL", "eu.anthropic.claude-sonnet-4-5-20250929-v1:0")
+
+    app_module._build_options("s1")
+
+    [options] = built
+    assert options["model"] == "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    assert options["env"]["CLAUDE_CODE_USE_BEDROCK"] == "1"

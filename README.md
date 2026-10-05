@@ -44,7 +44,7 @@ For the Docker mini-service, you need:
 
 - Docker
 - A running `dtcc-sim` mini-service
-- Claude auth, either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`
+- Amazon Bedrock access to Claude, usually a Bedrock API key in `AWS_BEARER_TOKEN_BEDROCK`
 
 For direct in-process usage, dtcc-agent runs in the same environment as
 dtcc-sim. You need:
@@ -145,13 +145,13 @@ docker compose up -d
 cd ../dtcc-agent
 mkdir -p data/agent
 export DTCC_REMOTE_SERVICES=http://host.docker.internal:8001
-export CLAUDE_CODE_OAUTH_TOKEN=...
+export AWS_BEARER_TOKEN_BEDROCK=...   # a Bedrock API key
 export DTCC_MCP_SECRET="$(openssl rand -hex 32)"
 export DTCC_AGENT_ACCESS_CODE="$(openssl rand -base64 18)"   # give this to testers
 docker compose up --build
 ```
 
-Compose refuses to start without `DTCC_MCP_SECRET` and `DTCC_AGENT_ACCESS_CODE`, naming
+Compose refuses to start without `DTCC_MCP_SECRET`, `DTCC_AGENT_ACCESS_CODE` and `AWS_BEARER_TOKEN_BEDROCK`, naming
 the one that is missing.
 
 #### Admission (T14)
@@ -165,44 +165,30 @@ Each session also carries a `subject`, sent to the MCP server as `X-DTCC-Subject
 `DTCC_AGENT_SUBJECT`). It is `"anonymous"` until central auth exists, and nothing is authorised
 by it yet.
 
-On macOS, mounting `~/.claude` into Docker is not enough for local Claude auth:
-Claude Code stores the OAuth credential in Keychain. Generate a container token
-on the host and pass it through the environment:
+#### The model (Bedrock)
+
+The agent answers through Amazon Bedrock only (#29). Claude has no on-demand model IDs in
+`eu-north-1`, so models are named by their `eu.*` cross-region inference profiles.
+
+| Variable | Default | Effect |
+|---|---|---|
+| `AWS_BEARER_TOKEN_BEDROCK` | none | A Bedrock API key. Standard AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_PROFILE`) also work outside Compose. With none set, the chatbot does not start. |
+| `AWS_REGION` | `eu-north-1` | The Bedrock Region. |
+| `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The Bedrock model ID the agent answers with. Changing models is this variable alone. |
+
+The Claude CLI under the Agent SDK also calls a small model for internal steps; the chatbot
+points that at `DTCC_AGENT_MODEL` too. The 4.5 generation (Sonnet 4.5, Haiku 4.5) is refused
+on an account until Anthropic's use-case form is filed in the Bedrock console; newer models are not.
+Check access with one call before a long run:
 
 ```bash
-claude setup-token
-export CLAUDE_CODE_OAUTH_TOKEN="sk-ant-oat01-PASTE-TOKEN-HERE"
+curl -s -o /dev/null -w '%{http_code}\n' \
+  "https://bedrock-runtime.eu-north-1.amazonaws.com/model/eu.anthropic.claude-sonnet-5-5/converse" \
+  -H "Authorization: Bearer $AWS_BEARER_TOKEN_BEDROCK" -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":[{"text":"ok"}]}],"inferenceConfig":{"maxTokens":5}}'
 ```
 
-Do not wrap `claude setup-token` in command substitution. It is interactive and
-can capture the whole login screen into `CLAUDE_CODE_OAUTH_TOKEN`, which makes
-Claude send an invalid `Authorization: Bearer ...` header. Check it without
-printing the token:
-
-```bash
-case "$CLAUDE_CODE_OAUTH_TOKEN" in
-  *[![:graph:]]*|"") echo "CLAUDE_CODE_OAUTH_TOKEN is empty or has spaces or newlines" ;;
-  sk-ant-oat01-*)    echo "CLAUDE_CODE_OAUTH_TOKEN looks right" ;;
-  *)                 echo "CLAUDE_CODE_OAUTH_TOKEN does not start with sk-ant-oat01-" ;;
-esac
-```
-
-After starting Docker, run the same check inside the container to confirm the token
-reached it:
-
-```bash
-docker compose exec -T dtcc-agent sh -c '
-case "$CLAUDE_CODE_OAUTH_TOKEN" in
-  *[![:graph:]]*|"") echo "CLAUDE_CODE_OAUTH_TOKEN is empty or has spaces or newlines" ;;
-  sk-ant-oat01-*)    echo "CLAUDE_CODE_OAUTH_TOKEN looks right" ;;
-  *)                 echo "CLAUDE_CODE_OAUTH_TOKEN does not start with sk-ant-oat01-" ;;
-esac'
-```
-
-This checks the token's shape, not that Claude accepts it. Sending one chat message
-through the service is the real test.
-
-`ANTHROPIC_API_KEY` is also supported if you prefer API-key auth.
+`200` means the key and model access are good.
 
 Compose runs two services from one image (T13):
 
