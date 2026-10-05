@@ -16,15 +16,14 @@ from typing import Any
 
 from dtcc_agent.provenance import now
 
-from .config import SYSTEM_PROMPT
-
 USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_input_tokens",
               "cache_creation_input_tokens")
 _SUMMED = ("num_turns", "duration_ms", "duration_api_ms", "total_cost_usd")
 
 
-def prompt_version(prompt: str = SYSTEM_PROMPT) -> str:
-    """The first 12 hex characters of the sha256 of the static system prompt."""
+def prompt_version(prompt: str) -> str:
+    """The first 12 hex characters of the sha256 of a turn's static
+    instructions: exactly the text sent before the instructions cache point."""
     return hashlib.sha256(prompt.encode()).hexdigest()[:12]
 
 
@@ -35,7 +34,6 @@ def _sdk() -> str:
         return "claude-agent-sdk unknown"
 
 
-PROMPT_VERSION = prompt_version()
 SDK = _sdk()
 # Where answers come from (#85). Bedrock is the only provider (#29).
 PROVIDER = "bedrock"
@@ -55,6 +53,10 @@ class TurnRecord:
         self.session_id = session_id
         self.subject = subject
         self.memory_context = memory_context
+        # Set by the runtime: what it sent as static instructions (#87).
+        self.prompt_version: str | None = None
+        self.catalogue_in_prompt = False
+        self.catalogue_variant: str | None = None  # temporary, while #87 measures
         self.model: str | None = None
         self.models_used: list[str] = []
         self.tools_called: list[str] = []
@@ -119,11 +121,13 @@ class TurnRecord:
         return {
             "at": now(), "turn_id": self.turn_id, "session_id": self.session_id,
             "subject": self.subject, "model": self.model, "models_used": self.models_used,
-            "prompt_version": PROMPT_VERSION, "memory_context": self.memory_context,
+            "prompt_version": self.prompt_version, "memory_context": self.memory_context,
             "sdk": self.package, "tools_called": self.tools_called,
             **{key: self.totals.get(key) for key in _SUMMED},
             "usage": self.usage,
             "is_error": self.error is not None or self.result_error,
             "retried_fresh": self.retried_fresh, "error": self.error,
             "runtime": self.runtime, "provider": PROVIDER, "cost_source": self.cost_source,
+            "catalogue_in_prompt": self.catalogue_in_prompt,
+            "catalogue_variant": self.catalogue_variant,
         }

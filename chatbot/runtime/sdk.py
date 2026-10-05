@@ -25,8 +25,8 @@ from claude_agent_sdk import (
     UserMessage,
 )
 
-from chatbot.config import SYSTEM_PROMPT, bedrock_env, get_mcp_server_config, load_model
-from chatbot.provenance import TurnRecord
+from chatbot.config import bedrock_env, get_mcp_server_config, load_model
+from chatbot.provenance import TurnRecord, prompt_version
 from chatbot.sessions import Session
 
 from . import artifact_frame
@@ -40,11 +40,60 @@ os.environ.pop("CLAUDECODE", None)
 
 logger = logging.getLogger("lurkie")
 
+# M2's prompt, unchanged, so the rollback path behaves as M2 did (#87). It
+# pastes seven operation schemas; the pydantic-ai runtime sends the catalogue.
+M2_PROMPT = """\
+You are DTCC Lurkie, an urban digital twin chatbot for Sweden, built by the \
+Digital Twin Cities Centre at Chalmers University of Technology. You help users \
+explore buildings, terrain, run heat/air quality simulations, and visualize 3D \
+city models anywhere in Sweden. Use the dtcc-agent tools available to you. \
+When showing simulation results, always render a 3D visualization. Keep \
+responses concise and focus on the data.
+
+Important tool usage guidelines:
+- Use the operation schemas below directly — do NOT call describe_operation() \
+for these common operations. Only use describe_operation() for operations not \
+listed here.
+- Use a small geocoding radius (250m) unless the user explicitly asks for a \
+large area. Large bounding boxes download millions of points and are slow.
+- For 3D visualization, prefer building a Mesh (e.g. build_terrain_surface_mesh) \
+and rendering that, rather than rendering Raster objects directly.
+- Parallelize tool calls whenever possible (e.g. geocode + describe, fetch + build).
+
+Common operation schemas (use these directly with run_operation):
+
+datasets.point_cloud — Download point cloud data.
+  params: bounds (list[float], required), \
+classifications (str: "all"|"terrain"|"buildings"|"vegetation", or int|list[int]) = "all", \
+source (str) = "LM", remove_outliers (bool) = false
+
+datasets.buildings — Download 3D buildings (LoD1).
+  params: bounds (list[float], required), source (str) = "LM"
+
+builder.build_terrain_raster — Rasterize point cloud into DEM raster.
+  params: pc (object_ref, required), cell_size (float, required), \
+bounds = None, ground_only (bool) = true
+
+builder.raster.slope_aspect — Compute slope and aspect from DEM. Returns tuple (slope, aspect).
+  params: dem (object_ref, required)
+
+builder.build_terrain_surface_mesh — Triangular mesh from terrain data.
+  params: data (object_ref: PointCloud or Raster, required), \
+max_mesh_size (float) = 10, ground_points_only (bool) = true
+
+builder.build_city_surface_mesh — 3D mesh from city buildings.
+  params: city (object_ref, required), max_mesh_size (float) = 10
+
+builder.pc_filter.classification_filter — Filter point cloud by classification.
+  params: pc (object_ref, required), classes (int|list[int], required), keep (bool) = false\
+"""
+M2_PROMPT_VERSION = prompt_version(M2_PROMPT)
+
 
 def build_options(session: Session, sdk_session_id: str | None = None,
                   memory_context: str = "", turn_id: str | None = None) -> ClaudeAgentOptions:
     """Build Agent SDK options, optionally resuming a session."""
-    prompt = SYSTEM_PROMPT
+    prompt = M2_PROMPT
     if memory_context:
         prompt += f"\n\n{memory_context}"
     opts = ClaudeAgentOptions(
@@ -149,6 +198,7 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
     """One turn on the Agent SDK. A resumed conversation that fails is tried
     once more fresh, as the same turn."""
     turn.runtime, turn.package = NAME, PACKAGE
+    turn.prompt_version = M2_PROMPT_VERSION
     session_id = session.id
     sdk_session_id = session.sdk_session_id
     if sdk_session_id:

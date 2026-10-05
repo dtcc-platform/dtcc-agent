@@ -245,6 +245,8 @@ def report(rows: list[dict[str, Any]], question_ids: list[str], meta: dict[str, 
         f"cost source: {_one({p.get('cost_source') for p in prov})}",
         f"- Core commit: `{catalogue['core_commit'] if catalogue else 'unknown'}` · "
         f"catalogue: {catalogue['operations'] if catalogue else 'unknown'} operations",
+        f"- Catalogue in prompt: {_one({p.get('catalogue_in_prompt') for p in prov})} · "
+        f"variant: {_one({p.get('catalogue_variant') for p in prov})}",
         f"- dtcc-sim: {'available' if meta['notes'].get('sim_available') else 'not available'}"
         + (f" (probe {meta['notes']['sim_probe']})" if "sim_probe" in meta["notes"] else ""),
         f"- Spent: ${meta['notes'].get('spent_usd', 0):.2f}"

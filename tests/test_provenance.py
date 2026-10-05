@@ -163,7 +163,8 @@ def _turn():
 ANSWER_FIELDS = {"at", "turn_id", "session_id", "subject", "model", "models_used",
                  "prompt_version", "memory_context", "sdk", "tools_called", "num_turns",
                  "duration_ms", "duration_api_ms", "usage", "total_cost_usd", "is_error",
-                 "retried_fresh", "error", "runtime", "provider", "cost_source"}
+                 "retried_fresh", "error", "runtime", "provider", "cost_source",
+                 "catalogue_in_prompt", "catalogue_variant"}
 
 
 def test_an_answer_record_holds_what_the_agent_reported():
@@ -182,7 +183,9 @@ def test_an_answer_record_holds_what_the_agent_reported():
     assert record["num_turns"] == 3 and record["total_cost_usd"] == 0.04
     assert record["is_error"] is False and record["retried_fresh"] is False and record["error"] is None
     assert record["memory_context"] is True and record["sdk"].startswith("claude-agent-sdk ")
-    assert record["prompt_version"] == answers.prompt_version()
+    # The runtime names what it sent; a bare record has no prompt and no catalogue.
+    assert record["prompt_version"] is None
+    assert record["catalogue_in_prompt"] is False and record["catalogue_variant"] is None
     assert (record["runtime"], record["provider"]) == ("sdk", "bedrock")
     assert record["cost_source"] == "sdk total_cost_usd"
 
@@ -212,5 +215,5 @@ def test_a_turn_that_crashed_before_any_result_still_has_every_field():
 def test_editing_the_system_prompt_changes_its_version():
     from chatbot.config import SYSTEM_PROMPT
 
-    assert len(answers.prompt_version()) == 12
+    assert len(answers.prompt_version(SYSTEM_PROMPT)) == 12
     assert answers.prompt_version(SYSTEM_PROMPT + " ") != answers.prompt_version(SYSTEM_PROMPT)

@@ -12,11 +12,34 @@ from pydantic_ai import FunctionToolset
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from pydantic_ai.usage import RequestUsage
 
-from chatbot.provenance import TurnRecord
+from chatbot.config import SYSTEM_PROMPT
+from chatbot.provenance import TurnRecord, prompt_version
 from chatbot.runtime import pai
 from chatbot.sessions import Session
 
 IMAGE = "abc_obj_1.png"
+CATALOGUE = '[{"name": "datasets.buildings", "description": "Download 3D buildings."}]'
+REAL_FETCH = pai.fetch_catalogue
+
+
+@pytest.fixture(autouse=True)
+def catalogue(monkeypatch):
+    """Every test starts with no catalogue memoised; the fetch returns
+    CATALOGUE and counts its calls. `fail` makes the next that-many raise."""
+    monkeypatch.setattr(pai, "_catalogue", pai._Memo())
+    monkeypatch.delenv("DTCC_AGENT_CATALOGUE", raising=False)
+    state = {"fetches": 0, "fail": 0}
+
+    async def fetch(tools, variant):
+        state["fetches"] += 1
+        await asyncio.sleep(0.01)
+        if state["fail"]:
+            state["fail"] -= 1
+            raise ConnectionError("MCP server down")
+        return CATALOGUE
+
+    monkeypatch.setattr(pai, "fetch_catalogue", fetch)
+    return state
 
 
 class _Socket:
@@ -198,6 +221,81 @@ def test_two_turns_on_one_session_run_one_after_the_other(run, monkeypatch):
     assert len([m for m in session.history if m.kind == "response"]) == 2
 
 
+# -- The catalogue in the cached prefix (#87) ------------------------------------
+
+def _parts(seen):
+    """The first request's instruction parts, as (text, dynamic)."""
+    return [(p.content, p.dynamic) for p in seen[0][1].model_request_parameters.instruction_parts]
+
+
+def test_instructions_are_base_then_catalogue_static_then_memory_dynamic(run):
+    seen = []
+    _, _, turn, _ = run(_model(seen, render=False), Session(id="s1"))
+    parts = _parts(seen)
+    assert parts == [(SYSTEM_PROMPT, False),
+                     (f"{pai.CATALOGUE_LINES['summary']}\n\n{CATALOGUE}", False),
+                     ("Earlier: the user asked about Lindholmen.", True)]
+    assert turn.catalogue_in_prompt is True and turn.catalogue_variant == "summary"
+    # The version is the hash of exactly the static text sent, memory left out.
+    assert turn.prompt_version == prompt_version("\n\n".join(text for text, _ in parts[:2]))
+
+
+def test_the_full_variant_says_not_to_look_operations_up(run, monkeypatch):
+    monkeypatch.setenv("DTCC_AGENT_CATALOGUE", "full")
+    seen = []
+    _, _, turn, _ = run(_model(seen, render=False), Session(id="s1"))
+    assert _parts(seen)[1][0].startswith(pai.CATALOGUE_LINES["full"])
+    assert turn.catalogue_variant == "full"
+
+
+def test_an_unknown_variant_refuses_to_run(monkeypatch):
+    monkeypatch.setenv("DTCC_AGENT_CATALOGUE", "everything")
+    with pytest.raises(SystemExit, match="summary, full"):
+        pai.catalogue_variant()
+
+
+def test_prompt_version_changes_with_one_operation_more():
+    one = pai.static_instructions("summary", CATALOGUE)
+    two = pai.static_instructions("summary", CATALOGUE[:-1] + ', {"name": "datasets.terrain"}]')
+    assert prompt_version("\n\n".join(one)) != prompt_version("\n\n".join(two))
+
+
+def test_without_a_catalogue_the_prompt_says_how_to_find_operations(run, catalogue):
+    catalogue["fail"] = 1
+    seen = []
+    _, _, turn, _ = run(_model(seen, render=False), Session(id="s1"))
+    static = [text for text, dynamic in _parts(seen) if not dynamic]
+    assert static == [SYSTEM_PROMPT, pai.DISCOVERY_LINE]
+    assert not any(line in text for line in pai.CATALOGUE_LINES.values() for text in static)
+    assert turn.catalogue_in_prompt is False
+    assert turn.prompt_version == prompt_version(f"{SYSTEM_PROMPT}\n\n{pai.DISCOVERY_LINE}")
+
+
+def test_a_failed_fetch_is_tried_again_next_turn(run, catalogue):
+    catalogue["fail"] = 1
+    _, _, first, _ = run(_model([], render=False), Session(id="s1"))
+    _, _, second, _ = run(_model([], render=False), Session(id="s2"))
+    _, _, third, _ = run(_model([], render=False), Session(id="s3"))
+    assert (first.catalogue_in_prompt, second.catalogue_in_prompt) == (False, True)
+    assert first.error is None  # the turn answered without it
+    assert third.catalogue_in_prompt is True and catalogue["fetches"] == 2  # then memoised
+
+
+def test_concurrent_first_turns_fetch_the_catalogue_once(monkeypatch, catalogue):
+    monkeypatch.setattr(pai, "toolset", lambda session, turn_id: _tools([]))
+    monkeypatch.setattr(pai, "model", lambda: _model([], render=False))
+
+    async def three():
+        turns = [TurnRecord(f"turn_{i}", f"s{i}", "anonymous", memory_context=False) for i in range(3)]
+        await asyncio.gather(*(pai.answer(_Socket(), Session(id=t.session_id), "hi", t, _Memory())
+                               for t in turns))
+        return turns
+
+    turns = asyncio.run(three())
+    assert catalogue["fetches"] == 1
+    assert all(t.catalogue_in_prompt for t in turns)
+
+
 # -- Usage and price ------------------------------------------------------------
 
 def test_usage_maps_to_fresh_input_plus_cache_tokens():
@@ -222,15 +320,22 @@ def test_the_record_names_the_pydantic_ai_runtime(run):
 
 # -- Against the real MCP server --------------------------------------------------
 
-def test_the_model_sees_exactly_the_dtcc_agent_tools(monkeypatch, tmp_path):
+@pytest.mark.parametrize("variant", pai.CATALOGUE_VARIANTS)
+def test_the_model_sees_exactly_the_dtcc_agent_tools(monkeypatch, tmp_path, variant):
     """The real stdio MCP server through pydantic-ai's MCP client: the model's
-    tool list is the server's 22 tools and nothing else, and a call works."""
+    tool list is the server's 22 tools and nothing else, a call works, and the
+    first request already carries the catalogue the server lists."""
+    monkeypatch.setattr(pai, "fetch_catalogue", REAL_FETCH)
+    monkeypatch.setenv("DTCC_AGENT_CATALOGUE", variant)
     monkeypatch.delenv("DTCC_MCP_URL", raising=False)
     monkeypatch.setenv("DTCC_AGENT_ARTIFACTS_DIR", str(tmp_path))
     seen = []
 
+    instructions = []
+
     async def stream(messages, info: AgentInfo):
         seen.append(sorted(t.name for t in info.function_tools))
+        instructions.append(info.instructions)
         if len(seen) == 1:
             yield {0: DeltaToolCall(name="list_objects", json_args="{}")}
             return
@@ -244,3 +349,8 @@ def test_the_model_sees_exactly_the_dtcc_agent_tools(monkeypatch, tmp_path):
     assert len(seen[0]) == 22 and "run_operation" in seen[0] and "geocode" in seen[0]
     assert not {"Bash", "Read", "Write", "Edit", "ToolSearch"} & set(seen[0])
     assert turn.tools_called == ["list_objects"]
+    assert turn.catalogue_in_prompt is True
+    assert pai.CATALOGUE_LINES[variant] in instructions[0]
+    assert "datasets.point_cloud" in instructions[0]
+    # The full variant carries each operation's parameters.
+    assert ('"params"' in instructions[0]) is (variant == "full")
