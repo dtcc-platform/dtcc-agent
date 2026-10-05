@@ -14,6 +14,7 @@ Last updated: 2026-10-05.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | 🔍 |
 | 2026-10-05 | The tool server moves to version 2 of the MCP library, which the new agent runtime needs; nothing changes for users ([#92](https://github.com/dtcc-platform/dtcc-agent/pull/92), T39, fixes [#91](https://github.com/dtcc-platform/dtcc-agent/issues/91)) | 🔍 |
 | 2026-10-05 | **First M3 task:** the chat runs on Amazon Bedrock with the model set in config, and the reference that the pydantic-ai switch must match is measured: twice, pooled ([#90](https://github.com/dtcc-platform/dtcc-agent/pull/90), T35, fixes [#85](https://github.com/dtcc-platform/dtcc-agent/issues/85)) | 🔍 |
 | 2026-10-04 | The M2 baseline re-measured after #79–#83: all 30 runs answered, $1.93 ([#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)) | ✅ |
@@ -61,11 +62,34 @@ Last updated: 2026-10-05.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93.
 
 ---
 
 ## 🔍 In review
+
+### The chat runs without the Claude command-line program · 2026-10-05 · [#93](https://github.com/dtcc-platform/dtcc-agent/pull/93)
+
+**Before:** every chat message started a copy of the Claude command-line program, which then
+connected to the tool server and asked the model. That cost time on every message, tied the
+chat to one vendor's tooling, and brought along general-purpose tools the chat never needs.
+
+**Now:** the agent runs inside the chat server itself (pydantic-ai), talking to Bedrock and the
+tool server directly. On the same 10 questions, model and machine:
+- **Faster:** a typical question answers in 8.9 s instead of 12.1 s (27% faster), and no
+  question got more than 3% slower. Simple questions gained most: a building count went from
+  11 s to under 5 s.
+- **Cheaper:** a run of the question set costs $0.73 instead of $0.95.
+- **Smaller:** the server image can be built without the command-line program at all.
+
+The old path stays one setting away (`DTCC_AGENT_RUNTIME=sdk`) for one milestone, in case
+something turns up that the measurements missed.
+
+**How we know it works:** the speed check M3 set before starting (#29) passed: two full runs
+of the question set, all 60 answered, compared with two runs of the old path. Tests cover the
+new loop, follow-up questions, retries, pricing, and running with the old path not installed;
+CI now runs the tests both with and without it. Live, a three-message chat with a picture
+worked on an image with no command-line program. 570 tests pass.
 
 ### The tool server moves to MCP library version 2 · 2026-10-05 · [#92](https://github.com/dtcc-platform/dtcc-agent/pull/92)
 

@@ -25,3 +25,5 @@ eval/runs/*
 # The M3 gate reference: its report and the raw runs it pools (#85)
 !eval/runs/baseline-m3-sdk.md
 !eval/runs/baseline-m3-sdk/
+!eval/runs/m3-runtime.md
+!eval/runs/m3-runtime/
