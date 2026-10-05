@@ -240,6 +240,14 @@ async def _relay(ws, session: Session, turn: TurnRecord, event: Any,
         new = event.result.new_messages()
         session.history = event.result.all_messages()
         for message in new:
+            if isinstance(message, ModelResponse):
+                # Each request's Bedrock usage, in Bedrock's terms: pydantic-ai
+                # counts cache tokens inside input_tokens (#86, #87).
+                u = message.usage
+                logger.debug("[%s]   Usage: inputTokens=%d cacheReadInputTokens=%d "
+                             "cacheWriteInputTokens=%d outputTokens=%d", session.id,
+                             u.input_tokens - u.cache_read_tokens - u.cache_write_tokens,
+                             u.cache_read_tokens, u.cache_write_tokens, u.output_tokens)
             if isinstance(message, ModelResponse) and message.model_name:
                 turn.saw_model(message.model_name)
                 if message.model_name not in models:

@@ -354,3 +354,12 @@ def test_the_model_sees_exactly_the_dtcc_agent_tools(monkeypatch, tmp_path, vari
     assert "datasets.point_cloud" in instructions[0]
     # The full variant carries each operation's parameters.
     assert ('"params"' in instructions[0]) is (variant == "full")
+
+
+def test_each_request_logs_its_bedrock_usage(run, caplog):
+    """The request-level cache check (#86, #87) reads these lines."""
+    caplog.set_level("DEBUG", logger="lurkie")
+    run(_model([]), Session(id="s1"))
+    lines = [r.getMessage() for r in caplog.records if "Usage:" in r.getMessage()]
+    assert len(lines) == 2  # the tool call, then the answer
+    assert all("cacheReadInputTokens=" in line and "cacheWriteInputTokens=" in line for line in lines)
