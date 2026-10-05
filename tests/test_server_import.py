@@ -3,7 +3,8 @@
 The rest of the suite exercises the modules behind the tools but never imports
 `server.py`, so the suite stayed green while `python -m dtcc_agent` could not
 start at all: a fresh install resolved `mcp` 2.x, where the
-`mcp.server.fastmcp` path server.py imports was removed.
+`mcp.server.fastmcp` path server.py then imported was removed. server.py now
+uses mcp 2.x's MCPServer; the next major would break it the same way.
 
 These tests close that gap. They import the server module and enumerate its
 tools, which is the smallest check that fails when the package cannot start.

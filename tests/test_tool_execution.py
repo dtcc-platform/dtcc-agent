@@ -40,11 +40,11 @@ def test_a_tool_whose_core_call_uses_asyncio_run_succeeds_under_uvloop(monkeypat
 
     monkeypatch.setattr(dispatcher, "run_operation", fake_dispatch)
 
-    content, _ = _run_on_uvloop(
+    result = _run_on_uvloop(
         server.mcp.call_tool("run_operation", {"name": "datasets.point_cloud"})
     )
 
-    payload = json.loads(content[0].text)
+    payload = json.loads(result.content[0].text)
     assert "error" not in payload
     assert payload["summary"] == "downloaded"
     assert calls["thread"] is not threading.main_thread()

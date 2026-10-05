@@ -18,11 +18,12 @@ import time
 
 import anyio
 import httpx
+import httpx2
 import numpy as np
 import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.mcpserver.exceptions import ToolError
 from mcp.client.streamable_http import streamable_http_client
 
 import dtcc_agent.server as server
@@ -76,10 +77,12 @@ def _serve(shared_dir, artifacts_dir, **extra_env):
         deadline = time.monotonic() + 60
         while True:
             assert proc.poll() is None, "MCP server exited during startup"
+            # A connect, not a GET: mcp 2.x answers GET /mcp with a stream
+            # that stays open, so a GET never returns.
             try:
-                httpx.get(url, timeout=1)
+                socket.create_connection(("127.0.0.1", port), timeout=1).close()
                 break
-            except httpx.TransportError:
+            except OSError:
                 assert time.monotonic() < deadline, "MCP server never started listening"
                 time.sleep(0.2)
         yield url
@@ -115,13 +118,13 @@ def _call(url, session_id, tool, args=None, headers=None):
         sent = {SESSION_HEADER: session_id} if session_id is not None else {}
         sent.update(headers or {})
         async with (
-            httpx.AsyncClient(headers=sent) as http,
-            streamable_http_client(url, http_client=http) as (read, write, _),
+            httpx2.AsyncClient(headers=sent) as http,
+            streamable_http_client(url, http_client=http) as (read, write),
             ClientSession(read, write) as session,
         ):
             await session.initialize()
             result = await session.call_tool(tool, args or {})
-            return result.isError, result.content[0].text
+            return result.is_error, result.content[0].text
 
     return anyio.run(run)
 
@@ -405,13 +408,8 @@ def test_a_session_takes_its_subject_from_the_request(monkeypatch):
     monkeypatch.setattr(server, "_sessions", server._sessions.__class__())
     for sid, headers, subject in [("with", {server.SUBJECT_HEADER: "anonymous"}, "anonymous"),
                                   ("without", {}, "anonymous")]:
-        request = SimpleNamespace(headers={SESSION_HEADER: sid, **headers})
-        token = server.request_ctx.set(SimpleNamespace(request=request))
-        try:
-            session = server._request_session()
-        finally:
-            server.request_ctx.reset(token)
-            server._release(session)
+        session = server._request_session({SESSION_HEADER: sid, **headers})
+        server._release(session)
         assert session.subject == subject
     assert server._local_session.subject == "anonymous"
 

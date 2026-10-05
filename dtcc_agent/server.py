@@ -19,16 +19,15 @@ import os
 import threading
 import time
 from collections import OrderedDict
-from collections.abc import Hashable
+from collections.abc import Hashable, Mapping
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
 import anyio
-from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.exceptions import ToolError
-from mcp.server.lowlevel.server import request_ctx
+from mcp.server.mcpserver import Context, MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 
 from . import artifacts, provenance, refs, runtime
 from .geocode import geocode as _geocode
@@ -42,10 +41,10 @@ from .geojson_store import (
     summarize_geojson_property as _summarize_geojson_property,
 )
 
-# Stateless: the chatbot opens a connection per message, and a stateful
-# transport keeps a server task per connection that nothing ever frees. The
-# Session travels in SESSION_HEADER instead, so no transport state is needed.
-mcp = FastMCP("dtcc-agent", stateless_http=True)
+# Served stateless (see main()): the chatbot opens a connection per message,
+# and a stateful transport keeps a server task per connection that nothing
+# ever frees. The Session travels in SESSION_HEADER instead.
+mcp = MCPServer("dtcc-agent")
 
 
 SESSION_HEADER = "X-DTCC-Session"
@@ -169,31 +168,37 @@ def _evict_idle_excess() -> None:
         _sessions.pop(sid).objects.clear()
 
 
-def _request_session() -> _Session | None:
-    """Resolve the calling Session from the HTTP request.
+def _request_headers(context: Context) -> Mapping[str, str] | None:
+    """The HTTP request's headers, or None when the call has no HTTP request:
+    stdio, and in-process `mcp.call_tool`, whose Context carries no request
+    at all (reading its headers then raises)."""
+    try:
+        return context.headers
+    except ValueError:
+        return None
+
+
+def _request_session(headers: Mapping[str, str] | None) -> _Session | None:
+    """Resolve the calling Session from the HTTP request's headers.
 
     None under stdio and for in-process calls, which have no HTTP request.
     """
-    context = request_ctx.get(None)
-    request = context.request if context else None
-    if request is None:
+    if headers is None:
         if _serving_http:
             raise ToolError(f"Refused: HTTP tool calls must carry the {SESSION_HEADER} header.")
         return None
-    session_id = request.headers.get(SESSION_HEADER)
+    session_id = headers.get(SESSION_HEADER)
     if not session_id:
         raise ToolError(f"Refused: HTTP tool calls must carry the {SESSION_HEADER} header.")
     return _session_for(session_id, acquire=True,
-                        subject=request.headers.get(SUBJECT_HEADER) or ANONYMOUS)
+                        subject=headers.get(SUBJECT_HEADER) or ANONYMOUS)
 
 
-def _request_turn() -> str | None:
+def _request_turn(headers: Mapping[str, str] | None) -> str | None:
     """The chat turn the running call belongs to: TURN_HEADER over HTTP,
     DTCC_AGENT_TURN under stdio, else None (a client that is not the chatbot)."""
-    context = request_ctx.get(None)
-    request = context.request if context else None
-    if request is not None:
-        return request.headers.get(TURN_HEADER)
+    if headers is not None:
+        return headers.get(TURN_HEADER)
     return os.getenv("DTCC_AGENT_TURN")
 
 
@@ -240,7 +245,9 @@ def tool(
     gpkg downloads) raises, and a thread also keeps one slow tool from
     stalling every other session. At most `runtime.workers` bodies run at once
     across the process, and at most the Session's share of them from one
-    Session. The Session is bound through a context variable.
+    Session. The Session is bound through a context variable, resolved from
+    the request headers MCPServer hands the wrapper as `mcp_context`; the
+    tool's own schema never shows that parameter.
 
     `flight` maps the call's arguments to a key; calls with the same key run
     one at a time (see `_flight`), None opting a call out.
@@ -253,8 +260,9 @@ def tool(
     signature = inspect.signature(fn)
 
     @functools.wraps(fn)
-    async def run_bound(*args: Any, **kwargs: Any) -> str:
-        session = _request_session()
+    async def run_bound(*args: Any, mcp_context: Context, **kwargs: Any) -> str:
+        headers = _request_headers(mcp_context)
+        session = _request_session(headers)
         token = _current_session.set(session)
         started = time.monotonic()
         arguments: dict[str, Any] = {}
@@ -279,12 +287,19 @@ def tool(
             provenance.record_operation(
                 tool=fn.__name__, arguments=arguments, result=result, error=error,
                 seconds=time.monotonic() - started, session_id=bound.id,
-                subject=bound.subject, turn_id=_request_turn(),
+                subject=bound.subject, turn_id=_request_turn(headers),
             )
             _current_session.reset(token)
             if session is not None:
                 _release(session)
 
+    # MCPServer reads the parameters from the signature and finds the
+    # context by its annotation: the tool's own, plus mcp_context.
+    run_bound.__signature__ = signature.replace(parameters=[
+        *signature.parameters.values(),
+        inspect.Parameter("mcp_context", inspect.Parameter.KEYWORD_ONLY, annotation=Context),
+    ])
+    run_bound.__annotations__ = {**fn.__annotations__, "mcp_context": Context}
     mcp.tool()(run_bound)
     return fn
 
@@ -1600,7 +1615,7 @@ def main():
     _serving_http = True
     # Our own uvicorn entry rather than mcp.run(transport=...): process-scoped
     # startup (#12) goes in this app's lifespan, which runs once per process.
-    app = mcp.streamable_http_app()
+    app = mcp.streamable_http_app(stateless_http=True)
     app.router.lifespan_context = _starting_runtime(app.router.lifespan_context)
     uvicorn.run(
         _require_secret(app, secret) if secret else app,

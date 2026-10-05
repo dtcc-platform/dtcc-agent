@@ -22,7 +22,7 @@ from unittest.mock import MagicMock
 
 import anyio
 import pytest
-from mcp.server.lowlevel.server import request_ctx
+from mcp.server.mcpserver import Context
 
 import dtcc_agent.dispatcher as dispatcher
 import dtcc_agent.runner as runner
@@ -42,10 +42,11 @@ def fresh_sessions(monkeypatch):
 
 async def _call(tool, args, session_id=None):
     """One tool call; with `session_id`, as an HTTP request carrying it."""
+    context = None
     if session_id is not None:
         request = SimpleNamespace(headers={SESSION_HEADER: session_id})
-        request_ctx.set(SimpleNamespace(request=request))
-    return await server.mcp.call_tool(tool, args)
+        context = Context(request_context=SimpleNamespace(request=request), mcp_server=server.mcp)
+    return await server.mcp.call_tool(tool, args, context)
 
 
 def _wait_until(predicate, timeout=2.0):
@@ -161,8 +162,10 @@ def test_a_tool_that_raises_gives_its_worker_back(monkeypatch):
 
     monkeypatch.setattr(runner, "list_simulations", boom)
 
-    with pytest.raises(Exception, match="core crashed"):
+    # mcp 2.x keeps an unexpected crash's text off the wire; it is the cause.
+    with pytest.raises(Exception) as raised:
         anyio.run(_call, "list_simulations", {}, "s1")
+    assert str(raised.value.__cause__) == "core crashed"
 
     assert pool.borrowed_tokens == 0
     assert server._sessions["s1"].workers.borrowed_tokens == 0
@@ -211,8 +214,8 @@ def test_two_sessions_asking_for_one_tile_download_it_once(gated_download):
     results = {}
 
     async def fetch(session_id, bounds):
-        content, _ = await _call("run_operation", _point_cloud(bounds), session_id)
-        results[session_id] = json.loads(content[0].text)
+        result = await _call("run_operation", _point_cloud(bounds), session_id)
+        results[session_id] = json.loads(result.content[0].text)
 
     async def run():
         async with anyio.create_task_group() as tg:

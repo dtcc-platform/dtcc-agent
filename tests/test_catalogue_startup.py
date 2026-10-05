@@ -25,6 +25,7 @@ from types import SimpleNamespace
 
 import anyio
 import httpx
+import httpx2
 import pytest
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
@@ -135,9 +136,9 @@ def test_over_stdio_a_broken_catalogue_fails_the_first_call_naming_it(monkeypatc
     monkeypatch.setattr(registry, "_REGISTRY", None)
     monkeypatch.setattr(registry, "_build_registry", broken)
 
-    _, result = anyio.run(server.mcp.call_tool, "list_operations", {})
+    result = anyio.run(server.mcp.call_tool, "list_operations", {})
 
-    assert "Failed to register IO functions" in result["result"]
+    assert "Failed to register IO functions" in result.structured_content["result"]
 
 
 def test_tool_calls_after_startup_reuse_the_catalogue(builds):
@@ -707,13 +708,13 @@ def test_an_http_server_builds_its_catalogue_once_for_many_sessions(tmp_path):
 
     async def list_ops(session_id):
         async with (
-            httpx.AsyncClient(headers={SESSION_HEADER: session_id}) as http,
-            streamable_http_client(url, http_client=http) as (read, write, _),
+            httpx2.AsyncClient(headers={SESSION_HEADER: session_id}) as http,
+            streamable_http_client(url, http_client=http) as (read, write),
             ClientSession(read, write) as session,
         ):
             await session.initialize()
             result = await session.call_tool("list_operations", {})
-            assert not result.isError
+            assert not result.is_error
 
     with open(log, "w") as err:
         proc = subprocess.Popen([sys.executable, "-m", "dtcc_agent"], env=env,
@@ -722,10 +723,12 @@ def test_an_http_server_builds_its_catalogue_once_for_many_sessions(tmp_path):
             deadline = time.monotonic() + 60
             while True:
                 assert proc.poll() is None, log.read_text()[-2000:]
+                # A connect, not a GET: mcp 2.x answers GET /mcp with a
+                # stream that stays open, so a GET never returns.
                 try:
-                    httpx.get(url, timeout=1)
+                    socket.create_connection(("127.0.0.1", port), timeout=1).close()
                     break
-                except httpx.TransportError:
+                except OSError:
                     assert time.monotonic() < deadline, "server never started listening"
                     time.sleep(0.2)
             listening = log.read_text()
