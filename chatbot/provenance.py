@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.metadata
+from collections.abc import Sequence
 from typing import Any
 
 from dtcc_agent.provenance import now
@@ -36,18 +37,21 @@ def _sdk() -> str:
 
 PROMPT_VERSION = prompt_version()
 SDK = _sdk()
-# Where answers come from, and where their cost figure comes from (#85).
-RUNTIME = "sdk"
+# Where answers come from (#85). Bedrock is the only provider (#29).
 PROVIDER = "bedrock"
-COST_SOURCE = "sdk total_cost_usd"
+SDK_COST_SOURCE = "sdk total_cost_usd"
 
 
 class TurnRecord:
     """What one turn's agent calls report. A fresh retry after a failed
     resume adds to the same record: one turn, one line."""
 
-    def __init__(self, turn_id: str, session_id: str, subject: str, memory_context: bool) -> None:
+    def __init__(self, turn_id: str, session_id: str, subject: str, memory_context: bool,
+                 *, runtime: str = "sdk", package: str = SDK) -> None:
         self.turn_id = turn_id
+        self.runtime = runtime
+        self.package = package
+        self.cost_source: str | None = None
         self.session_id = session_id
         self.subject = subject
         self.memory_context = memory_context
@@ -82,6 +86,26 @@ class TurnRecord:
             if model not in self.models_used:
                 self.models_used.append(model)
         self.result_error = self.result_error or bool(getattr(result, "is_error", False))
+        self.cost_source = SDK_COST_SOURCE
+
+    def saw_run(self, usage: Any, *, elapsed_ms: int, cost: float | None,
+                cost_source: str, models: Sequence[str] = ()) -> None:
+        """A pydantic-ai turn's figures, from its RunUsage (every attempt,
+        retries included). pydantic-ai counts cache reads and writes inside
+        input_tokens; here input_tokens means fresh input, as the SDK's did."""
+        self.usage = {
+            "input_tokens": usage.input_tokens - usage.cache_read_tokens - usage.cache_write_tokens,
+            "output_tokens": usage.output_tokens,
+            "cache_read_input_tokens": usage.cache_read_tokens,
+            "cache_creation_input_tokens": usage.cache_write_tokens,
+        }
+        self.totals = {"num_turns": usage.requests, "duration_ms": elapsed_ms}
+        if cost is not None:
+            self.totals["total_cost_usd"] = cost
+        self.cost_source = cost_source
+        for model in models:
+            if model not in self.models_used:
+                self.models_used.append(model)
 
     def retry(self) -> None:
         self.retried_fresh = True
@@ -96,10 +120,10 @@ class TurnRecord:
             "at": now(), "turn_id": self.turn_id, "session_id": self.session_id,
             "subject": self.subject, "model": self.model, "models_used": self.models_used,
             "prompt_version": PROMPT_VERSION, "memory_context": self.memory_context,
-            "sdk": SDK, "tools_called": self.tools_called,
+            "sdk": self.package, "tools_called": self.tools_called,
             **{key: self.totals.get(key) for key in _SUMMED},
             "usage": self.usage,
             "is_error": self.error is not None or self.result_error,
             "retried_fresh": self.retried_fresh, "error": self.error,
-            "runtime": RUNTIME, "provider": PROVIDER, "cost_source": COST_SOURCE,
+            "runtime": self.runtime, "provider": PROVIDER, "cost_source": self.cost_source,
         }

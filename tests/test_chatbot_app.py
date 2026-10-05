@@ -4,27 +4,8 @@
 import json
 import sys
 import types
-from unittest.mock import MagicMock
 
 import pytest
-
-# claude_agent_sdk is an optional dependency that may not be installed.
-# The chatbot.app module imports it at module level, so we must provide
-# a mock module *before* importing chatbot.app.
-_need_mock = "claude_agent_sdk" not in sys.modules
-if _need_mock:
-    _mock_sdk = types.ModuleType("claude_agent_sdk")
-    _mock_sdk.ClaudeSDKClient = MagicMock()
-    _mock_sdk.ClaudeAgentOptions = MagicMock()
-    _mock_sdk.AssistantMessage = MagicMock()
-    _mock_sdk.UserMessage = MagicMock()
-    _mock_sdk.ResultMessage = MagicMock()
-    _mock_sdk.SystemMessage = MagicMock()
-    _mock_sdk.TextBlock = MagicMock()
-    _mock_sdk.ThinkingBlock = MagicMock()
-    _mock_sdk.ToolUseBlock = MagicMock()
-    _mock_sdk.ToolResultBlock = MagicMock()
-    sys.modules["claude_agent_sdk"] = _mock_sdk
 
 _mock_chromadb = None
 if "chromadb" not in sys.modules:
@@ -88,6 +69,7 @@ def test_websocket_session_handshake():
 # -- Artifacts (T7, #21) ----------------------------------------------------
 
 import chatbot.app as app_module
+from chatbot.runtime import artifact_frame
 from chatbot.sessions import SESSION_IDLE_SECONDS
 from dtcc_agent import artifacts
 
@@ -149,7 +131,7 @@ def test_a_tool_result_with_an_image_artifact_becomes_an_image_frame(artifact_ro
     path = _artifact("s1", "obj_1", ".png")
     content = [{"type": "text", "text": json.dumps({"artifact": artifacts.describe(path)})}]
 
-    assert app_module._artifact_frame("s1", content) == {
+    assert artifact_frame("s1", content) == {
         "type": "image", "url": f"/artifacts/s1/{path.name}",
     }
 
@@ -158,7 +140,7 @@ def test_a_tool_result_with_a_file_artifact_becomes_a_download_frame(artifact_ro
     path = _artifact("s1", "obj_1", ".csv")
     content = json.dumps({"artifact": artifacts.describe(path)})
 
-    assert app_module._artifact_frame("s1", content) == {
+    assert artifact_frame("s1", content) == {
         "type": "file", "url": f"/artifacts/s1/{path.name}", "name": "obj_1.csv",
     }
 
@@ -168,7 +150,7 @@ def test_an_artifact_inside_fastmcps_structured_result_is_found(artifact_root):
     path = _artifact("s1", "obj_1", ".png")
     tool_text = json.dumps({"object_ref": "obj_1", "artifact": artifacts.describe(path)})
 
-    frame = app_module._artifact_frame("s1", json.dumps({"result": tool_text}))
+    frame = artifact_frame("s1", json.dumps({"result": tool_text}))
 
     assert frame == {"type": "image", "url": f"/artifacts/s1/{path.name}"}
 
@@ -178,64 +160,139 @@ def test_an_artifact_inside_fastmcps_structured_result_is_found(artifact_root):
     json.dumps({"artifact": {"name": "0" * 32 + "_x.png", "kind": "image"}}),
 ])
 def test_a_tool_result_without_this_sessions_artifact_sends_no_frame(artifact_root, content):
-    assert app_module._artifact_frame("s1", content) is None
+    assert artifact_frame("s1", content) is None
 
 
-# -- The browser's session id reaches the MCP server (T5 audit gap) -----------
+# -- The turn around the runtime (#86) ------------------------------------------
+#
+# These hold for any runtime; a fake one stands in. The runtimes' own tests
+# are tests/test_chatbot_runtime_pai.py and tests/test_chatbot_runtime_sdk.py.
+
+from types import SimpleNamespace
+
 
 class _StubMemory:
+    def __init__(self):
+        self.stored = []
+
     def retrieve(self, *args):
         return ""
 
     def store(self, *args):
-        return None
+        self.stored.append(args)
 
 
-def _fake_client(seen, fail_on_resume):
-    class FakeClient:
-        def __init__(self, options):
-            self.options = options
+def _fake_runtime(answer):
+    """A runtime whose turn is `answer(ws, session, text, turn)`; records each turn."""
+    calls = []
 
-        async def __aenter__(self):
-            seen.append(self.options)
-            if fail_on_resume and self.options["sdk_session_id"]:
-                raise RuntimeError("context window exceeded")
-            return self
+    async def run(ws, session, text, turn, memory):
+        calls.append((session.id, session.subject, turn.turn_id))
+        return await answer(ws, session, text, turn)
 
-        async def __aexit__(self, *exc):
-            return False
-
-        async def query(self, text):
-            return None
-
-        async def receive_response(self):
-            if False:
-                yield None
-
-    return FakeClient
+    return SimpleNamespace(NAME="fake", answer=run, calls=calls)
 
 
-@pytest.mark.parametrize("resumed", [False, True], ids=["first-attempt", "fresh-retry"])
-def test_chat_builds_every_agent_call_for_the_browsers_session(monkeypatch, resumed):
-    seen = []
+def _priced(turn, cost):
+    turn.saw_result(SimpleNamespace(num_turns=1, duration_ms=100, duration_api_ms=80,
+                                    total_cost_usd=cost, is_error=False, model_usage={"m": {}},
+                                    usage={"input_tokens": 1, "output_tokens": 2,
+                                           "cache_read_input_tokens": 0,
+                                           "cache_creation_input_tokens": 0}))
+
+
+def _chat(monkeypatch, tmp_path, answer, *, text="hello"):
+    """One turn through chat(); returns (frames, answers.jsonl records, the runtime)."""
+    runtime = _fake_runtime(answer)
+    monkeypatch.setattr(app_module, "ACCESS_CODE", None)
+    monkeypatch.setattr(app_module, "_log_dir", tmp_path)
     monkeypatch.setattr(app_module, "memory", _StubMemory())
-    monkeypatch.setattr(app_module, "_build_options",
-                        lambda sid, sdk=None, ctx="", turn_id=None: {"session_id": sid, "sdk_session_id": sdk})
-    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client(seen, fail_on_resume=True))
+    monkeypatch.setattr(app_module, "runtime", runtime)
     sid = app_module.sessions.create()
-    if resumed:
-        app_module.sessions.set_sdk_session(sid, "sdk-old")
-
+    frames = []
     with TestClient(app).websocket_connect("/chat") as ws:
         ws.send_json({"session_id": sid})
-        assert ws.receive_json() == {"type": "session", "session_id": sid}
-        ws.send_json({"content": "hello"})
-        while ws.receive_json()["type"] != "done":
-            pass
+        ws.receive_json()
+        ws.send_json({"content": text})
+        while (frame := ws.receive_json())["type"] != "done":
+            frames.append(frame)
+    path = tmp_path / "answers.jsonl"
+    records = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
+    return frames, records, runtime
 
-    # The resumed call fails and is retried fresh: both carry the same session.
-    assert [o["session_id"] for o in seen] == [sid] * (2 if resumed else 1)
-    assert seen[-1]["sdk_session_id"] is None
+
+SECRET_TEXT = "s3cret-in-the-message"
+
+
+def test_a_turn_writes_one_answer_record_and_sends_it_before_done(monkeypatch, tmp_path):
+    async def answer(ws, session, text, turn):
+        turn.saw_model("m")
+        _priced(turn, 0.02)
+        await ws.send_json({"type": "text", "content": "hi"})
+        return "hi"
+
+    frames, [record], runtime = _chat(monkeypatch, tmp_path, answer, text=f"my code is {SECRET_TEXT}")
+    assert frames[-1] == {"type": "provenance", **record}
+    assert record["turn_id"].startswith("turn_") and runtime.calls[0][2] == record["turn_id"]
+    assert record["total_cost_usd"] == 0.02 and record["is_error"] is False
+    assert SECRET_TEXT not in (tmp_path / "answers.jsonl").read_text()
+
+
+def test_the_runtime_gets_the_browsers_session_and_its_subject(monkeypatch, tmp_path):
+    async def answer(ws, session, text, turn):
+        return "hi"
+
+    _, _, runtime = _chat(monkeypatch, tmp_path, answer)
+    [(sid, subject, _)] = runtime.calls
+    assert app_module.sessions.get(sid) is not None and subject == "anonymous"
+
+
+def test_an_answer_is_stored_in_memory(monkeypatch, tmp_path):
+    async def answer(ws, session, text, turn):
+        return "hi"
+
+    _chat(monkeypatch, tmp_path, answer, text="hello")
+    assert app_module.memory.stored[0][1:] == ("hello", "hi")
+
+
+def test_a_turn_that_fails_completely_still_writes_one_record(monkeypatch, tmp_path):
+    async def answer(ws, session, text, turn):
+        turn.failed(RuntimeError("boom"))
+        await ws.send_json({"type": "text", "content": "Sorry, an error occurred."})
+        return ""
+
+    frames, [record], _ = _chat(monkeypatch, tmp_path, answer)
+    assert record["is_error"] is True and record["error"] == "RuntimeError"
+    assert record["usage"] is None
+    assert frames[-1]["type"] == "provenance"
+    assert app_module.memory.stored == []  # nothing to remember
+
+
+def test_a_log_that_cannot_be_written_does_not_stop_the_answer(monkeypatch, tmp_path, caplog):
+    blocked = tmp_path / "file-not-dir"
+    blocked.write_text("")
+
+    async def answer(ws, session, text, turn):
+        _priced(turn, 0.01)
+        return "hi"
+
+    with caplog.at_level("WARNING"):
+        frames, records, _ = _chat(monkeypatch, blocked, answer)
+    assert records == [] and frames[-1]["type"] == "provenance"
+    assert any("answers.jsonl" in r.getMessage() for r in caplog.records)
+
+
+def test_new_chat_forgets_the_conversation(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, "ACCESS_CODE", None)
+    sid = app_module.sessions.create()
+    session = app_module.sessions.get(sid)
+    session.sdk_session_id, session.history = "sdk-old", ["a message"]
+    with TestClient(app).websocket_connect("/chat") as ws:
+        ws.send_json({"session_id": sid})
+        ws.receive_json()
+        ws.send_json({"type": "new_chat"})
+        ws.send_json({"content": ""})  # ignored; lets the new_chat be handled first
+    assert session.sdk_session_id is None and session.history == []
 
 
 def test_an_idle_sessions_artifact_is_gone_without_another_chat_opening(artifact_root):
@@ -251,9 +308,12 @@ def test_an_idle_sessions_artifact_is_gone_without_another_chat_opening(artifact
 def test_a_message_to_an_expired_session_closes_the_socket_with_4408(monkeypatch):
     from starlette.websockets import WebSocketDisconnect
 
-    seen = []
+    async def answer(ws, session, text, turn):
+        return "hi"
+
+    runtime = _fake_runtime(answer)
     monkeypatch.setattr(app_module, "memory", _StubMemory())
-    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client(seen, fail_on_resume=False))
+    monkeypatch.setattr(app_module, "runtime", runtime)
     sid = app_module.sessions.create()
 
     with TestClient(app).websocket_connect("/chat") as ws:
@@ -265,7 +325,7 @@ def test_a_message_to_an_expired_session_closes_the_socket_with_4408(monkeypatch
             ws.receive_json()
 
     assert closed.value.code == 4408
-    assert seen == []  # no agent call for an expired session
+    assert runtime.calls == []  # no agent call for an expired session
     assert app_module.sessions.get(sid) is None  # and it was not revived
 
 
@@ -315,144 +375,13 @@ def test_the_page_can_ask_whether_a_code_is_required(monkeypatch, code):
     assert TestClient(app).get("/admission").json() == {"required": code is not None}
 
 
-def test_a_chat_session_is_anonymous_and_its_tool_server_is_told_so(monkeypatch):
-    configs = []
-    monkeypatch.setattr(app_module, "ACCESS_CODE", None)
-    monkeypatch.setattr(app_module, "memory", _StubMemory())
-    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client([], fail_on_resume=False))
-    monkeypatch.setattr(app_module, "get_mcp_server_config",
-                        lambda sid, subject, turn_id: configs.append((sid, subject)) or {})
-    sid = app_module.sessions.create()
-    assert app_module.sessions.get(sid).subject == "anonymous"
+def test_the_chatbot_does_not_need_the_agent_sdk():
+    # The default runtime runs without the SDK and its bundled CLI (#86).
+    import subprocess
 
-    with TestClient(app).websocket_connect("/chat") as ws:
-        ws.send_json({"session_id": sid})
-        ws.receive_json()
-        ws.send_json({"content": "hello"})
-        while ws.receive_json()["type"] != "done":
-            pass
-
-    assert configs == [(sid, "anonymous")]
-
-
-# -- Provenance (T33, #73) ---------------------------------------------------
-
-from types import SimpleNamespace
-
-
-def _result(cost):
-    return SimpleNamespace(num_turns=1, duration_ms=100, duration_api_ms=80, total_cost_usd=cost,
-                           is_error=False, model_usage={"m": {}},
-                           usage={"input_tokens": 1, "output_tokens": 2,
-                                  "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0})
-
-
-def _chat(monkeypatch, tmp_path, stream, *, resume=False, text="hello"):
-    """One turn through chat(); returns (frames, answers.jsonl records, turn ids built)."""
-    turn_ids = []
-    monkeypatch.setattr(app_module, "ACCESS_CODE", None)
-    monkeypatch.setattr(app_module, "_log_dir", tmp_path)
-    monkeypatch.setattr(app_module, "memory", _StubMemory())
-    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client([], fail_on_resume=False))
-    monkeypatch.setattr(app_module, "_build_options",
-                        lambda sid, sdk=None, ctx="", turn_id=None: turn_ids.append(turn_id)
-                        or {"session_id": sid, "sdk_session_id": sdk})
-    monkeypatch.setattr(app_module, "_stream_response", stream)
-    sid = app_module.sessions.create()
-    if resume:
-        app_module.sessions.set_sdk_session(sid, "sdk-old")
-    frames = []
-    with TestClient(app).websocket_connect("/chat") as ws:
-        ws.send_json({"session_id": sid})
-        ws.receive_json()
-        ws.send_json({"content": text})
-        while (frame := ws.receive_json())["type"] != "done":
-            frames.append(frame)
-    path = tmp_path / "answers.jsonl"
-    records = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
-    return frames, records, turn_ids
-
-
-def test_a_turn_writes_one_answer_record_and_sends_it_before_done(monkeypatch, tmp_path):
-    async def stream(client, ws, sid, turn):
-        turn.saw_model("m")
-        turn.saw_result(_result(0.02))
-        await ws.send_json({"type": "text", "content": "hi"})
-        return "sdk-new", "hi"
-
-    frames, [record], turn_ids = _chat(monkeypatch, tmp_path, stream, text=f"my code is {SECRET_TEXT}")
-    assert frames[-1] == {"type": "provenance", **record}
-    assert record["turn_id"].startswith("turn_") and turn_ids == [record["turn_id"]]
-    assert record["total_cost_usd"] == 0.02 and record["is_error"] is False
-    assert SECRET_TEXT not in (tmp_path / "answers.jsonl").read_text()
-
-
-SECRET_TEXT = "s3cret-in-the-message"
-
-
-def test_a_turn_retried_fresh_writes_one_record_under_one_turn_id(monkeypatch, tmp_path):
-    async def stream(client, ws, sid, turn):
-        turn.saw_result(_result(0.01))
-        if client.options["sdk_session_id"]:
-            raise RuntimeError("context window exceeded")
-        return "sdk-new", "hi"
-
-    _, [record], turn_ids = _chat(monkeypatch, tmp_path, stream, resume=True)
-    assert record["retried_fresh"] is True
-    assert record["total_cost_usd"] == pytest.approx(0.02)
-    assert len(turn_ids) == 2 and set(turn_ids) == {record["turn_id"]}
-
-
-def test_a_turn_that_fails_completely_still_writes_one_record(monkeypatch, tmp_path):
-    async def stream(client, ws, sid, turn):
-        raise RuntimeError("boom")
-
-    frames, [record], _ = _chat(monkeypatch, tmp_path, stream)
-    assert record["is_error"] is True and record["error"] == "RuntimeError"
-    assert record["usage"] is None
-    assert frames[-1]["type"] == "provenance"
-
-
-def test_a_log_that_cannot_be_written_does_not_stop_the_answer(monkeypatch, tmp_path, caplog):
-    blocked = tmp_path / "file-not-dir"
-    blocked.write_text("")
-
-    async def stream(client, ws, sid, turn):
-        turn.saw_result(_result(0.01))
-        return "sdk-new", "hi"
-
-    with caplog.at_level("WARNING"):
-        frames, records, _ = _chat(monkeypatch, blocked, stream)
-    assert records == [] and frames[-1]["type"] == "provenance"
-    assert any("answers.jsonl" in r.getMessage() for r in caplog.records)
-
-
-# -- The agent's tools --------------------------------------------------------
-
-def test_the_agent_gets_no_built_in_tools_only_the_dtcc_agent_server(monkeypatch):
-    # The CLI's own tools (Bash, Read, Edit, Write, Task…) would run inside
-    # the chatbot container, next to its credentials. Only ToolSearch stays:
-    # the agent loads the dtcc-agent tools through it.
-    built = []
-    monkeypatch.setattr(app_module, "ClaudeAgentOptions", lambda **kw: built.append(kw) or SimpleNamespace(**kw))
-    monkeypatch.setattr(app_module, "get_mcp_server_config", lambda *a: {"dtcc-agent": {}})
-
-    app_module._build_options("s1")
-
-    [options] = built
-    assert options["tools"] == ["ToolSearch"]
-    assert options["strict_mcp_config"] is True
-    assert set(options["mcp_servers"]) == {"dtcc-agent"}
-
-
-def test_the_agent_runs_the_configured_model_on_bedrock(monkeypatch):
-    built = []
-    monkeypatch.setattr(app_module, "ClaudeAgentOptions", lambda **kw: built.append(kw) or SimpleNamespace(**kw))
-    monkeypatch.setattr(app_module, "get_mcp_server_config", lambda *a: {"dtcc-agent": {}})
-    monkeypatch.setenv("DTCC_AGENT_MODEL", "eu.anthropic.claude-sonnet-4-5-20250929-v1:0")
-
-    app_module._build_options("s1")
-
-    [options] = built
-    assert options["model"] == "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
-    assert options["env"]["CLAUDE_CODE_USE_BEDROCK"] == "1"
+    code = ("import sys; sys.modules['claude_agent_sdk'] = None; "
+            "import chatbot.app as a; assert a.runtime.NAME == 'pydantic-ai'; "
+            "assert 'chatbot.runtime.sdk' not in sys.modules")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                         env={**__import__('os').environ, "DTCC_AGENT_RUNTIME": ""})
+    assert out.returncode == 0, out.stderr[-500:]

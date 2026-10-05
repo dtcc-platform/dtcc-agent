@@ -1,5 +1,6 @@
 # chatbot/app.py
-"""FastAPI application with WebSocket chat endpoint powered by Claude Agent SDK."""
+"""FastAPI application with the WebSocket chat endpoint. A turn is answered by
+the runtime DTCC_AGENT_RUNTIME names (chatbot/runtime, #86)."""
 
 from __future__ import annotations
 
@@ -11,35 +12,18 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-# Prevent "cannot launch inside another Claude Code session" error
-# when the chatbot is started from within a Claude Code terminal.
-os.environ.pop("CLAUDECODE", None)
-
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from claude_agent_sdk import (
-    ClaudeSDKClient,
-    ClaudeAgentOptions,
-    AssistantMessage,
-    UserMessage,
-    ResultMessage,
-    SystemMessage,
-    TextBlock,
-    ThinkingBlock,
-    ToolUseBlock,
-    ToolResultBlock,
-)
-
 from chatbot.config import (
-    SYSTEM_PROMPT, get_mcp_server_config, load_access_code, DEFAULT_HOST, DEFAULT_PORT,
-    bedrock_env, load_model, require_bedrock_credentials,
+    load_access_code, DEFAULT_HOST, DEFAULT_PORT, load_model, require_bedrock_credentials,
 )
 from chatbot.memory import ConversationMemory
 from chatbot.provenance import TurnRecord
+from chatbot.runtime import artifact_frame, load_runtime
 from chatbot.sessions import SessionManager
 from dtcc_agent import artifacts, provenance, refs
 
@@ -65,11 +49,13 @@ logger.info("Log file: %s", _log_file)
 async def _lifespan(app: FastAPI):
     # Checked at server start, not import: every chat turn needs Bedrock (#85).
     require_bedrock_credentials()
-    logger.info("Model: %s on Bedrock", load_model())
+    logger.info("Model: %s on Bedrock, runtime %s", load_model(), runtime.NAME)
     yield
 
 
 app = FastAPI(title="DTCC Lurkie", lifespan=_lifespan)
+# Exits here on an unknown runtime, or `sdk` without its extra.
+runtime = load_runtime()
 sessions = SessionManager()
 memory = ConversationMemory()
 # Opening a chat needs this code; None when admission is off (T14, #72).
@@ -111,31 +97,6 @@ async def artifact(session_id: str, name: str):
                         media_type="application/octet-stream", headers=headers)
 
 
-def _artifact_frame(session_id: str, content: object) -> dict | None:
-    """The frame that shows a tool result's artifact on the page, if it has one."""
-    if isinstance(content, list):
-        content = "".join(
-            part.get("text", "") for part in content if isinstance(part, dict)
-        )
-    try:
-        result = json.loads(content) if isinstance(content, str) else None
-        # FastMCP's structured output wraps a tool's returned string as
-        # {"result": "<that string>"}, and the CLI passes that form on.
-        if isinstance(result, dict) and isinstance(result.get("result"), str):
-            result = json.loads(result["result"])
-    except json.JSONDecodeError:
-        return None
-    found = result.get("artifact") if isinstance(result, dict) else None
-    if not isinstance(found, dict) or not isinstance(found.get("name"), str):
-        return None
-    if artifacts.find(session_id, found["name"]) is None:
-        return None
-    url = f"/artifacts/{session_id}/{found['name']}"
-    if found.get("kind") == "image":
-        return {"type": "image", "url": url}
-    return {"type": "file", "url": url, "name": artifacts.download_name(found["name"])}
-
-
 @app.get("/admission")
 async def admission():
     """Whether the page must ask for an access code before opening a chat."""
@@ -159,180 +120,17 @@ def _subject(session_id: str) -> str:
     return session.subject if session else "anonymous"
 
 
-def _build_options(
-    session_id: str,
-    sdk_session_id: str | None = None,
-    memory_context: str = "",
-    turn_id: str | None = None,
-) -> ClaudeAgentOptions:
-    """Build Agent SDK options, optionally resuming a session."""
-    prompt = SYSTEM_PROMPT
-    if memory_context:
-        prompt += f"\n\n{memory_context}"
-    opts = ClaudeAgentOptions(
-        system_prompt=prompt,
-        mcp_servers=get_mcp_server_config(session_id, _subject(session_id), turn_id),
-        # SECURITY: the agent's tools are the dtcc-agent MCP server's, and no
-        # built-in CLI tool but ToolSearch, which it loads them through.
-        # Without `tools` the CLI enables all of its own (Bash, Read, Edit,
-        # Write, Task...), which run in this container beside its credentials,
-        # and bypassPermissions approves every call. strict_mcp_config keeps
-        # out any MCP server configured elsewhere in the container.
-        tools=["ToolSearch"],
-        strict_mcp_config=True,
-        permission_mode="bypassPermissions",
-        model=load_model(),
-        env=bedrock_env(),
-    )
-    if sdk_session_id:
-        opts.resume = sdk_session_id
-    return opts
-
-
-async def _stream_response(
-    client: ClaudeSDKClient,
-    ws: WebSocket,
-    session_id: str,
-    turn: TurnRecord,
-) -> tuple[str | None, str]:
-    """Stream Agent SDK responses over WebSocket, noting on `turn` what the
-    agent reports for provenance.
-
-    Returns (sdk_session_id, collected_assistant_text).
-    """
-    sdk_session_id = None
-    assistant_text_parts: list[str] = []
-
-    async for msg in client.receive_response():
-        if isinstance(msg, AssistantMessage):
-            logger.info("[%s] AssistantMessage (model=%s, stop=%s)",
-                        session_id, getattr(msg, 'model', '?'),
-                        getattr(msg, 'stop_reason', '?'))
-            turn.saw_model(getattr(msg, "model", None))
-            for block in msg.content:
-                if isinstance(block, TextBlock):
-                    preview = block.text[:120].replace('\n', ' ')
-                    logger.info("[%s]   TextBlock: %s%s",
-                                session_id, preview,
-                                "..." if len(block.text) > 120 else "")
-                    assistant_text_parts.append(block.text)
-                    await ws.send_json({"type": "text", "content": block.text})
-
-                elif isinstance(block, ToolUseBlock):
-                    logger.info("[%s]   ToolUseBlock: %s (id=%s) input=%s",
-                                session_id, block.name, block.id,
-                                json.dumps(block.input, default=str)[:200])
-                    turn.saw_tool(block.name)
-                    await ws.send_json({
-                        "type": "tool_call",
-                        "name": block.name,
-                        "status": "running",
-                    })
-
-                elif isinstance(block, ThinkingBlock):
-                    preview = block.thinking[:100].replace('\n', ' ')
-                    logger.debug("[%s]   ThinkingBlock: %s...", session_id, preview)
-
-                else:
-                    logger.debug("[%s]   Block type: %s", session_id, type(block).__name__)
-
-        elif isinstance(msg, UserMessage):
-            for block in msg.content:
-                if isinstance(block, ToolResultBlock):
-                    content_str = str(block.content)[:300] if block.content else "(empty)"
-                    logger.info("[%s]   ToolResult [%s]: %s%s",
-                                session_id, block.tool_use_id,
-                                content_str,
-                                "..." if len(str(block.content)) > 300 else "")
-                    if frame := _artifact_frame(session_id, block.content):
-                        await ws.send_json(frame)
-                else:
-                    logger.debug("[%s]   UserBlock: %s", session_id, type(block).__name__)
-
-        elif isinstance(msg, SystemMessage):
-            logger.info("[%s] SystemMessage [%s]: %s",
-                        session_id, getattr(msg, 'subtype', '?'),
-                        str(getattr(msg, 'data', ''))[:200])
-
-        elif isinstance(msg, ResultMessage):
-            sdk_session_id = msg.session_id
-            turn.saw_result(msg)
-            logger.info("[%s] ResultMessage: turns=%s, cost=$%s, duration=%sms, session=%s",
-                        session_id,
-                        getattr(msg, 'num_turns', '?'),
-                        getattr(msg, 'total_cost_usd', '?'),
-                        getattr(msg, 'duration_ms', '?'),
-                        sdk_session_id)
-            break
-
-        else:
-            logger.debug("[%s] Unknown message type: %s", session_id, type(msg).__name__)
-
-    return sdk_session_id, "".join(assistant_text_parts)
-
-
 async def _answer(ws: WebSocket, session_id: str, user_text: str) -> None:
-    """Run one turn: ask the agent and stream its answer, then send the
-    turn's provenance record and done. Exactly one answers.jsonl line per
-    turn, whatever happens: a fresh retry adds to it, a crash still writes it."""
-    turn = TurnRecord(refs.new(refs.TURN), session_id, _subject(session_id), memory_context=False)
+    """Run one turn: the runtime asks the agent and streams its answer, then
+    the turn's provenance record and done go out. Exactly one answers.jsonl
+    line per turn, whatever happens: a fresh retry adds to it, a crash still
+    writes it."""
+    session = sessions.get(session_id)
+    turn = TurnRecord(refs.new(refs.TURN), session_id, session.subject, memory_context=False)
     try:
         logger.info("[%s] %s User: %s", session_id, turn.turn_id, user_text[:200])
         await ws.send_json({"type": "status", "content": "thinking"})
-
-        sdk_session_id = sessions.get_sdk_session(session_id)
-        if sdk_session_id:
-            logger.info("[%s] Resuming SDK session %s", session_id, sdk_session_id)
-
-        # Only inject RAG context on fresh sessions — resumed sessions
-        # already have conversation history in their context window.
-        memory_context = "" if sdk_session_id else memory.retrieve(user_text, session_id)
-        turn.memory_context = bool(memory_context)
-        options = _build_options(session_id, sdk_session_id, memory_context, turn_id=turn.turn_id)
-
-        assistant_text = ""
-        try:
-            async with ClaudeSDKClient(options=options) as client:
-                await client.query(user_text)
-                logger.info("[%s] Query sent, streaming response...", session_id)
-                new_sdk_session, assistant_text = await _stream_response(
-                    client, ws, session_id, turn,
-                )
-
-                if new_sdk_session:
-                    sessions.set_sdk_session(session_id, new_sdk_session)
-
-        except Exception as exc:
-            logger.exception("[%s] Error during Agent SDK call", session_id)
-            # If we were resuming a session, try again fresh, as the same turn
-            if sdk_session_id:
-                logger.info("[%s] Retrying with fresh session (previous may have hit context limit)", session_id)
-                sessions.set_sdk_session(session_id, None)
-                turn.retry()
-                try:
-                    fresh_options = _build_options(session_id, None, memory_context,
-                                                   turn_id=turn.turn_id)
-                    async with ClaudeSDKClient(options=fresh_options) as client:
-                        await client.query(user_text)
-                        new_sdk_session, assistant_text = await _stream_response(
-                            client, ws, session_id, turn,
-                        )
-                        if new_sdk_session:
-                            sessions.set_sdk_session(session_id, new_sdk_session)
-                except Exception as fresh_exc:
-                    logger.exception("[%s] Fresh session also failed", session_id)
-                    turn.failed(fresh_exc)
-                    await ws.send_json({
-                        "type": "text",
-                        "content": "Sorry, an error occurred. Please try starting a new chat.",
-                    })
-            else:
-                turn.failed(exc)
-                await ws.send_json({
-                    "type": "text",
-                    "content": "Sorry, an error occurred. Check the server logs for details.",
-                })
-
+        assistant_text = await runtime.answer(ws, session, user_text, turn, memory)
         # Store the exchange in long-term memory
         if assistant_text:
             memory.store(session_id, user_text, assistant_text)
@@ -394,8 +192,8 @@ async def chat(ws: WebSocket):
 
             # Handle "new chat" reset from client
             if data.get("type") == "new_chat":
-                logger.info("[%s] Client requested new chat, clearing SDK session", session_id)
-                sessions.set_sdk_session(session_id, None)
+                logger.info("[%s] Client requested new chat, clearing the conversation", session_id)
+                sessions.get(session_id).reset_conversation()
                 continue
 
             user_text = data.get("content", "").strip()

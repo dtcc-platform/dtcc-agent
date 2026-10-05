@@ -13,11 +13,14 @@ def test_get_session_returns_none_for_unknown():
     assert mgr.get("nonexistent") is None
 
 
-def test_store_and_retrieve_session_id():
+def test_new_chat_forgets_the_conversation_but_keeps_the_session():
     mgr = SessionManager()
     sid = mgr.create()
-    mgr.set_sdk_session(sid, "sdk-session-abc")
-    assert mgr.get_sdk_session(sid) == "sdk-session-abc"
+    session = mgr.get(sid)
+    session.sdk_session_id, session.history = "sdk-session-abc", ["a message"]
+    session.reset_conversation()
+    assert (session.sdk_session_id, session.history) == (None, [])
+    assert mgr.get(sid) is session
 
 
 def test_remove_session():

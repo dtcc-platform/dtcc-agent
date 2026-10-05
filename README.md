@@ -175,8 +175,13 @@ The agent answers through Amazon Bedrock only (#29). Claude has no on-demand mod
 | `AWS_BEARER_TOKEN_BEDROCK` | none | A Bedrock API key. Standard AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_PROFILE`) also work outside Compose. With none set, the chatbot does not start. |
 | `AWS_REGION` | `eu-north-1` | The Bedrock Region. |
 | `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The Bedrock model ID the agent answers with. Changing models is this variable alone. |
+| `DTCC_AGENT_RUNTIME` | `pydantic-ai` | What runs the agent loop. `pydantic-ai` runs it in the chatbot process. `sdk` rolls back to the Claude Agent SDK, which starts the claude CLI for every message; it needs the `sdk` extra, and is kept for one milestone (#86). |
 
-The Claude CLI under the Agent SDK also calls a small model for internal steps; the chatbot
+The default image includes the `sdk` extra so the rollback works. Build without it, and with
+no claude CLI in the image, using `EXTRAS=chatbot ./build_docker.sh`; that image refuses
+`DTCC_AGENT_RUNTIME=sdk` at startup and names the missing extra.
+
+On the `sdk` runtime, the Claude CLI also calls a small model for internal steps; the chatbot
 points that at `DTCC_AGENT_MODEL` too. The 4.5 generation (Sonnet 4.5, Haiku 4.5) is refused
 on an account until Anthropic's use-case form is filed in the Bedrock console; newer models are not.
 Check access with one call before a long run:

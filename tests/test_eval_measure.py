@@ -165,9 +165,9 @@ def chat_url(monkeypatch, tmp_path):
     from types import SimpleNamespace
 
     import chatbot.app as app_module
-    from tests.test_chatbot_app import _StubMemory, _fake_client
+    from tests.test_chatbot_app import _StubMemory, _fake_runtime
 
-    async def stream(client, ws, session_id, turn):
+    async def answer(ws, session, text, turn):
         turn.saw_model("claude-sonnet-4-5")
         turn.saw_tool("mcp__dtcc-agent__geocode")
         turn.saw_result(SimpleNamespace(num_turns=1, duration_ms=5, duration_api_ms=4,
@@ -176,14 +176,12 @@ def chat_url(monkeypatch, tmp_path):
                                                "cache_read_input_tokens": 0,
                                                "cache_creation_input_tokens": 0}))
         await ws.send_json({"type": "text", "content": "There are 188 buildings."})
-        return "sdk-1", "There are 188 buildings."
+        return "There are 188 buildings."
 
     monkeypatch.setattr(app_module, "ACCESS_CODE", "a-sixteen-char-code")
     monkeypatch.setattr(app_module, "_log_dir", tmp_path / "logs")
     monkeypatch.setattr(app_module, "memory", _StubMemory())
-    monkeypatch.setattr(app_module, "ClaudeSDKClient", _fake_client([], fail_on_resume=False))
-    monkeypatch.setattr(app_module, "_build_options", lambda *a, **k: {"sdk_session_id": None})
-    monkeypatch.setattr(app_module, "_stream_response", stream)
+    monkeypatch.setattr(app_module, "runtime", _fake_runtime(answer))
 
     port = _free_port()
     server = uvicorn.Server(uvicorn.Config(app_module.app, host="127.0.0.1", port=port,
@@ -247,3 +245,15 @@ def test_pool_runs_from_the_command_line(tmp_path, capsys):
     path.write_text(json.dumps(_row("q01-building-count", 1, 5.0)) + "\n")
     measure.main(["--pool", str(path), str(path), "--out-dir", str(tmp_path / "out")])
     assert "Pooled from 2 runs" in capsys.readouterr().out
+
+
+def test_an_unpriced_turn_stops_the_run(monkeypatch):
+    # The cost cap adds turn costs; an unpriced turn would add nothing (#86).
+    def ask(text):
+        async def answer():
+            return {"status": "ok", "error": None, "latency_s": 1.0,
+                    "provenance": {**_prov(), "total_cost_usd": None, "cost_source": "unpriced"}}
+        return answer()
+
+    with pytest.raises(SystemExit, match="unpriced"):
+        asyncio.run(measure.measure(QS[:1], 1, ask, max_cost=5.0, sim=False))

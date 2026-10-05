@@ -2,6 +2,9 @@ FROM python:3.12-slim
 
 ARG APP_UID=1000
 ARG APP_GID=1000
+# The SDK runtime (`sdk` extra) is M3's rollback, kept for one milestone.
+# Build with EXTRAS=chatbot for an image with no SDK and no claude CLI (#86).
+ARG EXTRAS=chatbot,sdk
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -28,7 +31,7 @@ COPY . /app
 # contract workflow tests (U10, #14). The check fails the build if pip
 # installed anything else.
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install -e ".[chatbot]" && \
+    pip install -e ".[${EXTRAS}]" && \
     python -c "import json, tomllib, importlib.metadata as m; \
 pin = next(d for d in tomllib.load(open('pyproject.toml', 'rb'))['project']['dependencies'] if d.startswith('dtcc-core')).rsplit('@', 1)[1]; \
 got = json.loads(m.distribution('dtcc-core').read_text('direct_url.json'))['vcs_info']['commit_id']; \

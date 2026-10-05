@@ -27,6 +27,7 @@ services:
       args:
         APP_UID: ${APP_UID:-1000}
         APP_GID: ${APP_GID:-1000}
+        EXTRAS: ${EXTRAS:-chatbot,sdk}
     command: ["python", "-m", "dtcc_agent"]
     # A crash must not leave the chat down until someone notices (#79). The
     # limit makes the kernel kill this server, not a neighbour, if one
@@ -84,6 +85,8 @@ services:
       - AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK:?set AWS_BEARER_TOKEN_BEDROCK}
       - AWS_REGION=${AWS_REGION:-eu-north-1}
       - DTCC_AGENT_MODEL=${DTCC_AGENT_MODEL:-eu.anthropic.claude-sonnet-5-5}
+      # pydantic-ai, or sdk to roll back to the Agent SDK (#86).
+      - DTCC_AGENT_RUNTIME=${DTCC_AGENT_RUNTIME:-pydantic-ai}
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
     healthcheck:

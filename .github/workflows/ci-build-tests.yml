@@ -37,7 +37,7 @@ jobs:
           enable-cache: true
 
       - name: Install package and development dependencies
-        run: uv sync --locked --extra test --extra chatbot
+        run: uv sync --locked --extra test --extra chatbot --extra sdk
 
       - name: Run tests
         run: uv run --no-sync pytest -q
@@ -55,3 +55,24 @@ jobs:
 
       - name: Build distributions
         run: uv build
+
+  # The default runtime must run with no Agent SDK and no claude CLI (#86):
+  # without the `sdk` extra the SDK's own tests skip, everything else runs.
+  test-without-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install without the sdk extra
+        run: uv sync --locked --extra test --extra chatbot
+
+      - name: The SDK is absent
+        run: uv run --no-sync python -c "import importlib.util as u; assert u.find_spec('claude_agent_sdk') is None"
+
+      - name: Run tests
+        run: uv run --no-sync pytest -q
