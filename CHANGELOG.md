@@ -14,7 +14,7 @@ Last updated: 2026-10-06.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | 🔍 |
+| 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#98](https://github.com/dtcc-platform/dtcc-agent/pull/98), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | 🔍 |
 | 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#97](https://github.com/dtcc-platform/dtcc-agent/pull/97), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | ✅ |
 | 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#95](https://github.com/dtcc-platform/dtcc-agent/pull/95), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | ✅ |
 | 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | ✅ |
@@ -71,7 +71,7 @@ Last updated: 2026-10-06.
 
 ## 🔍 In review
 
-### The first chat after a deploy no longer freezes the server · 2026-10-06 · [#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM)
+### The first chat after a deploy no longer freezes the server · 2026-10-06 · [#98](https://github.com/dtcc-platform/dtcc-agent/pull/98)
 
 **Before:** the chat remembers earlier exchanges so it can use them later, which needs a small
 language model. On a fresh deployment, the first answered message downloaded that model (79 MB),
