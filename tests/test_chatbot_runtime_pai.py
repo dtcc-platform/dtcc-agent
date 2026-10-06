@@ -250,7 +250,7 @@ def test_the_full_variant_says_not_to_look_operations_up(run, monkeypatch):
 
 def test_an_unknown_variant_refuses_to_run(monkeypatch):
     monkeypatch.setenv("DTCC_AGENT_CATALOGUE", "everything")
-    with pytest.raises(SystemExit, match="summary, full"):
+    with pytest.raises(SystemExit, match="summary, full, common"):
         pai.catalogue_variant()
 
 
@@ -352,8 +352,10 @@ def test_the_model_sees_exactly_the_dtcc_agent_tools(monkeypatch, tmp_path, vari
     assert turn.catalogue_in_prompt is True
     assert pai.CATALOGUE_LINES[variant] in instructions[0]
     assert "datasets.point_cloud" in instructions[0]
-    # The full variant carries each operation's parameters.
-    assert ('"params"' in instructions[0]) is (variant == "full")
+    # The full and common variants carry operations' parameters.
+    assert ('"params"' in instructions[0]) is (variant != "summary")
+    if variant == "common":
+        assert instructions[0].count('"params"') == len(pai.COMMON_OPERATIONS)
 
 
 def test_each_request_logs_its_bedrock_usage(run, caplog):

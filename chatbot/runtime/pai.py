@@ -74,12 +74,23 @@ def agent() -> Agent:
 
 
 # The catalogue variants #87 measures; one is kept and the other deleted.
-CATALOGUE_VARIANTS = ("summary", "full")
+CATALOGUE_VARIANTS = ("summary", "full", "common")
+# The operations M2 pasted schemas for: most questions need only these, so
+# `common` sends their schemas and spares the model those lookups.
+COMMON_OPERATIONS = (
+    "datasets.point_cloud", "datasets.buildings", "builder.build_terrain_raster",
+    "builder.raster.slope_aspect", "builder.build_terrain_surface_mesh",
+    "builder.build_city_surface_mesh", "builder.pc_filter.classification_filter",
+)
 CATALOGUE_LINES = {
     "summary": "The catalogue below lists every operation. Call `describe_operation` for an "
                "operation's parameters before running it. Call `list_operations` only to search.",
     "full": "The catalogue below gives every operation's full schema. Do not call "
             "`list_operations` or `describe_operation`.",
+    "common": "The catalogue below lists every operation, then gives the full schema of the "
+              "most used ones. Use those schemas directly. Call `describe_operation` for any "
+              "other operation's parameters before running it. Call `list_operations` only "
+              "to search.",
 }
 # Sent instead of a catalogue when the fetch failed.
 DISCOVERY_LINE = ("Use `list_operations` and `describe_operation` to find an operation and "
@@ -117,14 +128,16 @@ async def _call(tools: AbstractToolset, name: str, args: dict[str, Any]) -> str:
 
 
 async def fetch_catalogue(tools: AbstractToolset, variant: str) -> str:
-    """The catalogue text through the turn's MCP toolset: `list_operations`,
-    or every operation's `describe_operation`."""
+    """The catalogue text through the turn's MCP toolset: `list_operations`;
+    every operation's `describe_operation`; or the list then the common
+    operations' schemas."""
     async with tools:
         summary = await _call(tools, "list_operations", {})
         if variant == "summary":
             return summary
-        return "\n\n".join([await _call(tools, "describe_operation", {"name": op["name"]})
-                             for op in json.loads(summary)])
+        names = COMMON_OPERATIONS if variant == "common" else [op["name"] for op in json.loads(summary)]
+        schemas = [await _call(tools, "describe_operation", {"name": name}) for name in names]
+        return "\n\n".join([summary, *schemas] if variant == "common" else schemas)
 
 
 async def catalogue(tools: AbstractToolset, variant: str) -> str | None:

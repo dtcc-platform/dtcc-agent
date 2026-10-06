@@ -87,7 +87,7 @@ services:
       - DTCC_AGENT_MODEL=${DTCC_AGENT_MODEL:-eu.anthropic.claude-sonnet-5-5}
       # pydantic-ai, or sdk to roll back to the Agent SDK (#86).
       - DTCC_AGENT_RUNTIME=${DTCC_AGENT_RUNTIME:-pydantic-ai}
-      # Temporary while #87 measures the catalogue variants: summary or full.
+      # Temporary while #87 measures the catalogue variants: summary, full or common.
       - DTCC_AGENT_CATALOGUE=${DTCC_AGENT_CATALOGUE:-summary}
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
