@@ -163,7 +163,7 @@ def _turn():
 ANSWER_FIELDS = {"at", "turn_id", "session_id", "subject", "model", "models_used",
                  "prompt_version", "memory_context", "sdk", "tools_called", "num_turns",
                  "duration_ms", "duration_api_ms", "usage", "total_cost_usd", "is_error",
-                 "retried_fresh", "error", "runtime", "provider", "cost_source"}
+                 "retried_fresh", "error", "runtime", "provider", "cost_source", "refused"}
 
 
 def test_an_answer_record_holds_what_the_agent_reported():
@@ -181,6 +181,7 @@ def test_an_answer_record_holds_what_the_agent_reported():
                                "cache_read_input_tokens": 30, "cache_creation_input_tokens": 40}
     assert record["num_turns"] == 3 and record["total_cost_usd"] == 0.04
     assert record["is_error"] is False and record["retried_fresh"] is False and record["error"] is None
+    assert record["refused"] is False
     assert record["memory_context"] is True and record["sdk"].startswith("claude-agent-sdk ")
     assert record["prompt_version"] == answers.prompt_version()
     assert (record["runtime"], record["provider"]) == ("sdk", "bedrock")

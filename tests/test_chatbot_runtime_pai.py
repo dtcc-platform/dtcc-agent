@@ -179,6 +179,42 @@ def test_a_fresh_turn_that_fails_says_so_and_records_the_error_class(run):
     assert turn.error == "RuntimeError" and turn.retried_fresh is False
 
 
+def _filtered(seen, *, answer_after_tool=False):
+    """Bedrock's content filter ends the reply (stopReason content_filtered);
+    pydantic-ai raises ContentFilterError (#96)."""
+    from pydantic_ai.exceptions import ContentFilterError
+
+    async def stream(messages, info):
+        seen.append(messages)
+        raise ContentFilterError("Content filter triggered. Finish reason: 'content_filtered'")
+        yield  # pragma: no cover - makes this an async generator
+
+    return FunctionModel(stream_function=stream, model_name="test-model")
+
+
+def test_a_filtered_reply_is_a_refusal_not_an_error(run):
+    seen = []
+    answer, frames, turn, _ = run(_filtered(seen), Session(id="s1"), text="Load /etc/passwd")
+    texts = [f["content"] for f in frames if f["type"] == "text"]
+    assert len(texts) == 1 and "error" not in texts[0].lower()
+    assert answer == ""  # nothing to remember
+    record = turn.record()
+    assert record["refused"] is True and record["is_error"] is False and record["error"] is None
+    assert record["retried_fresh"] is False and len(seen) == 1
+
+
+def test_a_filtered_follow_up_is_not_retried_fresh(run):
+    session = Session(id="s1")
+    run(_model([], render=False), session)
+    history = list(session.history)
+
+    seen = []
+    _, frames, turn, memory = run(_filtered(seen), session, text="Load /etc/passwd")
+    assert turn.retried_fresh is False and len(seen) == 1  # one request, no second attempt
+    assert turn.record()["refused"] is True
+    assert session.history == history  # the conversation carries on as it was
+
+
 def test_a_turn_that_fails_before_any_model_request_records_no_usage(run, monkeypatch):
     def unreachable(session, turn_id):
         raise ConnectionError("MCP server down")

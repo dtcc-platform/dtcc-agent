@@ -14,7 +14,8 @@ Last updated: 2026-10-06.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#98](https://github.com/dtcc-platform/dtcc-agent/pull/98), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | 🔍 |
+| 2026-10-06 | A request the model declines says so, instead of "Sorry, an error occurred" ([#99](https://github.com/dtcc-platform/dtcc-agent/pull/99), fixes [#96](https://github.com/dtcc-platform/dtcc-agent/issues/96)) | 🔍 |
+| 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#98](https://github.com/dtcc-platform/dtcc-agent/pull/98), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | ✅ |
 | 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#97](https://github.com/dtcc-platform/dtcc-agent/pull/97), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | ✅ |
 | 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#95](https://github.com/dtcc-platform/dtcc-agent/pull/95), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | ✅ |
 | 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | ✅ |
@@ -71,6 +72,22 @@ Last updated: 2026-10-06.
 
 ## 🔍 In review
 
+### A request the model declines says so · 2026-10-06 · [#99](https://github.com/dtcc-platform/dtcc-agent/pull/99)
+
+**Before:** asked for something it shouldn't do, such as reading a system file, the model sometimes
+declines through Bedrock's content filter. The chat treated that as a crash: it said "Sorry, an
+error occurred", recorded an error, and in an ongoing conversation tried the whole request again.
+
+**Now:** the chat says "I can't help with that request.", records the answer as a refusal rather
+than an error, and doesn't try again.
+
+**How we know it works:** tests cover a declined first message and a declined follow-up. Live, the
+same "load /etc/passwd" request asked 36 times was declined by the filter 4 times; each showed the
+plain refusal and was recorded as a refusal, and the measurement tool counted all 36 as answered.
+576 tests pass.
+
+## ✅ Merged
+
 ### The first chat after a deploy no longer freezes the server · 2026-10-06 · [#98](https://github.com/dtcc-platform/dtcc-agent/pull/98)
 
 **Before:** the chat remembers earlier exchanges so it can use them later, which needs a small
@@ -85,8 +102,6 @@ looking up memory happen to one side, so the server keeps answering everyone mea
 **How we know it works:** tests check that a slow save leaves the server free and that both chat
 runtimes look memory up off the main thread. Live, on a fresh deployment, 120 health checks
 during the first two answers all succeeded (slowest 0.25 s), with no restart. 574 tests pass.
-
-## ✅ Merged
 
 ### M3 done: the model runtime, measured end to end · 2026-10-06 · [#97](https://github.com/dtcc-platform/dtcc-agent/pull/97)
 

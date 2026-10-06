@@ -62,6 +62,7 @@ class TurnRecord:
         self.usage: dict[str, int] | None = None
         self.result_error = False
         self.retried_fresh = False
+        self.refused = False
         self.error: str | None = None
 
     def saw_model(self, model: str | None) -> None:
@@ -110,6 +111,10 @@ class TurnRecord:
     def retry(self) -> None:
         self.retried_fresh = True
 
+    def refuse(self) -> None:
+        """The model declined the request (#96): an answer, not an error."""
+        self.refused = True
+
     def failed(self, exc: BaseException) -> None:
         """The turn ended without an answer: record the class, never the text."""
         self.error = type(exc).__name__
@@ -124,6 +129,6 @@ class TurnRecord:
             **{key: self.totals.get(key) for key in _SUMMED},
             "usage": self.usage,
             "is_error": self.error is not None or self.result_error,
-            "retried_fresh": self.retried_fresh, "error": self.error,
+            "retried_fresh": self.retried_fresh, "refused": self.refused, "error": self.error,
             "runtime": self.runtime, "provider": PROVIDER, "cost_source": self.cost_source,
         }

@@ -26,6 +26,7 @@ from pydantic_ai import (
     PartEndEvent,
     TextPart,
 )
+from pydantic_ai.exceptions import ContentFilterError
 from pydantic_ai.mcp import MCPToolset
 from pydantic_ai.messages import InstructionPart, ModelResponse, ToolReturnPart
 from pydantic_ai.models.bedrock import BedrockConverseModel, BedrockModelSettings
@@ -41,6 +42,8 @@ from chatbot.sessions import Session
 from . import artifact_frame
 
 NAME = "pydantic-ai"
+# Said when the model's provider ends a reply with its content filter (#96).
+REFUSAL = "I can't help with that request."
 PACKAGE = f"pydantic-ai-slim {importlib.metadata.version('pydantic-ai-slim')}"
 
 logger = logging.getLogger("lurkie")
@@ -97,6 +100,8 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
         try:
             try:
                 return await _run(ws, session, user_text, turn, memory, usage, models)
+            except ContentFilterError:
+                raise  # a refusal, which a fresh retry would only repeat
             except Exception as exc:
                 if not session.history:
                     raise
@@ -105,6 +110,13 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
                 session.history = []
                 turn.retry()
                 return await _run(ws, session, user_text, turn, memory, usage, models)
+        except ContentFilterError:
+            # Bedrock ended the reply with its content filter: the model
+            # declined. Say so plainly; it isn't a server fault (#96).
+            logger.info("[%s] The model declined the request (content filter)", session.id)
+            turn.refuse()
+            await ws.send_json({"type": "text", "content": REFUSAL})
+            return ""
         except Exception as exc:
             logger.exception("[%s] The agent failed", session.id)
             turn.failed(exc)
