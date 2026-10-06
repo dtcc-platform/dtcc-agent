@@ -14,9 +14,11 @@ M = 1_000_000
     # Sonnet 5.5 resolves to the regional Sonnet 5 entry. Checked against the
     # CLI's own total_cost_usd over the 60 baseline turns: within 2% (#86).
     ("eu.anthropic.claude-sonnet-5-5", (2.20, 0.22, 2.75, 11.00)),
+    # Sonnet 5, T38's model-switch run: the account refuses every 4.x model.
+    ("eu.anthropic.claude-sonnet-5", (2.20, 0.22, 2.75, 11.00)),
     ("eu.anthropic.claude-sonnet-4-6", (3.30, 0.33, 4.125, 16.50)),
 ])
-def test_both_models_are_priced_per_token_class(model, rates):
+def test_each_model_is_priced_per_token_class(model, rates):
     fresh, read, write, out = rates
     for usage, expected in [
         (RunUsage(input_tokens=M), fresh),
