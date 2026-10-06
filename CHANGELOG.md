@@ -14,7 +14,7 @@ Last updated: 2026-10-06.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-06 | Speed comparisons run both versions on the same day, because Bedrock's speed drifts from day to day ([#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM)) | 🔍 |
+| 2026-10-06 | Speed comparisons run both versions on the same day, because Bedrock's speed drifts from day to day ([#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)) | 🔍 |
 | 2026-10-06 | A request the model declines says so, instead of "Sorry, an error occurred" ([#99](https://github.com/dtcc-platform/dtcc-agent/pull/99), fixes [#96](https://github.com/dtcc-platform/dtcc-agent/issues/96)) | ✅ |
 | 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#98](https://github.com/dtcc-platform/dtcc-agent/pull/98), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | ✅ |
 | 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#97](https://github.com/dtcc-platform/dtcc-agent/pull/97), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | ✅ |
@@ -73,7 +73,7 @@ Last updated: 2026-10-06.
 
 ## 🔍 In review
 
-### Speed comparisons run both versions on the same day · 2026-10-06 · [#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM)
+### Speed comparisons run both versions on the same day · 2026-10-06 · [#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)
 
 **Before:** to check a change didn't slow the chat down, we compared it with a measurement taken
 on an earlier day.
