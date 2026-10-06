@@ -4,6 +4,8 @@ no process per message.
 
 The prompt goes out tools, then system, then messages, with a cache point
 after each (ADR-0006), so a follow-up re-reads the stable prefix from cache.
+Memory context is a dynamic instruction, after the system cache point, so a
+conversation's memory never changes the cached prefix (#87).
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ from pydantic_ai import (
     TextPart,
 )
 from pydantic_ai.mcp import MCPToolset
-from pydantic_ai.messages import ModelResponse, ToolReturnPart
+from pydantic_ai.messages import InstructionPart, ModelResponse, ToolReturnPart
 from pydantic_ai.models.bedrock import BedrockConverseModel, BedrockModelSettings
 from pydantic_ai.providers.bedrock import BedrockProvider
 from pydantic_ai.toolsets import AbstractToolset
@@ -128,7 +130,9 @@ async def _run(ws, session: Session, user_text: str, turn: TurnRecord, memory,
         model=model(),
         message_history=session.history or None,
         toolsets=[toolset(session, turn.turn_id)],
-        instructions=memory_context or None,
+        # A plain string would count as static and sit inside the cached
+        # prefix; marked dynamic, memory goes after the cache point.
+        instructions=InstructionPart(memory_context, dynamic=True) if memory_context else None,
         usage=usage,
     ) as events:
         async for event in events:
@@ -153,6 +157,14 @@ async def _relay(ws, session: Session, turn: TurnRecord, event: Any,
         new = event.result.new_messages()
         session.history = event.result.all_messages()
         for message in new:
+            if isinstance(message, ModelResponse):
+                # Each request's Bedrock usage, in Bedrock's terms: pydantic-ai
+                # counts cache tokens inside input_tokens (#86, #87).
+                u = message.usage
+                logger.debug("[%s]   Usage: inputTokens=%d cacheReadInputTokens=%d "
+                             "cacheWriteInputTokens=%d outputTokens=%d", session.id,
+                             u.input_tokens - u.cache_read_tokens - u.cache_write_tokens,
+                             u.cache_read_tokens, u.cache_write_tokens, u.output_tokens)
             if isinstance(message, ModelResponse) and message.model_name:
                 turn.saw_model(message.model_name)
                 if message.model_name not in models:

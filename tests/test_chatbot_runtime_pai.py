@@ -12,6 +12,7 @@ from pydantic_ai import FunctionToolset
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from pydantic_ai.usage import RequestUsage
 
+from chatbot.config import SYSTEM_PROMPT
 from chatbot.provenance import TurnRecord
 from chatbot.runtime import pai
 from chatbot.sessions import Session
@@ -121,8 +122,10 @@ def test_memory_is_read_only_for_a_fresh_conversation(run):
     seen = []
     _, _, turn, memory = run(_model(seen, render=False), session)
     assert memory.retrieved == ["Show the buildings"] and turn.memory_context is True
-    # The memory goes in as instructions after the static prompt.
-    assert "Earlier: the user asked about Lindholmen." in seen[0][1].instructions
+    # The memory goes in after the static prompt, as a dynamic instruction:
+    # Bedrock's instructions cache point falls between the two (#87).
+    parts = [(p.content, p.dynamic) for p in seen[0][1].model_request_parameters.instruction_parts]
+    assert parts == [(SYSTEM_PROMPT, False), ("Earlier: the user asked about Lindholmen.", True)]
 
     _, _, turn, memory = run(_model([], render=False), session, text="And?")
     assert memory.retrieved == [] and turn.memory_context is False
@@ -244,3 +247,12 @@ def test_the_model_sees_exactly_the_dtcc_agent_tools(monkeypatch, tmp_path):
     assert len(seen[0]) == 22 and "run_operation" in seen[0] and "geocode" in seen[0]
     assert not {"Bash", "Read", "Write", "Edit", "ToolSearch"} & set(seen[0])
     assert turn.tools_called == ["list_objects"]
+
+
+def test_each_request_logs_its_bedrock_usage(run, caplog):
+    """The request-level cache check (#86, #87) reads these lines."""
+    caplog.set_level("DEBUG", logger="lurkie")
+    run(_model([]), Session(id="s1"))
+    lines = [r.getMessage() for r in caplog.records if "Usage:" in r.getMessage()]
+    assert len(lines) == 2  # the tool call, then the answer
+    assert all("cacheReadInputTokens=" in line and "cacheWriteInputTokens=" in line for line in lines)
