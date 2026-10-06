@@ -14,7 +14,7 @@ Last updated: 2026-10-06.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | 🔍 |
+| 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#97](https://github.com/dtcc-platform/dtcc-agent/pull/97), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | 🔍 |
 | 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#95](https://github.com/dtcc-platform/dtcc-agent/pull/95), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | ✅ |
 | 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | ✅ |
 | 2026-10-05 | The tool server moves to version 2 of the MCP library, which the new agent runtime needs; nothing changes for users ([#92](https://github.com/dtcc-platform/dtcc-agent/pull/92), T39, fixes [#91](https://github.com/dtcc-platform/dtcc-agent/issues/91)) | ✅ |
@@ -70,7 +70,7 @@ Last updated: 2026-10-06.
 
 ## 🔍 In review
 
-### M3 done: the model runtime, measured end to end · 2026-10-06 · [#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM)
+### M3 done: the model runtime, measured end to end · 2026-10-06 · [#97](https://github.com/dtcc-platform/dtcc-agent/pull/97)
 
 **What M3 set out to do:** run the chat agent without Anthropic's command-line program, on
 Amazon Bedrock, with the model a setting, and prove with numbers that it got no slower.
