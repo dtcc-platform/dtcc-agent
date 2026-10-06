@@ -14,7 +14,7 @@ Last updated: 2026-10-06.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | 🔍 |
+| 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#95](https://github.com/dtcc-platform/dtcc-agent/pull/95), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | 🔍 |
 | 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | ✅ |
 | 2026-10-05 | The tool server moves to version 2 of the MCP library, which the new agent runtime needs; nothing changes for users ([#92](https://github.com/dtcc-platform/dtcc-agent/pull/92), T39, fixes [#91](https://github.com/dtcc-platform/dtcc-agent/issues/91)) | ✅ |
 | 2026-10-05 | **First M3 task:** the chat runs on Amazon Bedrock with the model set in config, and the reference that the pydantic-ai switch must match is measured: twice, pooled ([#90](https://github.com/dtcc-platform/dtcc-agent/pull/90), T35, fixes [#85](https://github.com/dtcc-platform/dtcc-agent/issues/85)) | ✅ |
@@ -69,7 +69,7 @@ Last updated: 2026-10-06.
 
 ## 🔍 In review
 
-### M3's catalogue experiment: measured, not adopted · 2026-10-06 · [#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM)
+### M3's catalogue experiment: measured, not adopted · 2026-10-06 · [#95](https://github.com/dtcc-platform/dtcc-agent/pull/95)
 
 **The idea:** the agent finds dtcc-core's 133 operations through two lookup tools, and each
 lookup costs a round trip. M2 pasted the details of the seven most used operations into the
