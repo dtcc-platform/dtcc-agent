@@ -182,8 +182,9 @@ no claude CLI in the image, using `EXTRAS=chatbot ./build_docker.sh`; that image
 `DTCC_AGENT_RUNTIME=sdk` at startup and names the missing extra.
 
 On the `sdk` runtime, the Claude CLI also calls a small model for internal steps; the chatbot
-points that at `DTCC_AGENT_MODEL` too. The 4.5 generation (Sonnet 4.5, Haiku 4.5) is refused
-on an account until Anthropic's use-case form is filed in the Bedrock console; newer models are not.
+points that at `DTCC_AGENT_MODEL` too. Every 4.x model (Sonnet 4.5, Sonnet 4.6, Haiku 4.5) is
+refused on an account until Anthropic's use-case form is filed in the Bedrock console. Sonnet 5,
+Sonnet 5.5, Opus 5 and Opus 5.5 are not (checked 2026-10-06, #88).
 Check access with one call before a long run:
 
 ```bash

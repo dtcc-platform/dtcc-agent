@@ -55,3 +55,21 @@ the comparison the platform asked for.
 per user message — process spawn plus MCP handshake, every turn. That is almost certainly the
 largest single latency item in the system today, and it disappears by construction when the
 subprocess does. This ADR is a performance change as much as a portability one.
+
+**Update 2026-10-06 (M3, #29): done, on Bedrock only.** Bedrock is the only provider. OpenRouter
+for testing and Anthropic direct were dropped when M3 was specced (2026-10-04, #29), replacing
+the plan's "a second provider runs the same question set": portability, the requirement that
+started this ADR, is shown by switching models on one code path. It is model choice on
+Bedrock: `DTCC_AGENT_MODEL` names the model, and switching is that variable alone (Sonnet 5.5 to Sonnet 5, no code change, `eval/runs/m3-sonnet-5.md`). Every 4.x
+model is refused on the company account until Anthropic's use-case form is filed.
+
+The runtime result, same 10 questions, model and machine, two runs pooled per side
+(`eval/runs/baseline-m3-sdk.md` against `eval/runs/m3-runtime.md`, #93): the median of
+per-question warm medians went from 12.1 s to 8.9 s, no question got more than 3% slower,
+and a run of the set costs $0.73 instead of $0.95. The latency finding below held: the
+largest gains were on short questions, where the CLI spawn was most of the time.
+
+The Agent SDK stays behind `DTCC_AGENT_RUNTIME=sdk` for one milestone as the rollback, checked
+in Docker on Bedrock (#88). pydantic-ai is pinned at 2.54.0 and needed the MCP server on mcp
+2.x first (#92). Context management, named above as the real loss, is still the conversation's
+own message history; nothing summarises or trims it yet.

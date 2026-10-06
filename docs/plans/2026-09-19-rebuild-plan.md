@@ -197,6 +197,30 @@ Rebuilding a UI before deciding whether it should exist is the wrong order. **Ei
 D1-D3 before M3's UI work begins, or M3 ships only the runtime change and the UI rebuild becomes
 its own milestone.** Flagged rather than silently sequenced.
 
+**Delivered 2026-10-06 (epic #29).** M3 shipped the runtime change only; Lurkie's rebuild became
+its own placeholder, #89, after D1-D3. Acceptance, as the epic restated it: latency is the gate,
+cost and tokens are reported, Bedrock is the only provider, and portability is a model switch on
+Bedrock (the "second provider" above was dropped).
+
+| Row | Runtime | Provider | Model | Median of warm medians | Cost per run |
+|---|---|---|---|---|---|
+| `baseline-m2.md` (context only) | Agent SDK | Anthropic direct | Sonnet 4.5 | 29.1 s | $1.93 |
+| `baseline-m3-sdk.md` (gate reference) | Agent SDK | Bedrock | Sonnet 5.5 | 12.1 s | $0.95 |
+| `m3-runtime.md` (gate: passed) | pydantic-ai | Bedrock | Sonnet 5.5 | 8.9 s | $0.73 |
+| `m3-sonnet-5-5-same-day.md` | pydantic-ai | Bedrock | Sonnet 5.5 | 9.0 s | $0.69 |
+| `m3-sonnet-5.md` (model switch) | pydantic-ai | Bedrock | Sonnet 5 | 11.4 s | $1.13 |
+
+- **Runtime (#86, T36):** pydantic-ai in the chat process; 27% faster than the SDK, worst question
+  +3%. The SDK stays behind `DTCC_AGENT_RUNTIME=sdk` for one milestone; the rollback was checked
+  on Bedrock in Docker (#88).
+- **Caching (#87, T37):** the seven pasted schemas stay. The catalogue in the cached prefix was
+  measured three ways and lost each time (ADR-0006 update note). Memory context now sits after
+  the cache point.
+- **Model switch (#88, T38):** Sonnet 5 instead of the specced Sonnet 4.6, which the account
+  refuses with every 4.x model.
+- **Still open:** context management is the conversation's full history, untrimmed (ADR-0003);
+  removing the SDK is the next milestone's first task.
+
 ### M4 — deployment
 
 **Gated on M2.** An internet-reachable service without admission control is not deployable.
