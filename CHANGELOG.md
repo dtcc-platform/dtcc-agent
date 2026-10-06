@@ -14,7 +14,8 @@ Last updated: 2026-10-06.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-06 | A request the model declines says so, instead of "Sorry, an error occurred" ([#99](https://github.com/dtcc-platform/dtcc-agent/pull/99), fixes [#96](https://github.com/dtcc-platform/dtcc-agent/issues/96)) | 🔍 |
+| 2026-10-06 | Speed comparisons run both versions on the same day, because Bedrock's speed drifts from day to day ([#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)) | 🔍 |
+| 2026-10-06 | A request the model declines says so, instead of "Sorry, an error occurred" ([#99](https://github.com/dtcc-platform/dtcc-agent/pull/99), fixes [#96](https://github.com/dtcc-platform/dtcc-agent/issues/96)) | ✅ |
 | 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#98](https://github.com/dtcc-platform/dtcc-agent/pull/98), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | ✅ |
 | 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#97](https://github.com/dtcc-platform/dtcc-agent/pull/97), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | ✅ |
 | 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#95](https://github.com/dtcc-platform/dtcc-agent/pull/95), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | ✅ |
@@ -72,6 +73,18 @@ Last updated: 2026-10-06.
 
 ## 🔍 In review
 
+### Speed comparisons run both versions on the same day · 2026-10-06 · [#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)
+
+**Before:** to check a change didn't slow the chat down, we compared it with a measurement taken
+on an earlier day.
+
+**Now:** the old and new versions run on the same day, taking turns, and the new one is compared
+with today's old one. M3 showed why: the same unchanged code ran 18% slower one day than the
+day before, enough to fail a speed check that nothing in the code had earned. The README's
+evaluation section has the steps, and ADR-0008 records the rule.
+
+## ✅ Merged
+
 ### A request the model declines says so · 2026-10-06 · [#99](https://github.com/dtcc-platform/dtcc-agent/pull/99)
 
 **Before:** asked for something it shouldn't do, such as reading a system file, the model sometimes
@@ -85,8 +98,6 @@ than an error, and doesn't try again.
 same "load /etc/passwd" request asked 36 times was declined by the filter 4 times; each showed the
 plain refusal and was recorded as a refusal, and the measurement tool counted all 36 as answered.
 576 tests pass.
-
-## ✅ Merged
 
 ### The first chat after a deploy no longer freezes the server · 2026-10-06 · [#98](https://github.com/dtcc-platform/dtcc-agent/pull/98)
 

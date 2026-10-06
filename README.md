@@ -417,8 +417,28 @@ python -m eval.measure --runs 3 --log-dir data/agent/logs --max-cost 10
   the report says so. A timed-out question's cost is not counted, because no provenance
   frame arrives for it.
 
-Each run writes `eval/runs/<time>-<commit>.jsonl` and a Markdown report. Only
-`eval/runs/baseline-m2.md` is committed: the M2 baseline that M3 compares against.
+Each run writes `eval/runs/<time>-<commit>.jsonl` and a Markdown report. `eval/runs/` is
+gitignored; a run worth keeping is committed with `git add -f`, raw `.jsonl` in a folder and the
+pooled report beside it (for example `eval/runs/m3-runtime/` and `eval/runs/m3-runtime.md`).
+`--pool RUN.jsonl ...` writes one report over several runs.
+
+#### Comparing two versions: a same-day control
+
+Bedrock's speed drifts by day: on 2026-10-06 unchanged code ran 18% slower than the day before
+(#87). A comparison against a report from another day therefore partly measures the day. So any
+comparison that decides something (a gate) runs both sides together:
+
+- **Same day, same machine, interleaved:** reference, candidate, reference, candidate. Each run
+  on a fresh stack with its own data folder (`DTCC_AGENT_DATA`), so cold runs are cold.
+- **Two runs per side, pooled** (`--pool`), giving four warm samples per question: single
+  questions varied by up to 50% between identical runs (#90).
+- **A run counts only at 30 of 30 ok** without stopping at the cost cap; otherwise it is re-run,
+  not evaluated. A declined request counts as answered (#96).
+- **Compare** the median of per-question warm medians and each question's warm median against
+  the same-day reference. An older committed report is context, not the reference.
+- **Name what was measured.** The report records the checkout the harness ran from; when the
+  stack runs another image (a control built from an older commit), say so at the top of the
+  report, as `eval/runs/m3-control.md` does.
 
 ## Examples
 
