@@ -7,6 +7,7 @@ its SDK session id and reaches the dtcc-agent MCP server itself.
 
 from __future__ import annotations
 
+import asyncio
 import importlib.metadata
 import json
 import logging
@@ -156,7 +157,9 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
 
     # Only inject RAG context on fresh sessions — resumed sessions
     # already have conversation history in their context window.
-    memory_context = "" if sdk_session_id else memory.retrieve(user_text, session_id)
+    # Off the event loop: retrieval embeds the question (#94).
+    memory_context = "" if sdk_session_id else await asyncio.to_thread(
+        memory.retrieve, user_text, session_id)
     turn.memory_context = bool(memory_context)
     options = build_options(session, sdk_session_id, memory_context, turn_id=turn.turn_id)
 

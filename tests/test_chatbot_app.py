@@ -255,6 +255,47 @@ def test_an_answer_is_stored_in_memory(monkeypatch, tmp_path):
     assert app_module.memory.stored[0][1:] == ("hello", "hi")
 
 
+def test_a_slow_memory_store_does_not_stall_other_requests(monkeypatch, tmp_path):
+    """Storing an exchange can take seconds (the first use downloads an
+    embedding model, #94). It runs off the event loop, so everything else the
+    chat server does carries on meanwhile."""
+    import asyncio
+    import time
+
+    class SlowMemory(_StubMemory):
+        def store(self, *args):
+            time.sleep(0.5)
+            super().store(*args)
+
+    async def answer(ws, session, text, turn):
+        return "hi"
+
+    class Socket:
+        async def send_json(self, frame):
+            pass
+
+    monkeypatch.setattr(app_module, "_log_dir", tmp_path)
+    monkeypatch.setattr(app_module, "memory", SlowMemory())
+    monkeypatch.setattr(app_module, "runtime", _fake_runtime(answer))
+    sid = app_module.sessions.create()
+    ticks = []
+
+    async def ticker():
+        while True:
+            ticks.append(time.monotonic())
+            await asyncio.sleep(0.01)
+
+    async def both():
+        tick = asyncio.create_task(ticker())
+        await app_module._answer(Socket(), sid, "hello")
+        tick.cancel()
+
+    asyncio.run(both())
+    assert app_module.memory.stored  # the store did run
+    # A blocked loop would leave a gap of ~0.5 s between two ticks.
+    assert max(b - a for a, b in zip(ticks, ticks[1:])) < 0.2
+
+
 def test_a_turn_that_fails_completely_still_writes_one_record(monkeypatch, tmp_path):
     async def answer(ws, session, text, turn):
         turn.failed(RuntimeError("boom"))

@@ -10,6 +10,7 @@ conversation's memory never changes the cached prefix (#87).
 
 from __future__ import annotations
 
+import asyncio
 import importlib.metadata
 import logging
 import os
@@ -122,7 +123,9 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
 async def _run(ws, session: Session, user_text: str, turn: TurnRecord, memory,
                usage: RunUsage, models: list[str]) -> str:
     # Memory only starts a conversation; a follow-up has the history instead.
-    memory_context = "" if session.history else memory.retrieve(user_text, session.id)
+    # Off the event loop: retrieval embeds the question (#94).
+    memory_context = "" if session.history else await asyncio.to_thread(
+        memory.retrieve, user_text, session.id)
     turn.memory_context = bool(memory_context)
     texts: list[str] = []
     async with agent().run_stream_events(
