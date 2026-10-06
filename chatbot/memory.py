@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -24,10 +25,16 @@ MAX_DISTANCE = 0.8
 
 
 class ConversationMemory:
-    """Stores and retrieves past conversation exchanges using ChromaDB."""
+    """Stores and retrieves past conversation exchanges using ChromaDB.
+
+    Both calls block (embedding, a Chroma write, and on first use a 79 MB
+    model download), so callers run them in a worker thread, never on the
+    event loop (#94). One lock keeps them to one at a time on the client.
+    """
 
     def __init__(self, persist_dir: Path = _PERSIST_DIR) -> None:
         persist_dir.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.Lock()
         self._client = chromadb.PersistentClient(path=str(persist_dir))
         self._collection = self._client.get_or_create_collection(
             name="conversations",
@@ -49,15 +56,16 @@ class ConversationMemory:
         now = datetime.now()
         doc = f"User: {user_text}\nAssistant: {assistant_text}"
         doc_id = f"{session_id}-{now:%Y%m%d%H%M%S%f}-{uuid.uuid4().hex[:6]}"
-        self._collection.add(
-            documents=[doc],
-            ids=[doc_id],
-            metadatas=[{
-                "session_id": session_id,
-                "timestamp": now.isoformat(),
-                "user_query": user_text[:500],
-            }],
-        )
+        with self._lock:
+            self._collection.add(
+                documents=[doc],
+                ids=[doc_id],
+                metadatas=[{
+                    "session_id": session_id,
+                    "timestamp": now.isoformat(),
+                    "user_query": user_text[:500],
+                }],
+            )
         logger.debug("Stored exchange %s (%d chars)", doc_id, len(doc))
 
     def retrieve(self, query: str, session_id: str, top_k: int = TOP_K) -> str:
@@ -68,15 +76,16 @@ class ConversationMemory:
         Returns a formatted string to inject into the system prompt,
         or empty string if no relevant history found.
         """
-        if self._collection.count() == 0:
-            return ""
-
-        results = self._collection.query(
-            query_texts=[query],
-            n_results=min(top_k, self._collection.count()),
-            where={"session_id": session_id},
-            include=["documents", "distances"],
-        )
+        with self._lock:
+            count = self._collection.count()
+            if count == 0:
+                return ""
+            results = self._collection.query(
+                query_texts=[query],
+                n_results=min(top_k, count),
+                where={"session_id": session_id},
+                include=["documents", "distances"],
+            )
 
         documents = results.get("documents", [[]])[0]
         distances = results.get("distances", [[]])[0]

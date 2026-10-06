@@ -4,6 +4,7 @@ the runtime DTCC_AGENT_RUNTIME names (chatbot/runtime, #86)."""
 
 from __future__ import annotations
 
+import asyncio
 import hmac
 import itertools
 import json
@@ -131,9 +132,9 @@ async def _answer(ws: WebSocket, session_id: str, user_text: str) -> None:
         logger.info("[%s] %s User: %s", session_id, turn.turn_id, user_text[:200])
         await ws.send_json({"type": "status", "content": "thinking"})
         assistant_text = await runtime.answer(ws, session, user_text, turn, memory)
-        # Store the exchange in long-term memory
+        # Store the exchange in long-term memory, off the event loop (#94)
         if assistant_text:
-            memory.store(session_id, user_text, assistant_text)
+            await asyncio.to_thread(memory.store, session_id, user_text, assistant_text)
     except BaseException as exc:  # the socket closed or the task was cancelled mid-turn
         if turn.error is None:
             turn.failed(exc)

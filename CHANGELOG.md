@@ -14,7 +14,8 @@ Last updated: 2026-10-06.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#97](https://github.com/dtcc-platform/dtcc-agent/pull/97), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | 🔍 |
+| 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | 🔍 |
+| 2026-10-06 | **M3 done:** the chat runs on Bedrock through pydantic-ai, 27% faster and 23% cheaper than M3's starting point; switching model is one setting, and the old runtime still answers as a fallback ([#97](https://github.com/dtcc-platform/dtcc-agent/pull/97), T38, closes [#88](https://github.com/dtcc-platform/dtcc-agent/issues/88) and epic [#29](https://github.com/dtcc-platform/dtcc-agent/issues/29)) | ✅ |
 | 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#95](https://github.com/dtcc-platform/dtcc-agent/pull/95), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | ✅ |
 | 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | ✅ |
 | 2026-10-05 | The tool server moves to version 2 of the MCP library, which the new agent runtime needs; nothing changes for users ([#92](https://github.com/dtcc-platform/dtcc-agent/pull/92), T39, fixes [#91](https://github.com/dtcc-platform/dtcc-agent/issues/91)) | ✅ |
@@ -70,6 +71,23 @@ Last updated: 2026-10-06.
 
 ## 🔍 In review
 
+### The first chat after a deploy no longer freezes the server · 2026-10-06 · [#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM)
+
+**Before:** the chat remembers earlier exchanges so it can use them later, which needs a small
+language model. On a fresh deployment, the first answered message downloaded that model (79 MB),
+and the download stopped the whole chat server for about 30 seconds. Every open chat froze, the
+connection could drop, and the health check sometimes restarted the container mid-download. Even
+after that, every save and lookup paused the server briefly.
+
+**Now:** the model is part of the server image, so nothing downloads at run time. Saving and
+looking up memory happen to one side, so the server keeps answering everyone meanwhile.
+
+**How we know it works:** tests check that a slow save leaves the server free and that both chat
+runtimes look memory up off the main thread. Live, on a fresh deployment, 120 health checks
+during the first two answers all succeeded (slowest 0.25 s), with no restart. 574 tests pass.
+
+## ✅ Merged
+
 ### M3 done: the model runtime, measured end to end · 2026-10-06 · [#97](https://github.com/dtcc-platform/dtcc-agent/pull/97)
 
 **What M3 set out to do:** run the chat agent without Anthropic's command-line program, on
@@ -99,8 +117,6 @@ provider and model, so it shows where we came from rather than a fair comparison
 
 **How we know:** two new full runs today (Sonnet 5: 30 of 30 answered; Sonnet 5.5: 29 of 30, the
 miss being #96), the fallback check, and a pricing test for Sonnet 5. 573 tests pass.
-
-## ✅ Merged
 
 ### M3's catalogue experiment: measured, not adopted · 2026-10-06 · [#95](https://github.com/dtcc-platform/dtcc-agent/pull/95)
 

@@ -42,6 +42,11 @@ print('dtcc-core', got)" && \
 
 USER dtcc-agent
 
+# Conversation memory's embedding model (79 MB), fetched now so no chat turn
+# pays for the download (#94). It lands in ~/.cache/chroma, in the image.
+RUN python -c "from chromadb.utils.embedding_functions import DefaultEmbeddingFunction; \
+DefaultEmbeddingFunction()(['warm up'])"
+
 EXPOSE 8050
 
 CMD ["uvicorn", "chatbot.app:app", "--host", "0.0.0.0", "--port", "8050"]

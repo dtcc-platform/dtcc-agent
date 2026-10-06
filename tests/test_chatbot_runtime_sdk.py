@@ -26,10 +26,21 @@ class _Socket:
 class _Memory:
     def __init__(self):
         self.retrieved = []
+        self.on_loop = []
 
     def retrieve(self, query, session_id):
         self.retrieved.append(query)
+        self.on_loop.append(_on_event_loop())
         return ""
+
+
+def _on_event_loop() -> bool:
+    """Whether the caller runs on a thread with a running event loop."""
+    try:
+        asyncio.get_running_loop()
+        return True
+    except RuntimeError:
+        return False
 
 
 def _fake_client(seen, fail_on_resume):
@@ -121,6 +132,7 @@ def test_memory_is_read_only_when_not_resuming(turn_with):
 
     *_, memory = turn_with(Session(id="s1"), stream)
     assert memory.retrieved == ["hello"]
+    assert memory.on_loop == [False]  # read in a worker thread, never on the event loop (#94)
     *_, memory = turn_with(Session(id="s1", sdk_session_id="sdk-old"), stream)
     assert memory.retrieved == []
 

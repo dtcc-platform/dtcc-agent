@@ -31,10 +31,21 @@ class _Socket:
 class _Memory:
     def __init__(self):
         self.retrieved = []
+        self.on_loop = []
 
     def retrieve(self, query, session_id):
         self.retrieved.append(query)
+        self.on_loop.append(_on_event_loop())
         return "Earlier: the user asked about Lindholmen."
+
+
+def _on_event_loop() -> bool:
+    """Whether the caller runs on a thread with a running event loop."""
+    try:
+        asyncio.get_running_loop()
+        return True
+    except RuntimeError:
+        return False
 
 
 def _tools(calls):
@@ -122,6 +133,7 @@ def test_memory_is_read_only_for_a_fresh_conversation(run):
     seen = []
     _, _, turn, memory = run(_model(seen, render=False), session)
     assert memory.retrieved == ["Show the buildings"] and turn.memory_context is True
+    assert memory.on_loop == [False]  # read in a worker thread, never on the event loop (#94)
     # The memory goes in after the static prompt, as a dynamic instruction:
     # Bedrock's instructions cache point falls between the two (#87).
     parts = [(p.content, p.dynamic) for p in seen[0][1].model_request_parameters.instruction_parts]
