@@ -163,12 +163,3 @@ def test_the_session_and_its_subject_reach_the_tool_server(monkeypatch):
     sdk.build_options(Session(id="s1"), turn_id="turn_1")
 
     assert configs == [("s1", "anonymous", "turn_1")]
-
-
-def test_the_sdk_runtime_sends_the_m2_prompt_byte_for_byte():
-    """The rollback path keeps M2's prompt, seven schemas and all (#87)."""
-    from chatbot.provenance import prompt_version
-
-    opts = sdk.build_options(Session(id="s1"))
-    assert prompt_version(opts.system_prompt) == "5fdfaaf2e87b"
-    assert sdk.M2_PROMPT_VERSION == "5fdfaaf2e87b"

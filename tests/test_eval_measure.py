@@ -129,7 +129,6 @@ def test_the_report_gives_median_and_max_over_successful_runs_only():
     assert "Prompt version: `5fdfaaf2e87b`" in text and "claude-sonnet-4-5" in text
     assert "Core commit: `unknown`" in text  # no --log-dir
     assert "Runtime: sdk · provider: bedrock · cost source: sdk total_cost_usd" in text
-    assert "Catalogue in prompt: " in text and " · variant: " in text
 
 
 def test_operations_and_the_catalogue_come_from_the_provenance_logs(tmp_path):

@@ -4,16 +4,13 @@ no process per message.
 
 The prompt goes out tools, then system, then messages, with a cache point
 after each (ADR-0006), so a follow-up re-reads the stable prefix from cache.
-The system part is the base prompt and the operation catalogue (#87), both
-static and before the instructions cache point; memory context is dynamic and
-comes after it.
+Memory context is a dynamic instruction, after the system cache point, so a
+conversation's memory never changes the cached prefix (#87).
 """
 
 from __future__ import annotations
 
-import asyncio
 import importlib.metadata
-import json
 import logging
 import os
 import time
@@ -37,7 +34,7 @@ from pydantic_ai.usage import RunUsage
 
 from chatbot.config import DEFAULT_REGION, SYSTEM_PROMPT, get_mcp_server_config, load_model
 from chatbot.prices import price
-from chatbot.provenance import TurnRecord, prompt_version
+from chatbot.provenance import TurnRecord
 from chatbot.sessions import Session
 
 from . import artifact_frame
@@ -62,102 +59,16 @@ def model() -> BedrockConverseModel:
 
 @cache
 def agent() -> Agent:
-    """The process's one agent. It owns the cache settings; each run is given
-    the model and the instructions."""
+    """The process's one agent. It owns the prompt and the cache settings;
+    each run is given the model."""
     return Agent(
+        instructions=SYSTEM_PROMPT,
         model_settings=BedrockModelSettings(
             bedrock_cache_tool_definitions=True,
             bedrock_cache_instructions=True,
             bedrock_cache_messages=True,
         ),
     )
-
-
-# The catalogue variants #87 measures; one is kept and the other deleted.
-CATALOGUE_VARIANTS = ("summary", "full", "common")
-# The operations M2 pasted schemas for: most questions need only these, so
-# `common` sends their schemas and spares the model those lookups.
-COMMON_OPERATIONS = (
-    "datasets.point_cloud", "datasets.buildings", "builder.build_terrain_raster",
-    "builder.raster.slope_aspect", "builder.build_terrain_surface_mesh",
-    "builder.build_city_surface_mesh", "builder.pc_filter.classification_filter",
-)
-CATALOGUE_LINES = {
-    "summary": "The catalogue below lists every operation. Call `describe_operation` for an "
-               "operation's parameters before running it. Call `list_operations` only to search.",
-    "full": "The catalogue below gives every operation's full schema. Do not call "
-            "`list_operations` or `describe_operation`.",
-    "common": "The catalogue below lists every operation, then gives the full schema of the "
-              "most used ones. Use those schemas directly. Call `describe_operation` for any "
-              "other operation's parameters before running it. Call `list_operations` only "
-              "to search.",
-}
-# Sent instead of a catalogue when the fetch failed.
-DISCOVERY_LINE = ("Use `list_operations` and `describe_operation` to find an operation and "
-                  "its parameters before `run_operation`.")
-
-
-def catalogue_variant() -> str:
-    """DTCC_AGENT_CATALOGUE; unset or empty means summary."""
-    name = os.getenv("DTCC_AGENT_CATALOGUE") or "summary"
-    if name not in CATALOGUE_VARIANTS:
-        raise SystemExit(f"DTCC_AGENT_CATALOGUE must be one of {', '.join(CATALOGUE_VARIANTS)}, "
-                         f"got {name!r}.")
-    return name
-
-
-class _Memo:
-    """The catalogue text, fetched once per process. It only changes with a
-    dtcc-core upgrade, which recreates the containers (#29)."""
-
-    def __init__(self) -> None:
-        self.text: str | None = None
-        self.lock = asyncio.Lock()
-
-
-_catalogue = _Memo()
-
-
-async def _call(tools: AbstractToolset, name: str, args: dict[str, Any]) -> str:
-    """One MCP tool's JSON text; its error result raises."""
-    text = await tools.direct_call_tool(name, args)
-    result = json.loads(text)
-    if isinstance(result, dict) and "error" in result:
-        raise RuntimeError(f"{name} failed: {result['error']}")
-    return text
-
-
-async def fetch_catalogue(tools: AbstractToolset, variant: str) -> str:
-    """The catalogue text through the turn's MCP toolset: `list_operations`;
-    every operation's `describe_operation`; or the list then the common
-    operations' schemas."""
-    async with tools:
-        summary = await _call(tools, "list_operations", {})
-        if variant == "summary":
-            return summary
-        names = COMMON_OPERATIONS if variant == "common" else [op["name"] for op in json.loads(summary)]
-        schemas = [await _call(tools, "describe_operation", {"name": name}) for name in names]
-        return "\n\n".join([summary, *schemas] if variant == "common" else schemas)
-
-
-async def catalogue(tools: AbstractToolset, variant: str) -> str | None:
-    """The memoised catalogue, fetched on first use. Concurrent first turns
-    fetch once; a failed fetch logs, returns None, and the next turn tries again."""
-    if _catalogue.text is None:
-        async with _catalogue.lock:
-            if _catalogue.text is None:
-                try:
-                    _catalogue.text = await fetch_catalogue(tools, variant)
-                except Exception as exc:
-                    logger.warning("Catalogue fetch failed (%s: %s); this turn runs without it",
-                                   type(exc).__name__, exc)
-    return _catalogue.text
-
-
-def static_instructions(variant: str, text: str | None) -> list[str]:
-    """What goes before the instructions cache point: the base prompt, then
-    the catalogue with its variant's line, or the discovery line without one."""
-    return [SYSTEM_PROMPT, f"{CATALOGUE_LINES[variant]}\n\n{text}" if text else DISCOVERY_LINE]
 
 
 def toolset(session: Session, turn_id: str) -> AbstractToolset:
@@ -213,22 +124,15 @@ async def _run(ws, session: Session, user_text: str, turn: TurnRecord, memory,
     # Memory only starts a conversation; a follow-up has the history instead.
     memory_context = "" if session.history else memory.retrieve(user_text, session.id)
     turn.memory_context = bool(memory_context)
-    tools = toolset(session, turn.turn_id)
-    variant = catalogue_variant()
-    text = await catalogue(tools, variant)
-    static = static_instructions(variant, text)
-    turn.prompt_version = prompt_version("\n\n".join(static))
-    turn.catalogue_in_prompt, turn.catalogue_variant = text is not None, variant
-    # A plain string is a static instruction; memory is marked dynamic so
-    # it stays after the cache point.
     texts: list[str] = []
     async with agent().run_stream_events(
         user_text,
         model=model(),
         message_history=session.history or None,
-        toolsets=[tools],
-        instructions=[*static, *([InstructionPart(memory_context, dynamic=True)]
-                                 if memory_context else [])],
+        toolsets=[toolset(session, turn.turn_id)],
+        # A plain string would count as static and sit inside the cached
+        # prefix; marked dynamic, memory goes after the cache point.
+        instructions=InstructionPart(memory_context, dynamic=True) if memory_context else None,
         usage=usage,
     ) as events:
         async for event in events:

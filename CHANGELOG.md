@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-10-05.
+Last updated: 2026-10-06.
 
 ---
 
@@ -14,9 +14,10 @@ Last updated: 2026-10-05.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | 🔍 |
-| 2026-10-05 | The tool server moves to version 2 of the MCP library, which the new agent runtime needs; nothing changes for users ([#92](https://github.com/dtcc-platform/dtcc-agent/pull/92), T39, fixes [#91](https://github.com/dtcc-platform/dtcc-agent/issues/91)) | 🔍 |
-| 2026-10-05 | **First M3 task:** the chat runs on Amazon Bedrock with the model set in config, and the reference that the pydantic-ai switch must match is measured: twice, pooled ([#90](https://github.com/dtcc-platform/dtcc-agent/pull/90), T35, fixes [#85](https://github.com/dtcc-platform/dtcc-agent/issues/85)) | 🔍 |
+| 2026-10-06 | M3's catalogue experiment: putting the full list of operations in the model's prompt made answers slower in all three forms tried, so the prompt stays as it is; two small fixes from it ship ([#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM), T37, closes [#87](https://github.com/dtcc-platform/dtcc-agent/issues/87)) | 🔍 |
+| 2026-10-05 | **The chat runs without the Claude command-line program:** the agent loop runs inside the chat server, a typical question answers 27% faster, and a run of the question set costs $0.73 instead of $0.95 ([#93](https://github.com/dtcc-platform/dtcc-agent/pull/93), T36, fixes [#86](https://github.com/dtcc-platform/dtcc-agent/issues/86)) | ✅ |
+| 2026-10-05 | The tool server moves to version 2 of the MCP library, which the new agent runtime needs; nothing changes for users ([#92](https://github.com/dtcc-platform/dtcc-agent/pull/92), T39, fixes [#91](https://github.com/dtcc-platform/dtcc-agent/issues/91)) | ✅ |
+| 2026-10-05 | **First M3 task:** the chat runs on Amazon Bedrock with the model set in config, and the reference that the pydantic-ai switch must match is measured: twice, pooled ([#90](https://github.com/dtcc-platform/dtcc-agent/pull/90), T35, fixes [#85](https://github.com/dtcc-platform/dtcc-agent/issues/85)) | ✅ |
 | 2026-10-04 | The M2 baseline re-measured after #79–#83: all 30 runs answered, $1.93 ([#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)) | ✅ |
 | 2026-10-04 | The chat agent uses only the DTCC tools, and its prompts are about a third the size ([#83](https://github.com/dtcc-platform/dtcc-agent/pull/83)) | ✅ |
 | 2026-10-03 | Asking for too large an area is refused instead of crashing the tool server, and the chat recovers by itself if the server still dies ([#82](https://github.com/dtcc-platform/dtcc-agent/pull/82), fixes [#79](https://github.com/dtcc-platform/dtcc-agent/issues/79)) | ✅ |
@@ -67,6 +68,36 @@ Last updated: 2026-10-05.
 ---
 
 ## 🔍 In review
+
+### M3's catalogue experiment: measured, not adopted · 2026-10-06 · [#PRNUM](https://github.com/dtcc-platform/dtcc-agent/pull/PRNUM)
+
+**The idea:** the agent finds dtcc-core's 133 operations through two lookup tools, and each
+lookup costs a round trip. M2 pasted the details of the seven most used operations into the
+prompt by hand. The plan (ADR-0006, #87) was to replace that copy with the real, complete list,
+kept cheap by Bedrock's prompt cache, and adopt it only if answers got no slower.
+
+**What we found:** we tried three versions on the 10-question set, two full runs each, plus a
+same-day run of the unchanged code. All three were slower:
+- **Short list of all operations:** 11.2 s against 10.5 s for the unchanged code. Without the
+  pasted details the agent looks the common operations up again, up to four times per question.
+- **Full details of all operations:** 13.3 s. No lookups, but a prompt about eight times larger
+  slows every reply.
+- **Short list plus the seven details:** 13.5 s. With every operation in view, the agent picks
+  heavier ones, such as building a full city mesh to show buildings: 30–60 s instead of 10 s.
+
+The pasted details stay, now as a measured choice. ADR-0006 records the numbers and when to
+look again. We also learned that Bedrock's speed drifts: the unchanged code was 18% slower than
+the day before.
+
+**What ships:** a new chat with remembered context now reuses the cached part of the prompt, which it
+re-wrote before, and the log shows each model call's cache use.
+
+**How we know it works:** a test checks the memory goes after the cached part. Live, two new
+chats with different memory: the second read the base prompt from cache (7,822 tokens) and
+wrote 100, where the old code read 6,972 and wrote 952. 572 tests pass. Spent on measurement:
+about $12.
+
+## ✅ Merged
 
 ### The chat runs without the Claude command-line program · 2026-10-05 · [#93](https://github.com/dtcc-platform/dtcc-agent/pull/93)
 
@@ -127,8 +158,6 @@ question takes 11–17 s, and a run costs about $0.95.
 provenance fields and pooling runs. Live, a chat answered on Bedrock using only Sonnet 5.5.
 Sonnet 4.5, M2's model, turned out to be refused on the company account until a form is
 filed, so the reference and the gate both use Sonnet 5.5. 544 tests pass.
-
-## ✅ Merged
 
 ### The M2 baseline re-measured after the fixes · 2026-10-04 · [#84](https://github.com/dtcc-platform/dtcc-agent/pull/84)
 
