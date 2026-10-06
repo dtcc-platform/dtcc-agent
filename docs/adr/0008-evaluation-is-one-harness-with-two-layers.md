@@ -58,3 +58,11 @@ checkpoints without arriving, which is what a dependency looks like when nobody 
 **Dropping evaluation from the critical path.** Rejected for the reason the restructure design
 already gave: replacing behaviour in a stochastic system with no way to measure regression means
 comparing demos by eye.
+
+**Update 2026-10-06 (M3): a comparison needs a same-day control.** M3 gated its changes against
+a reference report measured on an earlier day. During #87 the unchanged code, re-run on the
+following day, was 18% slower (`eval/runs/m3-control.md` against `eval/runs/m3-runtime.md`),
+enough on its own to fail a 25% per-question cap. Bedrock's speed is not stable from day to day,
+so a gate now runs the reference and the candidate interleaved on the same day and machine, two
+runs each, and compares against that same-day reference. The README's "Comparing two versions"
+gives the procedure.
