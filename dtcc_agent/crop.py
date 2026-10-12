@@ -70,7 +70,27 @@ FOOTPRINT_EDGE_DISTANCE = 2.0
 SOURCE_ID_ATTRIBUTES = ("objektidentitet", "osm_id")  # LM, OSM
 
 
-def _source_feature(b: Any) -> Any:
+def _source_bounds(b: Any) -> list[float] | None:
+    """The extent of the source feature Core tested for ``b`` (dtcc-core#133).
+
+    Core tests the whole source feature, then splits it into parts, drops
+    parts under the size limit and repairs invalid outlines, and records the
+    feature's extent from before all that on every building it produced.
+    """
+    value = b.attributes.get("source_bounds")
+    return value if value is not None and len(value) == 4 else None
+
+
+def _judged_with(b: Any) -> Any:
+    """The buildings ``b`` is kept or dropped with.
+
+    With source_bounds, a building is judged alone: parts of one feature share
+    the same bounds, so they fall together anyway, and LM gives several
+    separate features one objektidentitet, which Core tests one by one (#49).
+    Without it, parts of one source feature are grouped by its id.
+    """
+    if _source_bounds(b) is not None:
+        return id(b)
     for name in SOURCE_ID_ATTRIBUTES:
         value = b.attributes.get(name)
         if value is not None:
@@ -78,19 +98,31 @@ def _source_feature(b: Any) -> Any:
     return b.id or id(b)  # no id at all must not group unrelated buildings
 
 
+def _tested_shape(b: Any) -> Any:
+    """The shape Core's containment test runs on, or None if there is none.
+
+    A shape lies inside an axis-aligned rectangle exactly when its bounding
+    box does, so testing the source feature's bounding box is Core's own
+    test. A building without source_bounds (cached before #133) falls back to
+    its unsimplified LOD0 outline: footprint() would simplify it by 1 cm.
+    """
+    from dtcc_core.model import GeometryType
+    from shapely.geometry import box
+
+    if (source_bounds := _source_bounds(b)) is not None:
+        return box(*source_bounds)
+    outline = b.flatten_geometry(GeometryType.LOD0)
+    return outline.to_polygon(simplify=0.0) if outline is not None else None
+
+
 def _crop_city(city: Any, bounds: list[float]) -> Any:
     """Keep the buildings a fresh Core download of ``bounds`` would keep.
 
-    Core keeps a source footprint only when it lies wholly inside the bounds
+    Core keeps a source feature only when it lies wholly inside the bounds
     shrunk by FOOTPRINT_EDGE_DISTANCE, for LM and OSM alike, so a cropped
-    cache hit applies the same test and counts what a fresh download counts:
-    - Core tests a multi-part footprint whole, then splits it into buildings
-      that share the source feature's id, so parts of one feature are kept
-      or dropped together.
-    - The test runs on the unsimplified LOD0 outline, as Core's does on the
-      file geometry; ``footprint()`` would simplify it by 1 cm first.
-    - A building without an outline is dropped, as Core's size filter
-      drops it.
+    cache hit applies the same test (_tested_shape) to the same buildings
+    (_judged_with) and counts what a fresh download counts. A building
+    without an outline is dropped, as Core's size filter drops it.
     """
     from dtcc_core.io.vector_utils import create_bounds_filter
     from dtcc_core.model import Bounds, GeometryType
@@ -98,15 +130,15 @@ def _crop_city(city: Any, bounds: list[float]) -> Any:
     inside = create_bounds_filter(
         Bounds(*bounds), buffer=-FOOTPRINT_EDGE_DISTANCE, strategy="contains",
     )
-    whole = {}  # source feature -> every part inside
+    whole = {}  # judged together -> every one of them inside
     for b in city.buildings:
-        outline = b.flatten_geometry(GeometryType.LOD0)
-        polygon = outline.to_polygon(simplify=0.0) if outline is not None else None
-        ok = (polygon is not None and not polygon.is_empty
-              and inside["strategy"](inside["geometry"], polygon))
-        feature = _source_feature(b)
-        whole[feature] = whole.get(feature, True) and ok
-    kept = [b for b in city.buildings if whole[_source_feature(b)]]
+        shape = _tested_shape(b)
+        ok = (b.flatten_geometry(GeometryType.LOD0) is not None
+              and shape is not None and not shape.is_empty
+              and inside["strategy"](inside["geometry"], shape))
+        group = _judged_with(b)
+        whole[group] = whole.get(group, True) and ok
+    kept = [b for b in city.buildings if whole[_judged_with(b)]]
 
     # Shallow copy: callers crop a freshly loaded cache object nothing else
     # holds, so sharing its buildings is safe and skips copying geometry.

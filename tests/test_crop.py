@@ -148,3 +148,95 @@ def test_buildings_without_any_id_are_judged_one_by_one():
     cropped = crop_to_bounds(BuildingCollection([inside, outside]), [0, 0, 100, 100])
 
     assert cropped.buildings == [inside]
+
+
+# -- #49: the crop matches a fresh load exactly, via Core's source_bounds -----
+# These run Core's real footprint loader on a small GeoPackage: load a large
+# area, crop it to a smaller one, and compare with a fresh load of the smaller
+# area, as datasets.buildings would return them.
+
+X0, Y0 = 500000.0, 6500000.0  # somewhere in EPSG:3006
+LARGE = [X0 - 200, Y0 - 200, X0 + 400, Y0 + 400]
+SMALL = [X0, Y0, X0 + 100, Y0 + 100]
+
+
+def _ring(*points):
+    return [(X0 + x, Y0 + y) for x, y in points]
+
+
+def _square(x, y, size):
+    return _ring((x, y), (x + size, y), (x + size, y + size), (x, y + size), (x, y))
+
+
+def _write(path, features):
+    import fiona
+
+    with fiona.open(path, "w", driver="GPKG", crs="EPSG:3006", schema={
+        "geometry": "Unknown", "properties": {"objektidentitet": "str"},
+    }) as dst:
+        for feature_id, geometry in features:
+            dst.write({"geometry": geometry,
+                       "properties": {"objektidentitet": feature_id}})
+
+
+def _download(path, bounds):
+    """What datasets.buildings returns for ``bounds``: Core's loader, then its
+    size filter (15 m², the default smallest_building_size)."""
+    from dtcc_core.datasets.buildings import BuildingCollection
+    from dtcc_core.datasets.footprints import _filter_small_buildings
+    from dtcc_core.io import footprints
+    from dtcc_core.model import Bounds
+
+    loaded = footprints.load(path, bounds=Bounds(*bounds))
+    return BuildingCollection(_filter_small_buildings(loaded, min_area=15.0))
+
+
+def _ids(city):
+    return sorted(b.attributes["objektidentitet"] for b in city.buildings)
+
+
+TINY_SIBLING_OUTSIDE = {  # a 100 m² part inside SMALL, its 4 m² sibling outside
+    "type": "MultiPolygon",
+    "coordinates": [[_square(10, 10, 10)], [_square(150, 10, 2)]],
+}
+SPIKE_ACROSS_THE_MARGIN = {  # a zero-width spike Core repairs away after its test
+    "type": "Polygon",
+    "coordinates": [_ring((40, 40), (60, 40), (60, 50), (99, 50), (60, 50),
+                          (60, 60), (40, 60), (40, 40))],
+}
+
+
+@pytest.mark.parametrize("geometry", [TINY_SIBLING_OUTSIDE, SPIKE_ACROSS_THE_MARGIN],
+                         ids=["tiny-sibling-outside", "repaired-spike"])
+def test_a_cropped_download_matches_a_fresh_one_at_the_edge(tmp_path, geometry):
+    """#49: Core tests the whole source feature, then splits it, drops tiny
+    parts and repairs invalid outlines, so what a cached download holds can
+    pass a test the source feature failed. source_bounds (dtcc-core#133)
+    records the feature's extent from before all that."""
+    path = tmp_path / "footprints.gpkg"
+    _write(path, [("edge", geometry), ("plain", {
+        "type": "Polygon", "coordinates": [_square(70, 70, 10)]})])
+
+    cropped = crop_to_bounds(_download(path, LARGE), SMALL)
+    fresh = _download(path, SMALL)
+
+    assert _ids(fresh) == ["plain"]
+    assert _ids(cropped) == _ids(fresh)
+
+
+def test_separate_features_that_share_an_lm_id_are_judged_one_by_one(tmp_path):
+    """LM gives several separate features one objektidentitet (a live
+    Lindholmen download has four). Core tests each feature on its own, so a
+    fresh load keeps the one inside; grouping by the id would drop it too."""
+    path = tmp_path / "footprints.gpkg"
+    _write(path, [
+        ("shared", {"type": "Polygon", "coordinates": [_square(10, 10, 10)]}),
+        ("shared", {"type": "Polygon", "coordinates": [_square(150, 10, 10)]}),
+    ])
+
+    cropped = crop_to_bounds(_download(path, LARGE), SMALL)
+    fresh = _download(path, SMALL)
+
+    assert _ids(fresh) == ["shared"]
+    assert [b.attributes["source_bounds"] for b in cropped.buildings] == \
+        [b.attributes["source_bounds"] for b in fresh.buildings]

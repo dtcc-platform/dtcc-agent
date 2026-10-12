@@ -22,12 +22,12 @@ dependencies = [
   # .github/workflows/dtcc-core-contract.yml tests a candidate Core against
   # this package first.
   #
-  # bb95f2f is the revision this package's suite is green against (133
-  # operations; any section failing to register stops startup, #22). It
-  # carries dtcc-core#126, #128 and #132, which dtcc-agent relies on (#59).
-  # dtcc-sim pins an older Core; the two repos are deliberately not
-  # required to match.
-  "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@bb95f2f8c338e6433a1e6a48375cf634710ff421",
+  # a78df16 is the revision this package's suite is green against (any
+  # section failing to register stops startup, #22). It carries
+  # dtcc-core#126, #128 and #132 (#59) and #133's source_bounds, which the
+  # crop relies on (#49). dtcc-sim pins its own Core; the two repos are
+  # deliberately not required to match.
+  "dtcc-core @ git+https://github.com/dtcc-platform/dtcc-core.git@a78df16e9c86b349ba3a67551d518223b7897443",
   # mcp 2.x: server.py uses MCPServer (FastMCP's 2.x name) and reads request
   # headers from the injected Context. The upper bound guards the next major,
   # as <2 once guarded this one. See tests/test_server_import.py.
