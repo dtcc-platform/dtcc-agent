@@ -36,7 +36,7 @@ from pydantic_ai.usage import RunUsage
 
 from chatbot.config import DEFAULT_REGION, SYSTEM_PROMPT, get_mcp_server_config, load_model
 from chatbot.prices import price
-from chatbot.provenance import TurnRecord
+from chatbot.provenance import TurnRecord, http_status
 from chatbot.sessions import Session
 
 from . import artifact_frame
@@ -44,6 +44,11 @@ from . import artifact_frame
 NAME = "pydantic-ai"
 # Said when the model's provider ends a reply with its content filter (#96).
 REFUSAL = "I can't help with that request."
+# Said when Bedrock rejects the server's own credentials: only an admin can
+# fix a wrong or expired key, so the user is told whom to ask.
+AUTH_FAILURE = ("I can't reach the model: the server's Bedrock key is invalid or has expired. "
+                "Please tell the administrator.")
+AUTH_REJECTED = (401, 403)
 PACKAGE = f"pydantic-ai-slim {importlib.metadata.version('pydantic-ai-slim')}"
 
 logger = logging.getLogger("lurkie")
@@ -60,6 +65,28 @@ def model() -> BedrockConverseModel:
         provider=BedrockProvider(region_name=os.getenv("AWS_REGION") or DEFAULT_REGION),
     )
 
+
+
+async def probe() -> None:
+    """One 1-token request, so a rejected key shows in the log at startup and
+    not first in a user's chat. require_bedrock_credentials only checks that a
+    credential is set. Never raises: the server starts either way."""
+    from pydantic_ai.direct import model_request
+    from pydantic_ai.messages import ModelRequest
+
+    try:
+        await model_request(model(), [ModelRequest.user_text_prompt("ping")],
+                            model_settings={"max_tokens": 1})
+    except Exception as exc:
+        status = http_status(exc)
+        if status in AUTH_REJECTED:
+            logger.error("BEDROCK REJECTED THE SERVER'S KEY (HTTP %s): every chat will fail "
+                         "until AWS_BEARER_TOKEN_BEDROCK is fixed.", status)
+        else:
+            logger.warning("Bedrock check failed (%s, HTTP %s); chats may fail.",
+                           type(exc).__name__, status or "none")
+    else:
+        logger.info("Bedrock check passed: %s answers.", load_model())
 
 @cache
 def agent() -> Agent:
@@ -103,7 +130,7 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
             except ContentFilterError:
                 raise  # a refusal, which a fresh retry would only repeat
             except Exception as exc:
-                if not session.history:
+                if not session.history or http_status(exc) in AUTH_REJECTED:
                     raise
                 logger.warning("[%s] Turn failed with history (%s); retrying fresh",
                                session.id, type(exc).__name__)
@@ -118,10 +145,12 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
             await ws.send_json({"type": "text", "content": REFUSAL})
             return ""
         except Exception as exc:
-            logger.exception("[%s] The agent failed", session.id)
+            status = http_status(exc)
+            logger.exception("[%s] The agent failed (HTTP %s)", session.id, status or "none")
             turn.failed(exc)
-            await ws.send_json({"type": "text",
-                                "content": "Sorry, an error occurred. Check the server logs for details."})
+            content = (AUTH_FAILURE if status in AUTH_REJECTED else
+                       "Sorry, an error occurred. Check the server logs for details.")
+            await ws.send_json({"type": "text", "content": content})
             return ""
         finally:
             # A turn that failed before any model request used nothing: its
