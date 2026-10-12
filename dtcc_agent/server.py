@@ -559,8 +559,9 @@ def run_simulation(
             "heatwave"). Used in comparison output.
 
     Returns a JSON object with run_ref, simulation metadata, and summary
-    statistics (min, max, mean, std, median, percentiles). A result too large
-    to keep has object_ref null and a not_stored note.
+    statistics (min, max, mean, std, median, percentiles). The statistics say
+    nothing about where values occur. A result too large to keep has
+    object_ref null and a not_stored note.
     """
     from .dispatcher import bounds_error
     from .runner import run as _run
@@ -630,7 +631,7 @@ def compare_scenarios(
         label_b: Human-readable label for scenario B (e.g. "heatwave").
 
     Returns a JSON object with summary stats for each scenario and
-    the difference (B minus A).
+    the difference (B minus A), with no locations.
     """
     from .dispatcher import bounds_error
     from .runner import run as _run
