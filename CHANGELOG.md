@@ -14,6 +14,10 @@ Last updated: 2026-10-12.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-12 | A cropped building cache matches a fresh download exactly, using Core's `source_bounds`; also fixes buildings sharing one Lantmäteriet id being dropped together ([#107](https://github.com/dtcc-platform/dtcc-agent/pull/107), fixes [#49](https://github.com/dtcc-platform/dtcc-agent/issues/49)) | ✅ |
+| 2026-10-12 | A rejected Bedrock key says so, in the chat and at startup, and answer records keep the HTTP status ([#106](https://github.com/dtcc-platform/dtcc-agent/pull/106)) | ✅ |
+| 2026-10-12 | The Agent SDK rollback runtime is gone; the chat runs on pydantic-ai only ([#105](https://github.com/dtcc-platform/dtcc-agent/pull/105)) | ✅ |
+| 2026-10-12 | Simulation answers stick to the statistics the tools return, and don't say where hot spots are ([#104](https://github.com/dtcc-platform/dtcc-agent/pull/104)) | ✅ |
 | 2026-10-12 | Heatwave and air-quality answers give temperatures and concentrations again, not just "the simulation completed" ([#102](https://github.com/dtcc-platform/dtcc-agent/pull/102)) | ✅ |
 | 2026-10-06 | Speed comparisons run both versions on the same day, because Bedrock's speed drifts from day to day ([#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)) | ✅ |
 | 2026-10-06 | A request the model declines says so, instead of "Sorry, an error occurred" ([#99](https://github.com/dtcc-platform/dtcc-agent/pull/99), fixes [#96](https://github.com/dtcc-platform/dtcc-agent/issues/96)) | ✅ |
@@ -68,11 +72,53 @@ Last updated: 2026-10-12.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93 → (#95–#99 not recorded) → 582 with #102 → 583 with #104 → 571 with #105, which removed the SDK tests → 581 with #106 → 584 with #107.
 
 ---
 
 ## ✅ Merged
+
+### A cropped building cache matches a fresh download exactly · 2026-10-12 · [#107](https://github.com/dtcc-platform/dtcc-agent/pull/107)
+
+**Before:** asking for a smaller area inside one already downloaded crops the cached buildings. At
+the edge the result could differ from a fresh download: a building whose small detached part lay
+outside, or whose outline Core had repaired, was judged on the wrong shape (#49). Live data also
+showed a third case: Lantmäteriet gives several separate buildings one id, and the crop dropped
+them together.
+
+**Now:** Core (moved to `a78df16`, after its contract check passed) records each building's original
+extent as `source_bounds`, and the crop uses Core's own test on it, building by building. A 500 m
+Lindholmen download cropped to 200 m matches a fresh 200 m download: 13 = 13 buildings from
+Lantmäteriet (it was 12 vs 13), 5 = 5 from OSM, identical footprints. 3 new tests run Core's real
+loader and fail on the old Core. Existing disk caches start empty once, because the Core version changed.
+
+### A rejected Bedrock key says so · 2026-10-12 · [#106](https://github.com/dtcc-platform/dtcc-agent/pull/106)
+
+**Before:** with a wrong or expired Bedrock key, the server started (it only checks that a key is set)
+and every message got "Sorry, an error occurred". That is how QA lost time on 2026-10-08.
+
+**Now:** a 401 or 403 from Bedrock tells the user the server's key is invalid or expired, and isn't
+retried. At startup one 1-token request checks the key in the background and logs a loud error if
+it's rejected, without blocking startup (`DTCC_AGENT_BEDROCK_PROBE=0` turns it off). Answer records
+gain `http_status`. 10 new tests.
+
+### The Agent SDK rollback runtime is gone · 2026-10-12 · [#105](https://github.com/dtcc-platform/dtcc-agent/pull/105)
+
+**Before:** M3 kept the Claude Agent SDK as a fallback runtime (`DTCC_AGENT_RUNTIME=sdk`), with its own
+package extra and a CI job without it.
+
+**Now:** the chat runs on pydantic-ai only. The `sdk` extra, its module and tests, and the
+`test-without-sdk` CI job are removed; the image is smaller. A leftover `DTCC_AGENT_RUNTIME=sdk`
+stops the chatbot at start with a clear message. Old answer records still compare: the field name `sdk` stays.
+
+### Simulation answers stick to the statistics · 2026-10-12 · [#104](https://github.com/dtcc-platform/dtcc-agent/pull/104)
+
+**Before:** with #102's temperatures, the model also said *where* the hot spots were ("next to roofs,
+in dense areas"), but the tools return only summary statistics, not locations.
+
+**Now:** the system prompt and the simulation tools' descriptions say results are statistics; the
+model says where values are only when a tool returned that, and says when a render shows no field.
+Unit-tested; the live heatwave question has not been re-run yet.
 
 ### Heatwave answers give temperatures again · 2026-10-12 · [#102](https://github.com/dtcc-platform/dtcc-agent/pull/102)
 
