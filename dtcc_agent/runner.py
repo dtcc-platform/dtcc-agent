@@ -10,13 +10,14 @@ Usage:
 
     sims = list_simulations()
     result = run("urban_heat_simulation", bounds=[...], parameters={...})
-    values = result.x.array  # numpy array of field values
+    values = result.fields[0].values  # numpy array of field values
 """
 
 from __future__ import annotations
 
 import os
-from dataclasses import asdict, dataclass
+import tempfile
+from dataclasses import dataclass, field, fields
 from typing import Any
 
 # Names of datasets that are simulations (as opposed to data fetchers
@@ -43,9 +44,27 @@ class RemoteSimulationResult:
     content_type: str | None = None
     status: str = "completed"
     remote: bool = True
+    # The decoded model (a VolumeMesh with its fields) when the service
+    # returned Core's native format; None for formats the agent cannot read.
+    model: Any = field(default=None, repr=False, compare=False)
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {f.name: getattr(self, f.name) for f in fields(self) if f.name != "model"}
+
+
+# Core's native format, the only simulation output the agent can read back
+# (dtcc-sim#8). XDMF needs FEniCSx, which this service does not install.
+NATIVE_FORMAT = "dtcc"
+
+
+def _load_native(data: bytes) -> Any:
+    """Decode a native result with Core, which loads models from a path only."""
+    from dtcc_core.io import load_model
+
+    with tempfile.NamedTemporaryFile(suffix=f".{NATIVE_FORMAT}") as f:
+        f.write(data)
+        f.flush()
+        return load_model(f.name)
 
 
 _REGISTERED_REMOTE_SERVICES: set[str] = set()
@@ -194,10 +213,11 @@ def run(
 
     Returns
     -------
-    For urban_heat_simulation: dolfinx.fem.Function
-        Access values via result.x.array (numpy array)
-    For air_quality_field: dolfinx.fem.Function
-        Access values via result.x.array (numpy array)
+    In process: what the simulation returns, a VolumeMesh whose scalar Field
+        holds the values (dolfinx.fem.Function, with result.x.array, before
+        dtcc-sim#8).
+    In mini-service mode: a RemoteSimulationResult; its model is the decoded
+        VolumeMesh when the service offers the native format.
 
     Raises
     ------
@@ -214,16 +234,20 @@ def run(
     if base_url:
         ds = _get_remote_dataset(name)
         formats = getattr(ds, "supported_formats", None) or ["bin"]
-        requested_format = kwargs.setdefault("format", formats[0])
+        preferred = NATIVE_FORMAT if NATIVE_FORMAT in formats else formats[0]
+        requested_format = kwargs.setdefault("format", preferred)
         remote_info: dict[str, Any] = {}
 
         # Use dtcc-core's RemoteDatasetDescriptor implementation instead of
         # carrying a second copy of the submit/status/result protocol here.
         validated = ds.validate(dict(kwargs)) if hasattr(ds, "validate") else kwargs
         result = ds.build(validated, remote_info_callback=remote_info.update)
+        model = None
         if isinstance(result, tuple) and len(result) >= 3:
             data, output_format, content_type = result[:3]
             size_bytes = len(data) if isinstance(data, bytes) else None
+            if output_format == NATIVE_FORMAT and isinstance(data, bytes):
+                model = _load_native(data)
         else:
             output_format = requested_format
             content_type = None
@@ -239,6 +263,7 @@ def run(
             size_bytes=size_bytes,
             output_format=output_format,
             content_type=content_type,
+            model=model,
         )
 
     ds = _get_local_dataset(name)

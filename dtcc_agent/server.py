@@ -574,53 +574,34 @@ def run_simulation(
     except Exception as exc:
         return _fmt({"error": f"Simulation failed: {exc}"})
 
-    if getattr(result, "remote", False):
-        run_ref = _store_result(simulation_name, bounds, params, result)
-        remote_result = result.as_dict()
-        return _fmt({
-            "run_ref": run_ref,
-            "object_ref": _session().results[run_ref]["object_ref"],
-            **_kept(_session().results[run_ref]["object_ref"]),
-            "label": label or run_ref,
-            "simulation": simulation_name,
-            "bounds": bounds,
-            "parameters_used": params,
-            "summary": {
-                "status": remote_result["status"],
-                "message": (
-                    "Simulation completed in the dtcc-sim mini-service. "
-                    "The lightweight dtcc-agent service does not deserialize "
-                    "FEniCSx output for field statistics."
-                ),
-            },
-            "remote_result": remote_result,
-        })
-
-    # Extract values — dolfinx Function has .x.array
-    if hasattr(result, "x") and hasattr(result.x, "array"):
-        values = result.x.array
-        field_name = _infer_field_name(simulation_name)
-    else:
+    remote = getattr(result, "remote", False)
+    scalar = _scalar_field(result, simulation_name)
+    if scalar is None and not remote:
         return _fmt({
             "error": (
                 f"Unexpected result type: {type(result).__name__}. "
-                "Expected dolfinx Function with .x.array attribute."
+                "Expected a VolumeMesh with a scalar field."
             )
         })
 
     run_ref = _store_result(simulation_name, bounds, params, result)
-    summary = summarize_field(values, field_name)
-
-    return _fmt({
+    object_ref = _session().results[run_ref]["object_ref"]
+    payload = {
         "run_ref": run_ref,
-        "object_ref": _session().results[run_ref]["object_ref"],
-        **_kept(_session().results[run_ref]["object_ref"]),
+        "object_ref": object_ref,
+        **_kept(object_ref),
         "label": label or run_ref,
         "simulation": simulation_name,
         "bounds": bounds,
         "parameters_used": params,
-        "summary": summary,
-    })
+        "summary": (
+            _field_summary(*scalar) if scalar is not None
+            else {"status": result.status, "message": _unreadable(result)}
+        ),
+    }
+    if remote:
+        payload["remote_result"] = result.as_dict()
+    return _fmt(payload)
 
 
 @tool
@@ -669,62 +650,43 @@ def compare_scenarios(
     except Exception as exc:
         return _fmt({"error": f"Scenario B ({label_b}) failed: {exc}"})
 
-    if getattr(result_a, "remote", False) or getattr(result_b, "remote", False):
-        run_ref_a = _store_result(simulation_name, bounds, scenario_a_parameters, result_a)
-        run_ref_b = _store_result(simulation_name, bounds, scenario_b_parameters, result_b)
+    remote_a = getattr(result_a, "remote", False)
+    remote_b = getattr(result_b, "remote", False)
+    scalar_a = _scalar_field(result_a, simulation_name)
+    scalar_b = _scalar_field(result_b, simulation_name)
+    readable = scalar_a is not None and scalar_b is not None
+    if not readable and not (remote_a or remote_b):
         return _fmt({
-            "simulation": simulation_name,
-            "bounds": bounds,
-            "run_ref_a": run_ref_a,
-            "run_ref_b": run_ref_b,
-            "parameters_a": scenario_a_parameters,
-            "parameters_b": scenario_b_parameters,
-            "summary": {
-                "status": "completed",
-                "message": (
-                    "Both scenarios completed in the dtcc-sim mini-service. "
-                    "Numeric difference statistics require direct in-process "
-                    "FEniCSx results and are not computed in lightweight mode."
-                ),
-            },
-            "remote_result_a": (
-                result_a.as_dict() if getattr(result_a, "remote", False) else None
-            ),
-            "remote_result_b": (
-                result_b.as_dict() if getattr(result_b, "remote", False) else None
-            ),
+            "error": "Unexpected result type: expected a VolumeMesh with a scalar field."
         })
 
-    # Extract values
-    if not (hasattr(result_a, "x") and hasattr(result_b, "x")):
-        return _fmt({
-            "error": "Unexpected result type — expected dolfinx Function."
-        })
-
-    values_a = result_a.x.array
-    values_b = result_b.x.array
-    field_name = _infer_field_name(simulation_name)
-
-    # Store both
     run_ref_a = _store_result(simulation_name, bounds, scenario_a_parameters, result_a)
     run_ref_b = _store_result(simulation_name, bounds, scenario_b_parameters, result_b)
-
-    comparison = compare_fields(
-        values_a, values_b,
-        label_a=label_a,
-        label_b=label_b,
-        field_name=field_name,
-    )
-
-    return _fmt({
+    payload = {
         "simulation": simulation_name,
         "bounds": bounds,
         "run_ref_a": run_ref_a,
         "run_ref_b": run_ref_b,
         "parameters_a": scenario_a_parameters,
         "parameters_b": scenario_b_parameters,
-        **comparison,
-    })
+    }
+    if readable:
+        (values_a, field_name, unit), (values_b, _, _) = scalar_a, scalar_b
+        payload.update(compare_fields(
+            values_a, values_b,
+            label_a=label_a,
+            label_b=label_b,
+            field_name=field_name,
+        ))
+        if unit:
+            payload["unit"] = unit
+    else:
+        unreadable = result_a if scalar_a is None else result_b
+        payload["summary"] = {"status": "completed", "message": _unreadable(unreadable)}
+    if remote_a or remote_b:
+        payload["remote_result_a"] = result_a.as_dict() if remote_a else None
+        payload["remote_result_b"] = result_b.as_dict() if remote_b else None
+    return _fmt(payload)
 
 
 # -- Utilities ---------------------------------------------------------------
@@ -753,11 +715,11 @@ def list_past_runs(limit: int = 10) -> str:
         result = _run_result(info)
         if result is None:
             entry["evicted"] = True
-        elif hasattr(result, "x") and hasattr(result.x, "array"):
-            field_name = _infer_field_name(info["simulation"])
-            entry["summary"] = summarize_field(result.x.array, field_name)
-        elif getattr(result, "remote", False):
-            entry["remote_result"] = result.as_dict()
+        else:
+            if (scalar := _scalar_field(result, info["simulation"])) is not None:
+                entry["summary"] = _field_summary(*scalar)
+            if getattr(result, "remote", False):
+                entry["remote_result"] = result.as_dict()
         output.append(entry)
     return _fmt(output)
 
@@ -780,30 +742,23 @@ def get_run_summary(run_ref: str) -> str:
             f"Run {run_ref}'s result ({info['object_ref']}) is no longer in memory: "
             "it was evicted or deleted. Call run_simulation again to recompute it.")})
 
-    if getattr(result, "remote", False):
-        return _fmt({
-            "run_ref": run_ref,
-            "object_ref": info["object_ref"],
-            "simulation": info["simulation"],
-            "bounds": info["bounds"],
-            "parameters": info["parameters"],
-            "remote_result": result.as_dict(),
-        })
-
-    if not (hasattr(result, "x") and hasattr(result.x, "array")):
+    remote = getattr(result, "remote", False)
+    scalar = _scalar_field(result, info["simulation"])
+    if scalar is None and not remote:
         return _fmt({"error": "Result does not have extractable field values."})
 
-    field_name = _infer_field_name(info["simulation"])
-    summary = summarize_field(result.x.array, field_name)
-
-    return _fmt({
+    payload = {
         "run_ref": run_ref,
         "object_ref": info["object_ref"],
         "simulation": info["simulation"],
         "bounds": info["bounds"],
         "parameters": info["parameters"],
-        "summary": summary,
-    })
+    }
+    if scalar is not None:
+        payload["summary"] = _field_summary(*scalar)
+    if remote:
+        payload["remote_result"] = result.as_dict()
+    return _fmt(payload)
 
 
 # -- Dynamic dispatch tools --------------------------------------------------
@@ -1547,6 +1502,35 @@ def _infer_field_name(simulation_name: str) -> str:
         "air_quality_field": "concentration",
     }
     return mapping.get(simulation_name, "field")
+
+
+def _scalar_field(result: Any, simulation_name: str) -> tuple[Any, str, str | None] | None:
+    """A simulation result's scalar values, field name and unit.
+
+    None when it carries none the agent can read: a remote result in a format
+    it cannot decode, or an unexpected type.
+    """
+    if hasattr(result, "x") and hasattr(result.x, "array"):  # dolfinx, before dtcc-sim#8
+        return result.x.array, _infer_field_name(simulation_name), None
+    model = result.model if getattr(result, "remote", False) else result
+    for f in getattr(model, "fields", None) or ():
+        if getattr(f, "dim", None) == 1:
+            return f.values, f.name or _infer_field_name(simulation_name), f.unit or None
+    return None
+
+
+def _field_summary(values: Any, field_name: str, unit: str | None) -> dict[str, Any]:
+    summary = summarize_field(values, field_name)
+    return {**summary, "unit": unit} if unit else summary
+
+
+def _unreadable(result: Any) -> str:
+    """Why a remote result has no statistics."""
+    return (
+        f"Simulation completed in the dtcc-sim mini-service, which returned "
+        f"{result.output_format} output. dtcc-agent reads field statistics only "
+        "from Core's native dtcc format, which this dtcc-sim build does not offer."
+    )
 
 
 def _starting_runtime(app_lifespan):

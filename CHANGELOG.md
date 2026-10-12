@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-10-07.
+Last updated: 2026-10-12.
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-10-07.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-12 | Heatwave and air-quality answers give temperatures and concentrations again, not just "the simulation completed" ([#102](https://github.com/dtcc-platform/dtcc-agent/pull/102)) | ✅ |
 | 2026-10-06 | Speed comparisons run both versions on the same day, because Bedrock's speed drifts from day to day ([#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)) | ✅ |
 | 2026-10-06 | A request the model declines says so, instead of "Sorry, an error occurred" ([#99](https://github.com/dtcc-platform/dtcc-agent/pull/99), fixes [#96](https://github.com/dtcc-platform/dtcc-agent/issues/96)) | ✅ |
 | 2026-10-06 | The first chat after a deploy no longer freezes the server for half a minute while a memory model downloads ([#98](https://github.com/dtcc-platform/dtcc-agent/pull/98), fixes [#94](https://github.com/dtcc-platform/dtcc-agent/issues/94)) | ✅ |
@@ -72,6 +73,26 @@ Last updated: 2026-10-07.
 ---
 
 ## ✅ Merged
+
+### Heatwave answers give temperatures again · 2026-10-12 · [#102](https://github.com/dtcc-platform/dtcc-agent/pull/102)
+
+**Before:** asked how a heatwave affects an area, the agent ran the simulation and then answered
+without a single temperature. dtcc-sim sent its result in a format the agent can't read (XDMF), and
+the agent replied with a fixed "does not deserialize" note. This was the README's first example and
+the campus demo's headline.
+
+**Now:** the agent asks dtcc-sim for Core's own format (`dtcc`, added in dtcc-sim#8) and reads the
+temperature field from it. Single runs and baseline-versus-heatwave comparisons report minimum,
+maximum, mean and percentiles with units, plus the difference between scenarios. An older dtcc-sim
+that can't send that format still gets an answer, which says why it has no numbers.
+
+**How we know:** 582 tests pass, 6 of them new: a real Core mesh written and read back, and the
+comparison maths. The heatwave question ran twice against a live dtcc-sim. Both answers gave
+temperature tables, a mean rise of about 15 to 18 °C, for $0.08.
+
+**⏳ Needs a dtcc-sim rebuild:** image `dtcc-sim:develop-41055d5` lacks `linkml`, which its Core
+requires, so it fails on every `dtcc` result. The live run used that image with
+`linkml==1.11.1` and `linkml-runtime==1.11.1` added.
 
 ### Speed comparisons run both versions on the same day · 2026-10-06 · [#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)
 

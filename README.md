@@ -34,7 +34,11 @@ dtcc-agent can run in two modes:
 
 - **Mini-service mode**: Lurkie and the MCP server run in a lightweight
   Python container. Simulation tools call the `dtcc-sim` mini-service through
-  the same `dtcc-core` remote dataset protocol used by Atlas.
+  the same `dtcc-core` remote dataset protocol used by Atlas. Jobs are submitted
+  and polled over HTTP, but the result file is read from a folder both services
+  mount (`SHARED_RESULTS_DIR`). The agent asks for Core's native `dtcc` format
+  and decodes it for field statistics, so it needs a dtcc-sim build with
+  dtcc-sim#8; an older build answers without temperature values.
 - **Direct mode**: the MCP server imports `dtcc_core` and `dtcc_sim` directly
   in-process. This requires the full scientific environment.
 

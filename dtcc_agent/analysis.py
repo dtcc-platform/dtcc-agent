@@ -1,7 +1,8 @@
 """Analysis utilities: extract summary statistics from simulation results.
 
-Both urban_heat_simulation and air_quality_field return dolfinx.fem.Function
-objects. The field values live in `function.x.array` as a flat numpy array.
+Both urban_heat_simulation and air_quality_field return a VolumeMesh whose
+scalar Field holds the values, one per vertex (dolfinx.fem.Function, with
+`function.x.array`, before dtcc-sim#8).
 This module extracts human-readable statistics from those arrays so the LLM
 can reason about results without needing to parse binary files.
 """
