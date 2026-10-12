@@ -90,9 +90,12 @@ that can't send that format still gets an answer, which says why it has no numbe
 comparison maths. The heatwave question ran twice against a live dtcc-sim. Both answers gave
 temperature tables, a mean rise of about 15 to 18 °C, for $0.08.
 
-**⏳ Needs a dtcc-sim rebuild:** image `dtcc-sim:develop-41055d5` lacks `linkml`, which its Core
-requires, so it fails on every `dtcc` result. The live run used that image with
-`linkml==1.11.1` and `linkml-runtime==1.11.1` added.
+**⏳ Needs a full dtcc-sim build:** the sim must be built from its Dockerfile with Core's dependencies,
+which include `linkml`. Without `linkml`, every `dtcc` result fails after the solve. The local image
+first tried was a quick build that installed Core with `--no-deps`, so it lacked `linkml`. That was our
+build, not a dtcc-sim bug. The live run used that image with `linkml==1.11.1` and `linkml-runtime==1.11.1`
+added. A full build currently needs the two Dockerfile fixes in
+[dtcc-sim#7](https://github.com/dtcc-platform/dtcc-sim/issues/7).
 
 ### Speed comparisons run both versions on the same day · 2026-10-06 · [#100](https://github.com/dtcc-platform/dtcc-agent/pull/100)
 
