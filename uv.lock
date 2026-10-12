@@ -981,7 +981,7 @@ test = [
 requires-dist = [
     { name = "anyio", specifier = ">=4" },
     { name = "chromadb", marker = "extra == 'chatbot'", specifier = ">=0.5.0" },
-    { name = "dtcc-core", git = "https://github.com/dtcc-platform/dtcc-core.git?rev=bb95f2f8c338e6433a1e6a48375cf634710ff421" },
+    { name = "dtcc-core", git = "https://github.com/dtcc-platform/dtcc-core.git?rev=a78df16e9c86b349ba3a67551d518223b7897443" },
     { name = "fastapi", marker = "extra == 'chatbot'", specifier = ">=0.115.0" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "matplotlib", specifier = ">=3.8" },
@@ -998,7 +998,7 @@ provides-extras = ["test", "chatbot"]
 [[package]]
 name = "dtcc-core"
 version = "0.9.8.dev0"
-source = { git = "https://github.com/dtcc-platform/dtcc-core.git?rev=bb95f2f8c338e6433a1e6a48375cf634710ff421#bb95f2f8c338e6433a1e6a48375cf634710ff421" }
+source = { git = "https://github.com/dtcc-platform/dtcc-core.git?rev=a78df16e9c86b349ba3a67551d518223b7897443#a78df16e9c86b349ba3a67551d518223b7897443" }
 dependencies = [
     { name = "affine" },
     { name = "aiohttp" },

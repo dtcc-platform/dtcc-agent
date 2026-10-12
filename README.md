@@ -256,7 +256,7 @@ The Docker layout mirrors `dtcc-sim`:
 |------|-------------|
 | `render_object` | Render a stored object as a PNG shown in the chat (matplotlib; plan view for footprints and lines, 3D for meshes and point clouds) |
 
-The dynamic dispatch tools expose the whole catalogue of the pinned dtcc-core (`bb95f2f`, 133
+The dynamic dispatch tools expose the whole catalogue of the pinned dtcc-core (`a78df16`, 133
 operations; CI prints the count on every run):
 
 | Category | Count | Examples |
