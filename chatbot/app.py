@@ -1,6 +1,6 @@
 # chatbot/app.py
 """FastAPI application with the WebSocket chat endpoint. A turn is answered by
-the runtime DTCC_AGENT_RUNTIME names (chatbot/runtime, #86)."""
+the pydantic-ai runtime (chatbot/runtime, #86)."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ async def _lifespan(app: FastAPI):
 
 
 app = FastAPI(title="DTCC Lurkie", lifespan=_lifespan)
-# Exits here on an unknown runtime, or `sdk` without its extra.
+# Exits here if DTCC_AGENT_RUNTIME still asks for the removed Agent SDK.
 runtime = load_runtime()
 sessions = SessionManager()
 memory = ConversationMemory()

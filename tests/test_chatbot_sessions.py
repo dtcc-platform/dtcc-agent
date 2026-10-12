@@ -17,9 +17,9 @@ def test_new_chat_forgets_the_conversation_but_keeps_the_session():
     mgr = SessionManager()
     sid = mgr.create()
     session = mgr.get(sid)
-    session.sdk_session_id, session.history = "sdk-session-abc", ["a message"]
+    session.history = ["a message"]
     session.reset_conversation()
-    assert (session.sdk_session_id, session.history) == (None, [])
+    assert session.history == []
     assert mgr.get(sid) is session
 
 

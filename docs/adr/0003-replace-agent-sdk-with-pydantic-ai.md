@@ -73,3 +73,6 @@ The Agent SDK stays behind `DTCC_AGENT_RUNTIME=sdk` for one milestone as the rol
 in Docker on Bedrock (#88). pydantic-ai is pinned at 2.54.0 and needed the MCP server on mcp
 2.x first (#92). Context management, named above as the real loss, is still the conversation's
 own message history; nothing summarises or trims it yet.
+
+**Update 2026-10-12 (M4):** the Agent SDK runtime, the `sdk`
+extra and `DTCC_AGENT_RUNTIME=sdk` are removed. pydantic-ai is the only runtime.

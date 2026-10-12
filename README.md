@@ -179,14 +179,12 @@ The agent answers through Amazon Bedrock only (#29). Claude has no on-demand mod
 | `AWS_BEARER_TOKEN_BEDROCK` | none | A Bedrock API key. Standard AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_PROFILE`) also work outside Compose. With none set, the chatbot does not start. |
 | `AWS_REGION` | `eu-north-1` | The Bedrock Region. |
 | `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The Bedrock model ID the agent answers with. Changing models is this variable alone. |
-| `DTCC_AGENT_RUNTIME` | `pydantic-ai` | What runs the agent loop. `pydantic-ai` runs it in the chatbot process. `sdk` rolls back to the Claude Agent SDK, which starts the claude CLI for every message; it needs the `sdk` extra, and is kept for one milestone (#86). |
 
-The default image includes the `sdk` extra so the rollback works. Build without it, and with
-no claude CLI in the image, using `EXTRAS=chatbot ./build_docker.sh`; that image refuses
-`DTCC_AGENT_RUNTIME=sdk` at startup and names the missing extra.
+The agent loop runs in the chatbot process on pydantic-ai (#86). The Claude Agent SDK, M3's
+rollback, was removed in M4; a leftover `DTCC_AGENT_RUNTIME` set to anything but `pydantic-ai`
+stops the chatbot at start.
 
-On the `sdk` runtime, the Claude CLI also calls a small model for internal steps; the chatbot
-points that at `DTCC_AGENT_MODEL` too. Every 4.x model (Sonnet 4.5, Sonnet 4.6, Haiku 4.5) is
+Every 4.x model (Sonnet 4.5, Sonnet 4.6, Haiku 4.5) is
 refused on an account until Anthropic's use-case form is filed in the Bedrock console. Sonnet 5,
 Sonnet 5.5, Opus 5 and Opus 5.5 are not (checked 2026-10-06, #88).
 Check access with one call before a long run:
@@ -592,7 +590,8 @@ Agent calls: describe_operation("builder.pc_filter.remove_vegetation")
 
 ## Web Chatbot (Lurkie)
 
-The chatbot provides a browser-based chat interface powered by Claude Agent SDK.
+The chatbot provides a browser-based chat interface. Its agent loop runs on pydantic-ai
+with Claude on Amazon Bedrock.
 
 ### Install
 
@@ -611,7 +610,7 @@ Then open http://localhost:8050 in your browser. Logs are written to
 
 ### How it works
 
-The chatbot uses the Claude Agent SDK to connect to dtcc-agent as an MCP server.
+The chatbot connects to dtcc-agent as an MCP server.
 User messages are sent via WebSocket, and Claude's responses (including tool calls
 and 3D renders) stream back in real-time.
 
@@ -619,8 +618,8 @@ Features:
 
 - **Conversation memory**: Past exchanges are stored in ChromaDB and
   retrieved via RAG to provide cross-session context.
-- **Error recovery**: If a resumed SDK session fails (e.g. context
-  limit), the chatbot automatically retries with a fresh session.
+- **Error recovery**: If a follow-up turn fails (e.g. context
+  limit), the chatbot retries it once as a fresh conversation.
 - **Session management**: A chat ends after 60 minutes without a
   message. A "New Chat" button lets users start fresh without reloading.
 - **Security**: Rendered markdown is sanitized with DOMPurify to

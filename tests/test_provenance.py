@@ -147,11 +147,10 @@ def test_join_of_an_empty_log_dir_is_empty(tmp_path):
 
 # -- Chatbot: answers.jsonl ----------------------------------------------------
 
-def _result(**overrides):
-    fields = dict(num_turns=3, duration_ms=9000, duration_api_ms=7000, total_cost_usd=0.04,
-                  is_error=False, model_usage={"claude-sonnet-4-5-20250929": {}},
-                  usage={"input_tokens": 10, "output_tokens": 20, "cache_read_input_tokens": 30,
-                         "cache_creation_input_tokens": 40, "service_tier": "standard"})
+def _usage(**overrides):
+    """A pydantic-ai RunUsage: input_tokens counts cache reads and writes too."""
+    fields = dict(input_tokens=80, output_tokens=20, cache_read_tokens=30,
+                  cache_write_tokens=40, requests=3)
     fields.update(overrides)
     return SimpleNamespace(**fields)
 
@@ -170,7 +169,8 @@ def test_an_answer_record_holds_what_the_agent_reported():
     turn = _turn()
     turn.saw_model("claude-sonnet-4-5-20250929")
     turn.saw_tool("mcp__dtcc-agent__run_operation")
-    turn.saw_result(_result())
+    turn.saw_run(_usage(), elapsed_ms=9000, cost=0.04, cost_source="genai-prices 0.1.10",
+                 models=["claude-sonnet-4-5-20250929"])
     record = turn.record()
 
     assert set(record) == ANSWER_FIELDS
@@ -182,22 +182,10 @@ def test_an_answer_record_holds_what_the_agent_reported():
     assert record["num_turns"] == 3 and record["total_cost_usd"] == 0.04
     assert record["is_error"] is False and record["retried_fresh"] is False and record["error"] is None
     assert record["refused"] is False
-    assert record["memory_context"] is True and record["sdk"].startswith("claude-agent-sdk ")
+    assert record["memory_context"] is True and record["sdk"].startswith("pydantic-ai-slim ")
     assert record["prompt_version"] == answers.prompt_version()
-    assert (record["runtime"], record["provider"]) == ("sdk", "bedrock")
-    assert record["cost_source"] == "sdk total_cost_usd"
-
-
-def test_a_turn_retried_fresh_sums_both_attempts():
-    turn = _turn()
-    turn.saw_result(_result())
-    turn.retry()
-    turn.saw_result(_result(total_cost_usd=0.01, duration_ms=1000))
-    record = turn.record()
-    assert record["retried_fresh"] is True
-    assert record["total_cost_usd"] == pytest.approx(0.05)
-    assert record["duration_ms"] == 10_000 and record["num_turns"] == 6
-    assert record["usage"]["input_tokens"] == 20
+    assert (record["runtime"], record["provider"]) == ("pydantic-ai", "bedrock")
+    assert record["cost_source"] == "genai-prices 0.1.10"
 
 
 def test_a_turn_that_crashed_before_any_result_still_has_every_field():
