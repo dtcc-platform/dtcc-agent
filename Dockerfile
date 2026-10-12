@@ -2,9 +2,7 @@ FROM python:3.12-slim
 
 ARG APP_UID=1000
 ARG APP_GID=1000
-# The SDK runtime (`sdk` extra) is M3's rollback, kept for one milestone.
-# Build with EXTRAS=chatbot for an image with no SDK and no claude CLI (#86).
-ARG EXTRAS=chatbot,sdk
+ARG EXTRAS=chatbot
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \

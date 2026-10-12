@@ -125,7 +125,7 @@ def test_a_follow_up_sends_the_earlier_messages_and_new_chat_clears_them(run):
     assert texts == ["Show the buildings", "And how tall?"]
 
     session.reset_conversation()
-    assert session.history == [] and session.sdk_session_id is None
+    assert session.history == []
 
 
 def test_memory_is_read_only_for_a_fresh_conversation(run):

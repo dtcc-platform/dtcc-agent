@@ -128,25 +128,6 @@ def test_the_model_comes_from_dtcc_agent_model(monkeypatch):
     assert load_model() == "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 
-def test_the_cli_runs_on_bedrock_for_every_model_it_calls(monkeypatch):
-    from chatbot.config import bedrock_env
-
-    _no_aws(monkeypatch)
-    env = bedrock_env()
-    assert env["CLAUDE_CODE_USE_BEDROCK"] == "1"
-    assert env["AWS_REGION"] == "eu-north-1"
-    # The CLI's internal steps use the answering model, never a default
-    # the account may not have enabled.
-    assert env["ANTHROPIC_DEFAULT_HAIKU_MODEL"] == "eu.anthropic.claude-sonnet-5-5"
-
-
-def test_the_region_can_be_set(monkeypatch):
-    from chatbot.config import bedrock_env
-
-    monkeypatch.setenv("AWS_REGION", "eu-central-1")
-    assert bedrock_env()["AWS_REGION"] == "eu-central-1"
-
-
 def test_no_bedrock_credentials_stops_the_chatbot(monkeypatch):
     import pytest
     from chatbot.config import require_bedrock_credentials

@@ -194,11 +194,9 @@ def _fake_runtime(answer):
 
 
 def _priced(turn, cost):
-    turn.saw_result(SimpleNamespace(num_turns=1, duration_ms=100, duration_api_ms=80,
-                                    total_cost_usd=cost, is_error=False, model_usage={"m": {}},
-                                    usage={"input_tokens": 1, "output_tokens": 2,
-                                           "cache_read_input_tokens": 0,
-                                           "cache_creation_input_tokens": 0}))
+    turn.saw_run(SimpleNamespace(input_tokens=1, output_tokens=2, cache_read_tokens=0,
+                                 cache_write_tokens=0, requests=1),
+                 elapsed_ms=100, cost=cost, cost_source="test", models=["m"])
 
 
 def _chat(monkeypatch, tmp_path, answer, *, text="hello"):
@@ -327,13 +325,13 @@ def test_new_chat_forgets_the_conversation(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, "ACCESS_CODE", None)
     sid = app_module.sessions.create()
     session = app_module.sessions.get(sid)
-    session.sdk_session_id, session.history = "sdk-old", ["a message"]
+    session.history = ["a message"]
     with TestClient(app).websocket_connect("/chat") as ws:
         ws.send_json({"session_id": sid})
         ws.receive_json()
         ws.send_json({"type": "new_chat"})
         ws.send_json({"content": ""})  # ignored; lets the new_chat be handled first
-    assert session.sdk_session_id is None and session.history == []
+    assert session.history == []
 
 
 def test_an_idle_sessions_artifact_is_gone_without_another_chat_opening(artifact_root):
@@ -417,12 +415,11 @@ def test_the_page_can_ask_whether_a_code_is_required(monkeypatch, code):
 
 
 def test_the_chatbot_does_not_need_the_agent_sdk():
-    # The default runtime runs without the SDK and its bundled CLI (#86).
+    # The runtime runs without the SDK and its bundled CLI (#86), now removed.
     import subprocess
 
     code = ("import sys; sys.modules['claude_agent_sdk'] = None; "
-            "import chatbot.app as a; assert a.runtime.NAME == 'pydantic-ai'; "
-            "assert 'chatbot.runtime.sdk' not in sys.modules")
+            "import chatbot.app as a; assert a.runtime.NAME == 'pydantic-ai'")
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
                          env={**__import__('os').environ, "DTCC_AGENT_RUNTIME": ""})
     assert out.returncode == 0, out.stderr[-500:]

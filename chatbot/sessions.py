@@ -31,16 +31,13 @@ class Session:
     last_active: float = field(default_factory=time.monotonic)
     # Turns running now; the session never expires while nonzero.
     turns: int = 0
-    # The conversation so far: the SDK runtime's resumable session id, or
-    # the pydantic-ai runtime's messages (#86). One is used per process.
-    sdk_session_id: str | None = None
+    # The conversation so far: the pydantic-ai runtime's messages (#86).
     history: list[Any] = field(default_factory=list)
     # Held for a whole turn, so two tabs on one session take turns (#86).
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     def reset_conversation(self) -> None:
         """New chat: forget the conversation, keep the session and its files."""
-        self.sdk_session_id = None
         self.history = []
 
     def expired(self, now: float) -> bool:

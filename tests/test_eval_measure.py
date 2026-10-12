@@ -170,11 +170,9 @@ def chat_url(monkeypatch, tmp_path):
     async def answer(ws, session, text, turn):
         turn.saw_model("claude-sonnet-4-5")
         turn.saw_tool("mcp__dtcc-agent__geocode")
-        turn.saw_result(SimpleNamespace(num_turns=1, duration_ms=5, duration_api_ms=4,
-                                        total_cost_usd=0.01, is_error=False, model_usage={},
-                                        usage={"input_tokens": 1, "output_tokens": 2,
-                                               "cache_read_input_tokens": 0,
-                                               "cache_creation_input_tokens": 0}))
+        turn.saw_run(SimpleNamespace(input_tokens=1, output_tokens=2, cache_read_tokens=0,
+                                     cache_write_tokens=0, requests=1),
+                     elapsed_ms=5, cost=0.01, cost_source="test")
         await ws.send_json({"type": "text", "content": "There are 188 buildings."})
         return "There are 188 buildings."
 

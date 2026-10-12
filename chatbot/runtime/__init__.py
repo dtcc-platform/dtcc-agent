@@ -1,10 +1,9 @@
 """The agent runtime that answers a chat turn (#86).
 
-`pydantic-ai` (the default, `pai.py`) runs the agent loop in this process on
-Bedrock. `sdk` (`sdk.py`) is the Claude Agent SDK, kept for one milestone as
-M3's rollback; it needs the `sdk` extra, which bundles the claude CLI.
+`pydantic-ai` (`pai.py`) runs the agent loop in this process on Bedrock. It is
+the only runtime: the Claude Agent SDK, M3's rollback, was removed in M4.
 
-Each runtime module exposes NAME, PACKAGE and
+The runtime module exposes NAME, PACKAGE and
 
     async def answer(ws, session, user_text, turn, memory) -> str
 
@@ -20,27 +19,20 @@ from types import ModuleType
 
 from dtcc_agent import artifacts
 
-RUNTIMES = ("pydantic-ai", "sdk")
-
 
 def load_runtime() -> ModuleType:
-    """The runtime DTCC_AGENT_RUNTIME names; unset or empty means pydantic-ai.
-    Exits on anything else, and on `sdk` without its extra installed."""
+    """The pydantic-ai runtime. DTCC_AGENT_RUNTIME, which chose between it and
+    the Agent SDK, may still be set to pydantic-ai or left empty; anything else
+    exits, so a deployment still asking for the SDK fails at start."""
     name = os.getenv("DTCC_AGENT_RUNTIME") or "pydantic-ai"
-    if name == "pydantic-ai":
-        from . import pai
+    if name != "pydantic-ai":
+        raise SystemExit(
+            f"DTCC_AGENT_RUNTIME={name!r}: the only runtime is pydantic-ai; the Agent SDK "
+            "rollback was removed in M4. Unset DTCC_AGENT_RUNTIME."
+        )
+    from . import pai
 
-        return pai
-    if name == "sdk":
-        try:
-            from . import sdk
-        except ImportError as exc:
-            raise SystemExit(
-                "DTCC_AGENT_RUNTIME=sdk needs the 'sdk' extra (the Claude Agent SDK): "
-                "pip install 'dtcc-agent[chatbot,sdk]'."
-            ) from exc
-        return sdk
-    raise SystemExit(f"DTCC_AGENT_RUNTIME must be one of {', '.join(RUNTIMES)}, got {name!r}.")
+    return pai
 
 
 def artifact_frame(session_id: str, content: object) -> dict | None:
