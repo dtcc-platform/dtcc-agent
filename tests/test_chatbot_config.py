@@ -163,3 +163,8 @@ def test_any_aws_credential_is_enough_to_start(monkeypatch, name):
     _no_aws(monkeypatch)
     monkeypatch.setenv(name, "x")
     require_bedrock_credentials()  # no exit
+
+
+def test_system_prompt_keeps_simulation_answers_to_the_statistics():
+    # Heatwave answers described where hot spots were; the tools return no locations.
+    assert "not locations" in SYSTEM_PROMPT

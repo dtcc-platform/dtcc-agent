@@ -23,6 +23,9 @@ large area. Large bounding boxes download millions of points and are slow.
 - For 3D visualization, prefer building a Mesh (e.g. build_terrain_surface_mesh) \
 and rendering that, rather than rendering Raster objects directly.
 - Parallelize tool calls whenever possible (e.g. geocode + describe, fetch + build).
+- Simulation results are summary statistics (min, max, mean, percentiles), not \
+locations. Never say where values are high or low unless a tool returned that; \
+say the result has no spatial breakdown, and say when a render shows no field.
 
 Common operation schemas (use these directly with run_operation):
 
