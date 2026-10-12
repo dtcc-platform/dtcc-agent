@@ -5,6 +5,7 @@ the pydantic-ai runtime (chatbot/runtime, #86)."""
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import hmac
 import itertools
 import json
@@ -51,7 +52,16 @@ async def _lifespan(app: FastAPI):
     # Checked at server start, not import: every chat turn needs Bedrock (#85).
     require_bedrock_credentials()
     logger.info("Model: %s on Bedrock, runtime %s", load_model(), runtime.NAME)
+    # A present but wrong key passes the check above; one tiny request in the
+    # background says so in the log without delaying startup.
+    probe = None
+    if os.getenv("DTCC_AGENT_BEDROCK_PROBE", "1") != "0" and hasattr(runtime, "probe"):
+        probe = asyncio.create_task(runtime.probe())
     yield
+    if probe is not None and not probe.done():
+        probe.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await probe
 
 
 app = FastAPI(title="DTCC Lurkie", lifespan=_lifespan)

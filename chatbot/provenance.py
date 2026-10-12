@@ -26,6 +26,25 @@ def prompt_version(prompt: str = SYSTEM_PROMPT) -> str:
     return hashlib.sha256(prompt.encode()).hexdigest()[:12]
 
 
+def http_status(exc: BaseException) -> int | None:
+    """The HTTP status an exception carries (pydantic-ai's ModelHTTPError has
+    status_code), looking inside exception groups, causes and contexts; None if none."""
+    seen: set[int] = set()
+    stack = [exc]
+    while stack:
+        current = stack.pop()
+        if current is None or id(current) in seen:
+            continue
+        seen.add(id(current))
+        status = getattr(current, "status_code", None)
+        if isinstance(status, int):
+            return status
+        stack.extend(getattr(current, "exceptions", ()) or ())
+        stack.append(current.__cause__)
+        stack.append(current.__context__)
+    return None
+
+
 PROMPT_VERSION = prompt_version()
 # What answers (#86): the record's runtime and package, unless the runtime
 # sets its own. The package keeps the field name "sdk" so older records compare.
@@ -56,6 +75,7 @@ class TurnRecord:
         self.retried_fresh = False
         self.refused = False
         self.error: str | None = None
+        self.http_status: int | None = None
 
     def saw_model(self, model: str | None) -> None:
         if model:
@@ -92,8 +112,10 @@ class TurnRecord:
         self.refused = True
 
     def failed(self, exc: BaseException) -> None:
-        """The turn ended without an answer: record the class, never the text."""
+        """The turn ended without an answer: record the class and any HTTP
+        status, never the text."""
         self.error = type(exc).__name__
+        self.http_status = http_status(exc)
 
     def record(self) -> dict[str, Any]:
         """The answers.jsonl line, every field present; unknowns are null."""
@@ -106,5 +128,6 @@ class TurnRecord:
             "usage": self.usage,
             "is_error": self.error is not None,
             "retried_fresh": self.retried_fresh, "refused": self.refused, "error": self.error,
+            "http_status": self.http_status,
             "runtime": self.runtime, "provider": PROVIDER, "cost_source": self.cost_source,
         }

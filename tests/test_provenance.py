@@ -162,7 +162,8 @@ def _turn():
 ANSWER_FIELDS = {"at", "turn_id", "session_id", "subject", "model", "models_used",
                  "prompt_version", "memory_context", "sdk", "tools_called", "num_turns",
                  "duration_ms", "duration_api_ms", "usage", "total_cost_usd", "is_error",
-                 "retried_fresh", "error", "runtime", "provider", "cost_source", "refused"}
+                 "retried_fresh", "error", "runtime", "provider", "cost_source", "refused",
+                 "http_status"}
 
 
 def test_an_answer_record_holds_what_the_agent_reported():
