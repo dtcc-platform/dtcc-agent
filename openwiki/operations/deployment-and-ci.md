@@ -1,7 +1,7 @@
 ---
 type: operations
 title: Deployment, configuration and CI
-description: Covers the Docker image and compose layout, every environment variable the server, chatbot and cache read, Claude auth for containers, and the GitHub workflows (build-tests, dtcc-core contract, PR-Agent).
+description: Covers the Docker image and two-service compose layout, Bedrock credentials, admission, memory limits and restarts, every environment variable the server, chatbot and cache read (including the DTCC Engine settings), and the GitHub workflows (build-tests, dtcc-core contract, PR-Agent).
 tags: [deployment, docker, configuration, ci, github-actions]
 sources:
   - id: openwiki-source-b69b0be58e9ad19ca644d766
@@ -16,6 +16,8 @@ sources:
     resource: repo://chatbot/app.py
   - id: openwiki-source-778a883bcdc0a6ed0b3401f7
     resource: repo://chatbot/config.py
+  - id: openwiki-source-931ea4e3e14cfe3c996abf4a
+    resource: repo://chatbot/memory.py
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-bb1ebe868e35e9e500714501
@@ -28,10 +30,10 @@ sources:
     resource: repo://dtcc_agent/registry.py
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
+generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-01T20:29:16.810Z
+    at: 2026-10-13T19:50:02.402Z
 ---
 
 # Deployment, configuration and CI
@@ -40,7 +42,7 @@ verified:
 
 - **`Dockerfile`**
   - Built from `python:3.12-slim` with `build-essential`, `curl` and `git`.
-  - Runs `pip install -e ".[chatbot]"`, which installs dtcc-core from the commit pinned in `pyproject.toml`, then **asserts** that the installed Core's `direct_url.json` commit equals the pin, failing the build otherwise (U10, #61). The old `DTCC_CORE_REF` build argument, which defaulted to Core's moving `develop` and won over the pin, is gone.
+  - Runs `pip install -e ".[${EXTRAS}]"` (`EXTRAS` defaults to `chatbot`; the `sdk` extra was removed in #105), which installs dtcc-core from the commit pinned in `pyproject.toml`, then **asserts** that the installed Core's `direct_url.json` commit equals the pin, failing the build otherwise (U10, #61). The old `DTCC_CORE_REF` build argument, which defaulted to Core's moving `develop` and won over the pin, is gone.
   - Sets `DTCC_AGENT_ARTIFACTS_DIR=/data/artifacts` and creates `/data/artifacts`, `/data/cache`, `/data/logs`, `/data/memory` and `/shared/results` owned by the app user.
   - Runs as a non-root `dtcc-agent` user (`APP_UID` and `APP_GID`, default 1000). Its default command starts the chatbot with uvicorn on port 8050.
 - **`docker-compose.yml`** runs **two services from one image** (T13, #67):
@@ -54,9 +56,12 @@ Verified with `docker compose up --build`: port 8051 answered neither the host n
 
 To start: run dtcc-sim (`docker compose up -d` in `../dtcc-sim`) and `docker compose up --build` here, with `DTCC_REMOTE_SERVICES` pointing at it. The order does not matter: dtcc-sim's datasets join the catalogue once it answers, asked from a background thread every 30 s.
 
-### Claude auth in containers
+### Bedrock credentials, admission and restarts
 
-Set either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. On macOS the Claude Code credential lives in the Keychain, so mounting `~/.claude` is not enough. Run `claude setup-token` interactively on the host and export the result. Do not wrap it in command substitution: it can capture the login screen into the variable. To check the token without printing it, the README gives a POSIX `case` test, run on the host and again through `docker compose exec` in the container. It reports an empty value or one containing whitespace (the captured-login-screen failure), a value without the `sk-ant-oat01-` prefix, or a correct-looking one. It checks shape only: one chat message through the service is the real test. The `verify_auth.py` script the README used to run was never in the repository (#40, fixed by #54).
+- **Bedrock.** The chatbot calls the model on Amazon Bedrock only (#29); set `AWS_BEARER_TOKEN_BEDROCK` (a Bedrock API key) or standard AWS credentials. Compose passes `AWS_BEARER_TOKEN_BEDROCK`, `AWS_REGION` (default `eu-north-1`) and `DTCC_AGENT_MODEL` (default `eu.anthropic.claude-sonnet-5-5`) to the chatbot. Without a credential the chatbot does not start; with a wrong one it starts, logs a loud error from its background key probe, and tells users to ask the administrator (#106). See [Model runtime](../architecture/model-runtime.md).
+- **Admission.** Compose refuses to start without `DTCC_MCP_SECRET`, `DTCC_AGENT_ACCESS_CODE` and `AWS_BEARER_TOKEN_BEDROCK`, naming the missing one, so a deployment cannot run open by accident (T14, #76). See [Sessions and isolation](../architecture/sessions-and-isolation.md).
+- **Memory and restarts** (#79, #82). The MCP service has `mem_limit` (`DTCC_MCP_MEM_LIMIT`, default `5g`), so the kernel kills this server and not a neighbour if one operation outgrows memory, and `restart: unless-stopped`. If the MCP service restarts, the chatbot is left in the old network namespace, so the chatbot's health check (its own `/health` plus a connection to `127.0.0.1:8051`) kills its PID 1 on failure, and its restart policy brings it back inside the new namespace. A local load test (2026-10-09) ran 10 chats at once with no restarts and a peak of 4,15 of 5 GiB in the MCP service.
+- **Simulations.** With `DTCC_ENGINE_URL` and `DTCC_ENGINE_TOKEN` set, simulations run on the DTCC Engine over HTTP and the `/shared/results` mount is not needed; otherwise the MCP service needs the folder it shares with dtcc-sim. See [DTCC Engine integration](../integrations/dtcc-engine.md).
 
 ## Environment variables
 
@@ -65,7 +70,17 @@ Set either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. On macOS the Claude
 | `DTCC_MCP_TRANSPORT` | `stdio` | `server.main` | `stdio` or `http` |
 | `DTCC_MCP_HOST`, `DTCC_MCP_PORT` | `127.0.0.1`, `8051` | `server.main` | HTTP bind address |
 | `DTCC_MCP_WORKERS` | `4` | `runtime` | Process-wide tool worker pool; must be an integer ≥ 1 |
-| `DTCC_SIM_SERVICE_URL` | none | `runner`, `registry` | Single dtcc-sim service; takes precedence. Its datasets join the catalogue from a background retrier, never at startup |
+| `DTCC_MCP_SECRET` | none | `server.main`, `chatbot.config` | Bearer secret every MCP HTTP request must carry; required to bind a non-loopback host |
+| `DTCC_AGENT_ACCESS_CODE` | none | `chatbot.app` | Code to open a chat, at least 16 characters; unset turns admission off with a warning |
+| `AWS_BEARER_TOKEN_BEDROCK` | none | `chatbot` (via boto) | Bedrock API key; or `AWS_ACCESS_KEY_ID` / `AWS_PROFILE` |
+| `AWS_REGION` | `eu-north-1` | `chatbot.runtime.pai` | Bedrock region |
+| `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | `chatbot.config` | Bedrock model ID; changing models is this variable alone |
+| `DTCC_AGENT_BEDROCK_PROBE` | `1` | `chatbot.app` | `0` turns off the startup key check |
+| `DTCC_AGENT_RUNTIME` | `pydantic-ai` | `chatbot.runtime` | Only `pydantic-ai` or unset; anything else stops the chatbot |
+| `DTCC_ENGINE_URL`, `DTCC_ENGINE_TOKEN` | none | `engine`, `runner` | Run simulations as DTCC Engine jobs; the token is required with the URL |
+| `DTCC_ENGINE_TIMEOUT` | `900` | `engine` | Seconds per simulation before a timeout |
+| `DTCC_AGENT_MAX_AREA_KM2` | `10` | `dispatcher` | Largest area one heavy download may cover |
+| `DTCC_SIM_SERVICE_URL` | none | `runner`, `registry` | Single dtcc-sim service; takes precedence over `DTCC_REMOTE_SERVICES`, and both are ignored while the Engine is set. Its datasets join the catalogue from a background retrier, never at startup |
 | `DTCC_REMOTE_SERVICES` | none | `runner` | Comma-separated dtcc-sim services |
 | `DTCC_AGENT_CACHE_DIR` | `$XDG_CACHE_HOME/dtcc_agent` (usually `~/.cache/dtcc_agent`) | `disk_cache` | Persistent cache location; must be private to the agent's user |
 | `DTCC_MCP_URL` | none | `chatbot.config` | Connect the chatbot to an HTTP MCP server |
@@ -74,15 +89,15 @@ Set either `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. On macOS the Claude
 | `DTCC_AGENT_LOG_DIR` | `/tmp/dtcc_lurkie_logs` | `chatbot.app`, `builder_calls` | Log files, and `builder_calls.jsonl` (not written when unset on the server) |
 | `DTCC_AGENT_MEMORY_DIR` | `/tmp/dtcc_lurkie_memory` | `chatbot.memory` | ChromaDB persistence |
 | `DTCC_AGENT_ARTIFACTS_DIR` | `<system temp>/dtcc_agent_artifacts` (Docker: `/data/artifacts`) | `artifacts` (server and chatbot) | Root of the per-Session artifact folders |
-| `DTCC_AGENT_SESSION` | `local` | `server` | The stdio server's Session id; the chatbot sets it per message |
-| `SHARED_RESULTS_DIR` | none | `artifacts` | The only folder `load_geojson` reads (Docker: `/shared/results`) |
+| `DTCC_AGENT_SESSION`, `DTCC_AGENT_SUBJECT`, `DTCC_AGENT_TURN` | `local`, `anonymous`, none | `server` | The stdio server's Session, subject and turn; the chatbot sets them per message |
+| `SHARED_RESULTS_DIR` | none | `artifacts`, Core's remote protocol | The folder shared with dtcc-sim: `load_geojson` reads it, and the mini-service path reads every simulation result from it (Docker: `/shared/results`; not needed with the Engine) |
 
 ## CI workflows
 
 **`build-tests`** (`ci-build-tests.yml`) runs on pushes and PRs to `develop` and `main`:
 
 1. `uv sync --locked --extra test --extra chatbot` on Python 3.12. The pin is needed because fiona has no 3.14 wheels.
-2. `pytest -q`.
+2. `pytest -q` (about 600 tests). The job that ran without the Agent SDK extra was removed with the SDK (#105).
 3. Print `catalogue: N operations`. This is not an assertion; it makes silent drift visible.
 4. `uv build`.
 

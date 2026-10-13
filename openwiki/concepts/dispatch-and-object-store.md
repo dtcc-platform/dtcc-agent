@@ -14,14 +14,16 @@ sources:
     resource: repo://dtcc_agent/serializers.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
+  - id: openwiki-source-24c2143954ad2a08593be414
+    resource: repo://tests/test_download_area.py
   - id: openwiki-source-ec47a577dec4bba7e1ffe974
     resource: repo://tests/test_object_store.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
-generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
+generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-01T20:29:16.810Z
+    at: 2026-10-13T19:36:58.526Z
 ---
 
 # Dispatch, object references and serialization
@@ -38,6 +40,7 @@ The MCP tool `run_operation(name, params, label)` in `server.py` calls `dispatch
 
 0. **Refuse a Run reference.** Any parameter value shaped like a Run reference (`run_` plus 8 hex characters) is refused with a message pointing at `get_run_summary`, before anything else runs. Only the exact shape counts, so an ordinary string that merely starts with `run_` passes.
 1. **Check literal bounds.** A `bounds` parameter given as a list or tuple must be an area: `bounds_error` refuses the wrong length, non-finite values, or a min not below its max, and the call returns `{"error": "Invalid bounds ..."}`. A stored `Bounds` object id or `None`, which some operations take, passes through to step 3.
+1a. **Refuse oversized downloads** (#82). `area_error` refuses a heavy `datasets.*` download over more than `DTCC_AGENT_MAX_AREA_KM2` (default 10 km²), naming the area and suggesting a smaller one or splitting it; light datasets (transit, weather and similar) are exempt. Measured on LiDAR-built data, a point cloud peaked near 1.7 GB at 9 km² and 6 GB at 49 km², so 10 km² keeps a few concurrent calls inside the 5 GB tool server. `get_buildings` applies the same check. Before this, an oversized request could get the tool server killed for memory.
 2. **Look up** the `OperationInfo` in the catalogue. An unknown name returns `{"error": ...}`.
 2a. **Refuse file paths** (U1). If any parameter the catalogue marks `is_path` is required, or is given a value other than `null` or `""`, the call is refused before Core runs. See [Artifacts and the file boundary](artifacts-and-file-boundary.md).
 3. **Check the disk cache** if the name is in `CACHE_ALLOWLIST`. Datasets go through `load_cached_dataset`, which crops a larger cached area to the request; the `get_buildings` tool uses the same helper. A hit returns immediately with `cache_hit: true` (see [Disk cache](disk-cache.md)).

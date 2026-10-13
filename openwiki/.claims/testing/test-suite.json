@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:fea48035ee705d608a0393151c190fb02b4dccf0a9afd3a4253313230ca518cd",
+  "pageVersion": "sha256:f1bf50a4e944b12f31d5ef9774d429506aba81e8028ce0e8c2e9ad6ea5492c25",
   "claims": [
     {
       "id": "claim_c31659df10d142d8a63ea6a505dd28d1",
@@ -8,11 +8,11 @@
       "evidence": [
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
+          "version": "repo-file-v1:sha256:4f488915ec64a621a25ce642268e12c027fdc35bc8777dea6ab9a8269436d4df"
         },
         {
-          "resource": "repo://tests/test_geocode.py#L45-L60",
-          "version": "repo-lines-v1:sha256:79d20e4ea3aa94440294f8174b4e58815ee1d4e94438608acff7325b9ef567f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmNGQ5ZDAxOTY0Y2FjZjRlMGRiM2UwM2EyOWNjYTQ1NWE2NmQ4MmRjODYxN2QxODljYmJmYmI4NGIwMGEzZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYjBlODdjNzE4ZTM5MzQ1ZDc0NzFmMjk1NjFmMTliZWY1ODg2ZTU0Yjk0YTA1MzZkNTZmZDRlYjFlNTIyMjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkMjAxNzdlMDFiY2E1NTAwZjhiNjczZGZlNDUzNTdlMDEzODk1YjI1OTFjZjJiMjI2MzJlYjAzM2ViOWJkMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://tests/test_geocode.py",
+          "version": "repo-file-v1:sha256:00ab8cd26071212aaed91f45782ac1713c38160b22c74e4da1a02fbcc3f5d44b"
         }
       ]
     },
@@ -45,8 +45,8 @@
       "statement": "Concurrency behaviour (worker-pool bound, per-Session share, single-flight downloads, cancellation) is covered by test_worker_pool.py using gated downloads rather than timing.",
       "evidence": [
         {
-          "resource": "repo://tests/test_worker_pool.py#L94-L428",
-          "version": "repo-lines-v1:sha256:d336a352eb339cbf409e99595a686aaf4b3e5f7404519f0551a411e60277b341:eyJzZWxlY3RlZExpbmVDb3VudCI6MzM1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjVjYTc3Mzc5NGEwNmYwODIxNTY4ODA5YmViNzQ5YzA4Yzk3Mjk2MDEyMGExMWQ2ODVkMWYzMTc5NGUwYjBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "resource": "repo://tests/test_worker_pool.py#L95-L431",
+          "version": "repo-lines-v1:sha256:dc90a8015ed70ce2fe529269564e9770ae62e71de23968e19ccb7c8ba221129f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzM3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZWM1MWRjZDdkMWIzMGMwZmZiZGYwODg0YjkwNDVlN2RmYTc3ZDIxZDdjZjMxZWU0NTI5YWRiNTk4MGU1MzQzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlMjVjYTc3Mzc5NGEwNmYwODIxNTY4ODA5YmViNzQ5YzA4Yzk3Mjk2MDEyMGExMWQ2ODVkMWYzMTc5NGUwYjBkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlY2RiODdlODNjMmZhNDQ2YmM3NmRiZmYwMjNlNjk3MzNjMzkyZTg1NmFjZDdlNGQ2MDVmZGQ2Y2M5ZGJlZDMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
     },
@@ -62,11 +62,11 @@
     },
     {
       "id": "claim_8480ea7dbad54faa96d844a7fbfff52c",
-      "statement": "The building crop is tested with real dtcc-core Building objects, covering the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline or id.",
+      "statement": "The building crop is tested with real dtcc-core Building objects and Core's real GeoPackage loader, covering the 2 m margin, the source_bounds containment test, the fallback grouping of multi-part features by source id, the unsimplified outline, and buildings without an outline or id.",
       "evidence": [
         {
           "resource": "repo://tests/test_crop.py",
-          "version": "repo-file-v1:sha256:6d31f4c3305ca95f9deb3eee296b01204eab612f0c19c59f97955ad9ea21201b"
+          "version": "repo-file-v1:sha256:31fa78bc8132dee7e804f8d275b133e5e1d4d0253b0d9e850667ab0af1dc3470"
         }
       ]
     },
@@ -89,10 +89,34 @@
           "version": "repo-file-v1:sha256:a0e7299079b966e1bcbdef952ee20f34f809b6d4b1638a91e8fe656d451b9c01"
         }
       ]
+    },
+    {
+      "id": "claim_732b142527d94402b76626004c7b9f30",
+      "statement": "tests/conftest.py sets DTCC_AGENT_BEDROCK_PROBE=0 so tests that start the chatbot never send the startup request to Bedrock.",
+      "evidence": [
+        {
+          "resource": "repo://tests/conftest.py",
+          "version": "repo-file-v1:sha256:8181acc9958a7b6b64df809b1ae9e8005d42e138a5d58514ad2909edb99492b2"
+        },
+        {
+          "resource": "repo://tests/test_bedrock_auth.py#L84-L89",
+          "version": "repo-lines-v1:sha256:207c8f01f98e551d24e730d62c90e4613035451daeaa40c71e5152cdd1d16d67:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNThkMWIxMDdhZGIzYzA4YWIxYzVmODcwNzQ2ZjNkNGZlMTg0MTBmYTg3Nzc2YTA2NTcwZjE0YjgyYmRjMTMxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2QzYjk2ZTg1MGQ0ZTRiNzU1YzE1NzFjMjA5ZTQ3NjBkM2MwMjljOTU1NDUwYmMwYWZhNWFhYTE3NTNiNmZiNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjQ1NjYwYzgxOTFkOWYwYTFkMmQwZDBkZmY2ZWYyYzcwYTYwMDFjNmY3YjcyODI5ZmEwZjRhZDdiYmJjMDY1YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8db0f97435754e6989039160c7ca6955",
+      "statement": "The DTCC Engine client is tested offline against httpx.MockTransport, including a real canonical package written by Core and decoded into run_simulation's statistics.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_engine.py",
+          "version": "repo-file-v1:sha256:cfff8304f41d3f951048144cfbc061a3d472342caf3b4a70fa25d4d565d04c3d"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-01T20:29:16.810Z"
+    "at": "2026-10-13T19:36:58.526Z"
   }
 }

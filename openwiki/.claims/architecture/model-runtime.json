@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3513efd3a274d1d063c1af67369ff30ab8a1868407031a53bfc77604f343120c",
+  "claims": [
+    {
+      "id": "claim_bc142491149c4bb18c3b2537a5dc5211",
+      "statement": "pydantic-ai is the only chat runtime: load_runtime() returns the pai module and exits at import when DTCC_AGENT_RUNTIME names anything other than pydantic-ai, such as the removed Agent SDK.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/runtime/__init__.py#L23-L35",
+          "version": "repo-lines-v1:sha256:15ebb7fc55c17e35632e48ac200980775d59a82faec89aaf4cfb8020ecc53763:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjRmMDU2MzIxNjFmNzk2MmJkOTgyYjM3MDFlMDgxMTkyNGM4ZTc3YmQwMTU1ODM5YzI0ZGU0MWVmNTQwMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ODQzZDQxYTFhMjM0Yjk1ZDgzMWRiZjE0MzU4OWFiMzFiODFmMTY1YzVmMDc1MDIzM2E0ZThkNGJkYzQ2MDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0MmI4YTkxNTkyZTBlMDVmY2NiZjZhZjA1YzQ1MTQyZDUzZDY1Y2M0NGYxZWI4ZjYxOTkzNTQ4YjJiZjYxMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmNDdkYmZhNmMyYzRmYzIxZjVkMGE0ZWVkYWVmNjFlMGE4MThlYTkxZDYzOWZjNGE5MjQyNDAwYjFiY2RkOWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_85ed39cefacb49fea1b29a77e3be3aaa",
+      "statement": "The model runs on Amazon Bedrock only: model() builds one BedrockConverseModel per process on first use, with the model ID from DTCC_AGENT_MODEL (default eu.anthropic.claude-sonnet-5-5) and the region from AWS_REGION (default eu-north-1).",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/config.py#L62-L71",
+          "version": "repo-lines-v1:sha256:73a914ca57be1fd3168de4a018ecdf166f4262b7bd51644fd7f9fed8d10df453:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2YWIyODY1YmM4NjA2ODdlNzVmNTJhODk2ZWQ1MWRjNWIyMjAxMDVjNzE2ODgzNmM5ZWFhMTQzYmVjNjJjMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNGVkYTAzYzg5NzQ1YzBhM2QwNmFmZTc1MDY0ZWMzMzgxYWM4NGE1NDVjYzk5YjUyNzEzY2E5OWQwMjUxZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzZjAzZDMyZjE5NTc0M2ZlYTkyY2M4NDU0Yzg4MDFkMzYzMzZiMWEwMjRjZWQ4OTgzMDRhMWVlNjY0YzkyMWMifQ"
+        },
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L57-L67",
+          "version": "repo-lines-v1:sha256:683adf22fb1186f1d3d22a63ec6615081199e86045231bcc25f9ddd72c8255f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZWRmYTI3ZTAxNGE2M2UwNTk2ODFhOWY0MWJjMTg1MTBhMTIzZGM0MWE1ZTQ4YWQwZTJlNmQxN2FiYjNlYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyMjdhNmI4ZGRlZjU3YzI3NWMzOTYzZDE3NTVmZjJiMDNkODdhM2M3MWEwNmMwZmY4NTZiNWE1Y2U2Y2RkMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyMDVhYWY0YzgyYWY0MGM3ZWNjMzNmYWYzYTZmM2I3NTdmOTk3YTM5OTg3YzAwNGY2ZWJlMzg5NzhhOWI0MDMifQ"
+        },
+        {
+          "resource": "repo://tests/test_chatbot_config.py#L117-L130",
+          "version": "repo-lines-v1:sha256:b6d52c634bac082467bac3c0da9bb191d093861c16dc7e0970c5e946a8ae68ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2NzdiYTU4NmE3OGIzNThkNGVjMGM3OGI0MjMyM2JjMTVlMjRjNzk1MDliMDVlODAxMDRmYTIxMDk1YjVlNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxYWNjZjkwNGZhNmM3MGY4ZmZiYjQ3NTVhMzc1MGE0MTFiNzZjZTJiOTE4M2M4MmQ4NjQxZDU1MjA2NzYxZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZjJmODc3MTFkMGQyYzE0ZTU4NDMxYjMzYzkwMTFiY2RmZjNhMzlkMzhmYmJhNzE3Zjk4NjU2YjBkZTk0ZWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_28f7ee36cb894e2693a7b9aa82291057",
+      "statement": "The chatbot refuses to start without some AWS credential, and its lifespan starts a background 1-token Bedrock probe that logs a rejected key (HTTP 401/403) as an error without blocking startup; DTCC_AGENT_BEDROCK_PROBE=0 disables it and the test conftest sets that.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/app.py#L52-L66",
+          "version": "repo-lines-v1:sha256:342b35e20bade0daa65c45ed017330b12320044baea2ef6f29771f867c9901e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NTg0NjZlMjg0NWRhMzMzNzAxMjliNThkMTE0NWU3MTQ2ZmVmYjcxMzYzZTFmMTMzMWMyZjk3ZjUyZDhlNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkMTQ0ZDIyNTI2YzkzNGNhY2M4NDdkYzNkYTNiMTAzYWZhZGI1N2VmNjMwMTIyYTQ3ODQyMmFiNDA2MzI3YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZThkYmQ4MWE5NGYyNzRiOTQ3M2ZkOTZjM2JjNmFiM2EwZjk3MWRiYmQ0NWE0YWU4MDdmMzJmMTgyNDVkOWYifQ"
+        },
+        {
+          "resource": "repo://chatbot/config.py#L74-L85",
+          "version": "repo-lines-v1:sha256:490f49f41b8ba06cca32662b20f17953dce693854c0febf600c2c4deebf7aa22:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzN2NiNzZhMjA5OGE3OWQzZDkxZjA3MzM4MDMzZTVhMjFlMDU3Zjg3NWM5NTU2OTUzYTc3NzRkNmI3NDRjMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzY2VkMzUxNGRkYTY4NzRkMjAyMDM0ZTc2ZWIxZmJiZmE5YzcxYjAyMDA1Y2RkZTUyZjUyY2JkZjQ1NDVkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YmE0NjhkYTAyZDkyZWJhNmFlNjc4ZGI4YmYyZDkyMDkzYjQ0YWI2Y2E3YTMyZDMwMmFjNTRkNDY3ZjBkZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwNjFlNDFkZmUxZDBhYTNiYTM5YjBhNWE5YzBmYTI1MDE1ZmEzMzMwYzc1NWQyYmIwZDBiNjllNGNlZDA4ZmUifQ"
+        },
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L70-L89",
+          "version": "repo-lines-v1:sha256:9d6150933537d9630d97ed817cd0bde32026f51aff6ec05a93cd2e3bd6d857f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3YjUxNTkyYTFlMWFiZjQyYzU4ZDg1MWQ2NGQ2NjljOWRiYTQ1YzFjMjAyNTUyYjYxNDJkMzQ3ZWQ5MTEzN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExZjU3MGYzOTNhN2UxZmFhZjNmNDVlYjJiZTcwMTFjOTY2MjkyZTU1OTVkMTMxMzhjMGYwNTVhYzNiMjlkNDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhM2NmNTE5MjM1NGY3MTYxNWFjNTEwMzRiM2U5N2MyMGVkYTk5NjQzZmNhZjViYmU2ZDQxYWQ1OWJkMTIxNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkNTNlYTliMWQ3ZWI1NmZmMzUzZjc5NTA2OGFhMTZhOTRhNDdiNDZiNjJjZTFiZTZjNjRiYjZmNDI2M2YyOTEifQ"
+        },
+        {
+          "resource": "repo://tests/test_bedrock_auth.py#L69-L89",
+          "version": "repo-lines-v1:sha256:ecc18d6c5f0ffd15c85fdcf2c4225013dd6c3a322c4976ba2a2a9984631df533:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwMzEzYTE3MGY5N2QxNWQzNzhlMzgxM2E5ZmNmMjI0ZGI2MjU3N2I2ZmE5ZmIyMGEwYzg4ZDYxOTZlNGYxYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0MTZjNzAwNDlmZWYwNTZjZjM0ODU0MWFhMDQ2OTU0MTM5ZjBmOTc5YjhjYTRkODEwYWIxZjRkNDUxM2UzM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0NTY2MGM4MTkxZDlmMGExZDJkMGQwZGZmNmVmMmM3MGE2MDAxYzZmN2I3MjgyOWZhMGY0YWQ3YmJiYzA2NWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dfcfef662a6e407a901ef8a21873337f",
+      "statement": "One process-wide Agent owns the system prompt and enables Bedrock prompt caching for tool definitions, instructions and messages, while per-Session memory is passed as a dynamic instruction so it sits after the cache point.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L164-L185",
+          "version": "repo-lines-v1:sha256:2e979e51645dc1b42418597e139505eae6c10c0de2b52142bf597d47aaa2885b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ODM0NDM4YTg2ZDZiNWU3ZjdhZDIzYTFjNTQ5YjZlMDk5YTNmYTA0ZDA4NjhkYjEyMmZjNTk5NDgyODRiMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhYzNjMjIxNWVhY2RkNTY3OTUzYTk1ODQ0Njk2YmRkODVlNzUzM2MyM2Y3MGJmNmIyODhhN2VhYTcwZDBlMWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyY2I2M2M5YTBlNjMxMzM0NDIyNWMzMTVlMzUyMzU0ZTdkYTJjZmM2MDEzZTc0YWU4ZDYzOWQ1NjM0ODEwNTAifQ"
+        },
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L91-L102",
+          "version": "repo-lines-v1:sha256:d3d81be0f016a2de78211e747567080fdd5452f45d7e04ea6608ec5b81143d21:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZWRmYTI3ZTAxNGE2M2UwNTk2ODFhOWY0MWJjMTg1MTBhMTIzZGM0MWE1ZTQ4YWQwZTJlNmQxN2FiYjNlYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzZjRiODU3N2E4MGNjMDAzYjBjODAzNTZiZDA2MDM5ZGIyMjU0YWFmNGMzNWMyYzY1YTUyOWEzMTQzOWYwYzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyN2ZmYzAzOTRkNjYwYWEwMjAwOTk2ZDQ3NmFmN2RlNjRjMzQ0ZmQxYWViMGY5NDY1NDUwZTIwZDZhNzdlZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7071af936e0a4aa68703671d4390dcf1",
+      "statement": "Each turn connects to the dtcc-agent MCP server through an MCPToolset whose HTTP headers carry the Session, subject, turn and, when configured, the MCP bearer secret, falling back to a stdio server when DTCC_MCP_URL is unset.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/config.py#L102-L132",
+          "version": "repo-lines-v1:sha256:e0e63dc1eb7bf421422c48b734f292ee5a87009374c1bfbdd2ff815c2b73f5fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0ODFkOTY5YTZlZGRmNjhjYWYyMjA2ZWJhNTExYTcyZWM5MzU4M2I4NjdhMzBlYTQxZjVlNjg4N2VjY2MyOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyZTAyMTQxODJjMjZjNWM1YWVhN2MyMzE3MjIxMDYwMWE2ZTMyYjZkY2ExMDQ2MWVjM2ZlNmQzM2Y0MTM1NjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L105-L115",
+          "version": "repo-lines-v1:sha256:96879bf2cdf7d818f21b22f39e63fdf3f58b1d623003e264978c9a866c2a2a90:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkMGFjMzFmZGI4MTlhN2NhZjE0OGEyYTRmZWEwOWY4Y2Q4ODgwYmM1ODEwYzgwZWFiNzlhYTVhOTMwODU4NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxOWU4MmUyY2E1MzliOTM5Yzk5YmRjYzg5YzgyN2YwM2YwYzIwN2QxOTZjZmU3M2ZhZDAwNWIyMGUyZGNhZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMDM2ZjgzZjA5OTQ2MzgxZDBlYTY0YmExYTkzNTU0ZjhhZDdlMmViYjgwNDY2OWI3ZDZjNGU5NWM4NTk0NWUifQ"
+        },
+        {
+          "resource": "repo://tests/test_chatbot_config.py#L30-L66",
+          "version": "repo-lines-v1:sha256:0c5093bafffae46c785fed2f006e76dcbca156a9fc48603e375e8fce4d396dbc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZmZkMTczNGFiMDZkMGZlNjNhNzJjMTAxNDIxYTQ4NWQzYTNiYTBkYWVkMjM0MDhkYjY0YzdmMjYyNWE5YTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkZDI4YWRiYmIxOWZjMGQxZmRmYzllZWZlZWUzYmM1ZTM2YWU2OWI2YTFiYjU0NDRmZjA0ZjAyM2UwMzAyZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMjE3ZTM4ZWE5MzZiNmY1MDNjYWUxYTJhYmI4ZWYwMjczZTVlNzM5NTgzYjc1NWY5NTZmOTgwN2RhMjU0NGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ODc3NjcwNjdjODc4OTMxYTMzZDZjODY1N2Y0NTZjY2U0MjM1ZTFhNjQ1OGU3MTcxODkyMmIwNTg2N2UyMDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_02ea854384e8410ba67c75a3f9abc723",
+      "statement": "Conversation memory is retrieved only for a fresh conversation, off the event loop, and only from the same Session's stored exchanges within cosine distance 0.8.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/memory.py#L71-L100",
+          "version": "repo-lines-v1:sha256:c1c8c9970d49115afba7321aa8a6dc186f1cbba7a08071ba3bc07f3046c2966b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2MjI4ZDM3YjYxMDM1NjI4YzExMWMyZDMxZjczYjdjOTVlMmU0NzFmM2Y4ZTY3M2MzYmYyZjFkNzljZmM3MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiOGQ0ZTIzMzQwNDdlZmI1YzA4ZGQ0NzYwMjVlYjU0NWYxMDIyZmQ3NDU3NTYxMjM3NzA2ZTI2ZTY4ZGVkZDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0YzZmM2U0NjM3Y2NkODUyZDBhZWFkNjIwZWI3YjFlNTc2Yjg3ZGI2NGRjMGVhYzM3OTViYmU2MTczYmYyZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkYjE0ZmI0NDQ4NmJkYWFlNDgxZjJlMjkzYjhkNDQyM2Y0MGQ0YjhjYzM2MTBiZTBjMGZkNGY4YjdmYjdkNjEifQ"
+        },
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L164-L172",
+          "version": "repo-lines-v1:sha256:225e44f0b39e3ff64626d4c343594068ddfd5eb92c6fe066397f3ed3681a93ac:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQ4MzQ0MzhhODZkNmI1ZTdmN2FkMjNhMWM1NDliNmUwOTlhM2ZhMDRkMDg2OGRiMTIyZmM1OTk0ODI4NGIxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDE4YjI3YTVlMDJlYTVjYWI2NGJhZGNhMmMyNzZlM2FmNTM1MTg2Njc0NzJmMTRiY2MzYjUzYjIyOGE5YTcwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGFjM2MyMjE1ZWFjZGQ1Njc5NTNhOTU4NDQ2OTZiZGQ4NWU3NTMzYzIzZjcwYmY2YjI4OGE3ZWFhNzBkMGUxYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmQ1MTBjMjAwNDcwNzY4ZmFiZDkwNzViNjBhMDhkODRmNGNiYmFiMjZhOWM5MmM5ZThmMWZhNWZhZDljNDNlYiJ9"
+        },
+        {
+          "resource": "repo://tests/test_chatbot_runtime_pai.py#L131-L145",
+          "version": "repo-lines-v1:sha256:d9bf1cc9bd68c89e8fe61ed6a53b209a1e835f5d56c96ff99a245963d9fd8a34:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkNDJjMDgzNzRlODQzZTEzNjA5MjBiNTY5MWMxNDliZjdhYTRlNjgyN2I4NDM2YzVhNzZkNzM3ODYxMjI4OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NjAwYmU5ZTdlMjNhMzE1NjNjNTE2MGE1YjE4MmVlZTdjNDg3NjM5NzVhOTgzNWZhYjk3MTBlNmYwZDUxZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkYjFkNjY1NTQwNzRhYzY5NDUzOTMxYWFjMWJlMTlkMjczMDgxMTRjMmU4ZTQzMDQ2ODhjMjE3MDJjY2E0ZDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b71ac38237a146dc88dce0d7b6e6599c",
+      "statement": "A failed follow-up is retried once from a fresh conversation as the same turn with usage summed, but a content-filter refusal or a Bedrock 401/403 is not retried; refusals show a fixed refusal message and rejected keys tell the user to ask the administrator.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L118-L161",
+          "version": "repo-lines-v1:sha256:dae220feafe70a12ab15625ec71f7ab23785c521e343709ad36b001a7c3c889d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZDdkMjg0NTk4OWQ2ZGMzNDkyNGU5ODUxYzkxYjZlM2E0MjgwY2I1Nzk1MzllZTQwZTFmYzVkNzA1YTE2NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzMTQyZmE3YmRkODMzYzZmOTM1MWZmZjNjNDlmZjBkMGQ0YzA5MjY1ZDgwN2VhMTE2Y2ZhYmIzZjZiODQxOTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDAzNzcwYjhmNGMzZjFkN2ZhNThkNDEwZTQ5MDY4MjU3ZGQ0OGFhNDUxMzk0NDcyNjg2MjJhMmVhYWRkYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNzVhNjg3YTM1N2QwZDEzN2U3YmMzYjJjOTM1OTczOGEwMDMyOTBkMDQ1ODFhNzI4ZGNlMjliMmM4ZGZmN2UifQ"
+        },
+        {
+          "resource": "repo://tests/test_bedrock_auth.py#L31-L53",
+          "version": "repo-lines-v1:sha256:063c88f1ecbec58066300ce5be100bae21d3ff40792a609930501c3e992d80b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZjM2ZDMwNmI2YTM0NDk1NjZhMjNhYWMyZTIzOGExZjc4ODA4MjExZDVlZTYxNmVmZDkyZTUyYjQ2OWMzMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmZWExZmZlNTEzMTdhYjgwYTAxODliMTA0MjdlZTczZGJiOWE3MDcxZTE2MWYzMWQwZTMwMDZmNzU3NzUzMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3ZmMyODlhZDljNmI1NjNkZjdkMjQyZjNmMjIyYjNmY2Q0MGI5N2EwMGE0MzYzMGJiYmMwNWVhNzJlOTIxZmIifQ"
+        },
+        {
+          "resource": "repo://tests/test_chatbot_runtime_pai.py#L146-L217",
+          "version": "repo-lines-v1:sha256:f24227693f392fa6f578c60e1aa56129a4dcd384e21d920f723b1e01292adebd:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwMmJiOTZlYTc1NmVlMzA0NDBlMjdkZjBiMTQ3MTE1YmQ5MjY3MTVkZWJjMDU4MmQ0MDE1ODY5NjZhMDM2YzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlZmNlNTAzMjU0ZTU4YzY1OTNmMDEzYzlkOGZkMGQ2MDFjYWM4MGQ0Nzk0MDkyMmRkODVlMjY4MjYzMDE0YTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzYjU5YTBkZTE4YjIxMWNlODhjYmVmYTc3MjVmNDhiMDJjMjJiZTBmMjQ4ZmIzOTBiNjhlZTQ3NDhhMzFiYWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_89e823e7025647b9a8b97ceb954154de",
+      "statement": "The system prompt tells the model that simulation results are summary statistics and forbids saying where values are high or low unless a tool returned that.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/config.py#L9-L35",
+          "version": "repo-lines-v1:sha256:af5285a5f63f3c5c03c0016b4cb161917327ef037e46acd205d07cf8cda1ce3a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMzUxNzkwYWZmYzg5NzMzZjY4Y2E3OWQ5ZjM0MDExZDk5NjM4MzA4ODkzNDFkNGY5YmFhYTA4N2YyMDIwOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmZTMzYjY1OWJkOWYxMDI1NWJjYjgyMDgwZmRkM2YxNWQyODc2MWQxMzA0ZTI0MTYxNjUxNTFlMDM4N2YyNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmYjViYWM4MWYzZTZlNDlmZGJjZDZmN2JmMWNlMjNiMGUzZjRiZTNiNTJiMjZmNGMxZWMzZmI3OWFhYTk1ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkM2RmMzMzOThiYzhkMTRjNjJmNjQ0MWQ1MWRjZjhhNmVhNDIyMzA1M2UyZmI5NzFkZmQ4NGRjNjYwNmQzZGMifQ"
+        },
+        {
+          "resource": "repo://tests/test_chatbot_config.py#L149-L151",
+          "version": "repo-lines-v1:sha256:bd697f0bdf3917c26d92088d0bb77d44109a2ce7188e44381041284e0f43d699:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTJlNWQ5MWU0NTgwM2UzY2JjMzJlODBlYTJjMTYwNGRjZDI0Mzk2MTk5MDNiMzEwYTEwNDM2ZTJlMjdmYmQ2MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODdiMDg0Y2M1NTM2MjVjNmVkZWQzNzFmYzI3NjVmNDkyNDU3MmE2NTA5NzMxNDc4ZGZlZWFlNmRmMWE3Y2JmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTA2ZjI0NDJmMzc4OThhODZlYzI4NjM1NTZmM2Q4YTNlNzRjNDcwZmIwNjYyOGNhNDE0MTg2YTE2ODkzYjFjZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-13T19:36:58.526Z"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3f291f0bf78e6a4c057154550323a63fa64eabf74baf8c1dafa54f7aa4a9c0f5",
+  "claims": [
+    {
+      "id": "claim_2eae144d637a4e14942e0bb2994e7e94",
+      "statement": "The chatbot writes one answers.jsonl record per turn with every field present, including the model, prompt version, runtime package, provider, usage, cost source, refusal and fresh-retry flags, the error class and the HTTP status.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/app.py#L134-L163",
+          "version": "repo-lines-v1:sha256:fc69fc397a55cf87d8ea89b59464274ffa3eb32aa669099b35d3cff0ec857bf3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MjcwNDExMTViOGUyNTAwNGFhZWFkYTg2ODk1MTY3M2UzZjI3MzExOWU4NjU3YTYxNTJjODJjOTRlZTAxZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4ZWNlNTQ2NGYxZDc3ZjJkYzFiNGYxNDQ1NDY0YmE2OTIxOGQwNjkyZjU0ZjY5ZjA4ZWQ1MTU1NTQ4ZDI3ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiZWU3Yjc5ODIxNDJiYTE1ZDI5ZWMwOTM1MjE5OTNkZDU5ZDExZjA0MTk3ODIwZDc1ZTUxMWJkMmJhYTdiOTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkODQ1YWJhMDBjZTFiNzM4MWQ1ZDkyOWQzZTczYTEwM2FlNDk5NTk1NTdmYWNhNDFjZGQ1YTNkNTQ3Yjg5OGMifQ"
+        },
+        {
+          "resource": "repo://chatbot/provenance.py#L120-L133",
+          "version": "repo-lines-v1:sha256:f8962cf5e788ff81681ebf5a17c7a06b7bc08df00f0ee4a808862c333f33c399:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0ZTFjMGI5NzA4YjdjYWU0OGFiNmIwZTk2MDI1NDM2OWQ5ODQ0MWI4OWYxZDAyZmViNDcxOTk3NmY4M2M5ZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhkM2RlYjIyMjNmNWRkZTJjOTE1N2MzMGUxMjFmNDg2ZjMyZjBkOWI4OTU1NzBhN2Y0OWRlNmZmNWJkZjc3NGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e66030abc4c040bbaa7a2047c07d1199",
+      "statement": "The MCP server appends one operations.jsonl record per tool call and a catalogue record per catalogue build, with arguments hashed and errors reduced to a category, joined to answers on the turn id and written only when DTCC_AGENT_LOG_DIR is set.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/provenance.py#L1-L42",
+          "version": "repo-lines-v1:sha256:d98e11f0e44d76157727f9c350912fc93ef2f2e9df5880b6e28bbc2ebed42dec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkMTRlMmIyNTE3NzVkOGI3NGEwMmE1YmNjZjhjYjc0YTlkZTI5NDNkMzkzNGZhN2FiMWQ0NTVhYmM5ZDU1MzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0NTI0MGU4ODBkYjMzM2E2MjRlMWRiODQ2NTc4MGM4MjI1ZjBhY2JiMGU3MjBmMWViNDRkM2QyMzk3MDgyOWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjM2YwODBkMDRhZTk4ZGE2YWY1ODEzODNmZTY4Y2E1ZmRhNTgyMTZhNTRiZmQ0YTQ0N2JlMTA0NTQ1NDczY2IifQ"
+        },
+        {
+          "resource": "repo://dtcc_agent/provenance.py#L96-L143",
+          "version": "repo-lines-v1:sha256:bcff7452894e2dcff078e04bfcc974cb4457cf0043f5e44f5f96d70d5f80f7ec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiNTdiNDkxMGExYmJmMmQ1NzM2NTE4NDAzMGQwMTkzMmIzNmI5YjNhOTVjN2VmMmE4NTk1NGVkZmIyM2M4MzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlYmVlYjQzNzdmMzk5YzMwMTQ4MmNjNjEzODZlOWE2NjcyYWRiMWNhNGJmNTQwZjI5OGJmZTcyNmFkZDliMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0MjNjZjRjODA3ODRkODA1YTk5N2JmMDZiNDk2MTc4NzUyZTE1MzNmZDQ2NGQ5ZWFiMTIxNmQ3MGE2NWJhY2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d137f0c2b0b547439e03695ef12b008b",
+      "statement": "python -m dtcc_agent.provenance join prints one complete record per turn by joining answers and operations on the turn id.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/provenance.py#L150-L190",
+          "version": "repo-lines-v1:sha256:e84479835e77b0f1499581fbe1e94207fa8a3ab30975c97b7434ef064aa4566d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZTkyMzMxZmM3OTJkNjM3ZTVhOTFjY2FiNTg0ZmQwMThhNzFmNDc3MWExNTM4ZmIwNzFjYTc1MjIxZmE0N2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZTk5MjMyY2QzYTMwOWY1MGNiZDZmNjYyMTI3ZWVhYWZjZTFmNzM2MjkyZGVmYjExM2Q5ODFhMjBjN2Q4NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZTliMWM3ZDE5N2VkMGFkNjUwNTRmYjg5ZGViYjg5YTdiMTMwYWUyZjk1MGM3OTVhN2I2NmNkZDk3MDlkYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a86636a3fed84d7a8fb8b435d36e378c",
+      "statement": "Turn cost is priced with genai-prices on AWS prices with cache writes at the 5-minute rate, and a model it does not know is recorded as unpriced.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/prices.py#L19-L31",
+          "version": "repo-lines-v1:sha256:37d7336d29911dfa5ca31055b3212438a00b31ae384574d9259e8b6e1614d20b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzZDY3OTgyMzBkMGExNmYzY2UyNjA2MDJiNzgzNDJhZjAwMDdkZGVhY2FlZjAwYmIxMDA0YzI3YzBlODIwMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZTU0NzlhOTI2OTU3NjlkNmMzNTJjNzRmZTcyNGNjZmY3ZDY1OWE3YzE1NzVjNmY4NzUxY2M5MzNmZGEzMjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNjY4ZjYyMWVmMDA0M2I1NDIxODNjNGY1NWMwZjE0MWRhMjNhMGUwMGFmY2QwNmExNjk4OWZmMWEyYTU0MmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5fbb8ce8091427681b8d9d41737e979",
+      "statement": "eval/measure.py asks each question of a fixed ten-question set through the chat WebSocket in a fresh chat, with runs outermost so run 1 is cold, skips simulation questions when a probe finds none, stops at a cost cap, and reports median and max over successful runs only.",
+      "evidence": [
+        {
+          "resource": "repo://eval/measure.py#L1-L17",
+          "version": "repo-lines-v1:sha256:41732930246209e363fdd0419ff7677201fca3a055c270bd5e1cf7746be01d37:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMmU3ODg4NWM1NTdiYmUyMzkzZGZhMDA2OGUyNmE1NTgwMzRmNGVmNTcwYTBkNjYzMjRiYzQyZjA1MzQ3OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://eval/measure.py#L122-L160",
+          "version": "repo-lines-v1:sha256:46cf92cf7421d07c2faef0cd414945617b261db90f36c2fcc276458000efeeb9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhMTllZDgxYmM2YzQ5ZTNhYTFjZjQ4NDg5M2RiYWIwM2VhYWQxNGRlZTI0NGUwNzlkZjYxYzg2NTRjZjk2YmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhYWU2NzEzMjFiOWZjZTFkOTFiOWEwOTliNTE3OTkyNTI3NDZmMWE3NGMxODk0YWM3ZTJhM2NhMDJlZGQ5OTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiNTAyZGYxYTI5YWVkMjY2ZThmMGI5ODJkNzIxMzgwMTdhYzQ5ZjI5YTgzNjIyZGMwZTY3NDkxYTY2ZDFjNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1MDA5ZDc1MjM5NzBmZjAzNzdmNWNiNzBjMGNiNmI1ODU3ZjFjMmY5Nzc2YjhkOGZlZGI2YzlhNjczZDNiNjEifQ"
+        },
+        {
+          "resource": "repo://eval/measure.py#L325-L340",
+          "version": "repo-lines-v1:sha256:3d8d2863f1860335d0fdfbe6d28b694fcf6d5b98232df2c1d0b0c9ec546e980c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZmFmYmU2YjlmOWI1OGYxNWNjNGE5ZGNmNzZjMjFhYWQ3ZDM1YTA4M2VhODZlOTI3ZTIzNWFmYTExMmY5NzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzZGFiMjlkNzU4Y2Y0YzgzNWJjODEyNGFlNDc5ZGYzMmEwMDNiZTYwNTc0Y2QzNTczYWRmYTFjNTI4OTc3ODgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4MGI1MjM2MTE4ZWMxNjk0NTg3ZDQzOWI3NDlkNGVlZDU0MGU5OTg1MjhhZjc4YjYxMDQ2YTM2ZTdjMDlkMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlNmY4N2I2ZGY4YTNlNDJlZTEzNzEzMmU2MjdmYWM3OWNlMWEwM2Q0YjdhZTM1ZGE3ODQ0NTQ4YmJjOWExZjQifQ"
+        },
+        {
+          "resource": "repo://eval/questions.json",
+          "version": "repo-file-v1:sha256:a38b33a801cbd35210f7c2b60ea00b248b8468203e1abb5045fb0ecaa18ac6ee"
+        },
+        {
+          "resource": "repo://tests/test_eval_measure.py#L31-L120",
+          "version": "repo-lines-v1:sha256:259563c36170d1d2a2d76f42b7d71f4828ac821c815868aafa25f7f13ad57a7b:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2NjA4NTdkMWRiZjVjNDgwNGFiYmJkZmIxNTMxNmMxOTdiNzc4MzVmMjdjZGY4ZWY2OTJlN2ZjYzg3NjVkYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4NjVjZTgyM2U2N2U1ZWQxNjQ0NjNhMzY3NTUxMWExY2FjZGUyZDI1YjA1MDM2ZTYxZTQyMTFjY2Q0NjZhNzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3NWRmOTI4MzRhMDc5YjBmMzQ4NjU0M2U5NTA3ZWUwNzBhMzI2YTUxZWUzYTlmYjliYjkwYTI1ZjkxNDNiNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkYTIzNzY2YWNkYWM5N2ZjZmQ0ZTRhNWNjYTIxYzgzZmI2NmVhNTE2YjlmNzViMzU2ZDYwY2FlZGJmMmIwMGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d742231620084532853f76d6847a07b6",
+      "statement": "A speed comparison must run the reference and candidate on the same day, interleaved, because Bedrock latency drifts between days.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0008-evaluation-is-one-harness-with-two-layers.md#L62-L68",
+          "version": "repo-lines-v1:sha256:9df0bdef11cbcc516c4c40762f38361533dda48c363b146b2292e45bb4a6dfc7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWUzZTg4NzBiNTg4ZWU2NDk2NTE1MjEzNGJlNGRiYjU3NGNiZWFiMTI4YjgwMDE1Y2IyOTEyYTYxMGNiMmZkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI3OGE4MTQ4NmUxZjI0ZDEzODRmNjcyYjNiYWEwNmRkODA4N2M4NTdkOTdkMDYxZmU5OGFjM2JiMDUxMDIyYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmM4OGIzODg3YmU0YmI3NmVmMWQ0NDVhOTI4MzVlNGEyZGZiYmIzNGZkNjczNzVjOGY2M2FlZjIxYzdiMzg4MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-13T19:36:58.526Z"
+  }
+}

@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:55766e5752bf7f7186d780f0404a7ef9a802f37c31a4acd3ff401902b4080b57",
+  "pageVersion": "sha256:86392b54da539193f15e266082abacd3c981dcab32c4db4ea9e37cb4622e81f2",
   "claims": [
     {
       "id": "claim_739e3c592e0448d09eedf3d83899fdca",
-      "statement": "geocode checks 15 hardcoded Gothenburg district bounding boxes (full query, then first comma-separated part) before querying Nominatim, and converts results to EPSG:3006, building a ±radius box when only a point is returned.",
+      "statement": "geocode checks 15 hardcoded Gothenburg district bounding boxes (full query, then first comma-separated part) before querying Nominatim restricted to Sweden, refuses a place that resolves outside SWEREF99 TM's area of use, and converts results to EPSG:3006, building a ±radius box when only a point is returned.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/geocode.py#L13-L44",
-          "version": "repo-lines-v1:sha256:6bd52a83fdc489dfd827db02ed9f2aa92cfe7ecc6b76e2dabf81975a78131127:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyM2E2N2JhNjVlNTdlMWE1ODVmN2RiNDZjYTg3NDgwYTg2ZmE4YzBmZjMzNTNmZDUxMzEwMzk5OWJmMDMzMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4YjM2YjU3MTY5MDEwMzZkYjc1MTMyNjZlNTA5MDQ0OGRlYzY0NTgzYTliY2U4OTI1MmI1OWMwMmNmOGEyZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzYjBkYTMwYzk5Y2M5M2Q3NTlmOWRmMmE4Njg2MzU0MzZhNTk2Mjc3YmU4Y2VkZjgzYTg5M2ZlNzNmMThlYmEifQ"
+          "resource": "repo://dtcc_agent/geocode.py#L16-L44",
+          "version": "repo-lines-v1:sha256:1d281eb6dabe1d3ff6e20bace60f57984ef6965e270c0467e1dd0c17543a1b1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyZDY4OGNhYmVmOTJjNzZlNTQ5OWQxMjZiNmQ0ODZlNzNmODU5MDBlMDE5M2FjMDI1YjJhMzMxYzFiYjljMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4MWQ2MDg3MmU2MjU3OTUwMWUwMTJkZjVlNjY0NmZhZDg1MjlhNjQwYWNlZDBjZjYzYmQ1NTllY2NkYWE3Y2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNzcxNTM0ZWJlZDYwZGNlMTNlZGViYTgyYjdmN2IzMjExNzk5MGJlNTI1MjczOWRlODA3ZTkzOGMzODJiMTAifQ"
         },
         {
-          "resource": "repo://dtcc_agent/geocode.py#L73-L156",
-          "version": "repo-lines-v1:sha256:fe909ea82f8c6afa99230c25253dc1c42f7ffdd1cd256c2cde99f691e6dae1e8:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOGE5NWM0MDA1NDI5NzFiNjI4Y2Q0ZGY2ZjI2MTBmNDg2NTUwMGNlYTBkYmZlZTYzZjMyYmZlMmM4MjJmMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4ZWJjZTk0Y2YwMmU3MzNjZDk4ZDFiYWEyNTE5OWZlNGRmNzUwZWY1OGVhMTM1NzljMzdlNmFiYTc2Y2RkMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://dtcc_agent/geocode.py#L50-L168",
+          "version": "repo-lines-v1:sha256:a663cb34aee607c53306766e8a3e43cfc0aad50a40814687b25c3f5ace434380:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzY2Y1ZTIwOWJhYTQwZWFhYmNhMmVlZTBmN2I2YzFjZWJmOTdmYTYwZGIxMGEzOTk5MWFmNzU5ZDQ0OTk0Y2M4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODkzZjQwZTM3ODFlYjg5NmM4MmQwNDZhMDgwNjdhMTFlMzVjZGYyZjFkZmFmMjZmZWE5MGI4ZGI2Njc2NDEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwYzdlZGE1ZTk5ZmYxM2VjOTdiNzdkMWYzZTAzNDczOGUwOGQ4NjNlZTc0YjViYjNmMDVjODU0MjkxMDdkNTgwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
     },
     {
       "id": "claim_381d85d974ec49d58eeba4d1dac09db0",
-      "statement": "In remote mode run() delegates to dtcc-core's remote dataset descriptor build() and returns a RemoteSimulationResult without field values; in local mode it imports dtcc_sim.datasets lazily and returns the in-process result.",
+      "statement": "run() uses the DTCC Engine when configured, else the dtcc-sim mini-service through Core's remote descriptor build(), asking for the native dtcc format when offered and decoding it into a VolumeMesh, else in-process dtcc-sim imported lazily; the remote paths return a RemoteSimulationResult whose model holds the decoded mesh.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/runner.py#L102-L116",
-          "version": "repo-lines-v1:sha256:ea5aa1ec4879fbca0e031c06783b7cfeb717b9f78cfe2a23f14b8f511cd74e34:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1OGMyZWRhYmZmMzZlZWU1YjQ3OTUyMTA0N2ZjMTdiZDIzZmFhMWJiMTUxMDA3NDFkYjUyNzgzYmMzMjFhNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlZjQwZDYwNjg5ZDNlYjZmMmVkOTZlMzk1N2ZkNDVmMWUxM2MxOGQ3NThhNGNiNzRkMzgwOTE5OTIwNGNkMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZmRkZmYxYTYyNzI2Zjg4ZGY3NzlhZDQzYTRmYzNkODFlYTk0MDAxNzdhMmY4ZjhhYzY5YzQyNTJiODAyM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MWM1NjE5ZDI2YTk5YmFlY2Q1Y2VkMGRhOWNkMzhmNGY4YmM3MTQ1NTYwNjZjNTRhYjNhMjEzM2VlMmEzOWEifQ"
+          "resource": "repo://dtcc_agent/runner.py#L224-L320",
+          "version": "repo-lines-v1:sha256:d53addf85a1c1f6bf8fbc174e552fd33460ad3d1baf93c1867f7dde64b2bf818:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMjcxNmRjYTRkNjM4MGUzY2VjYWZhOTg0NjBhZDJkODNkNWNiNWNjZDhkYTIwNWQ3ZjczMTlkZWZjOWFmMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMDdhODU4MWQ1ZTYwNWVjOTRlN2FhYjM2ZmJiNWU4ZWNjODJiOTExMzdhMTY5MjgxMWExNjBiNTg2NTYwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlN2EzMGQzMDM2NWUwYTJkYjY3ZDdkMGRjMGNlNzEzODM3M2NhMzZiMGFmN2NlY2E1NTUxYmE1ZTllMWFmNjkifQ"
         },
         {
-          "resource": "repo://dtcc_agent/runner.py#L176-L242",
-          "version": "repo-lines-v1:sha256:5b300a1f5c7441b6521c94cd1fc4224ee2b8d684ab66c24a66a19287cb6fc885:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMjcxNmRjYTRkNjM4MGUzY2VjYWZhOTg0NjBhZDJkODNkNWNiNWNjZDhkYTIwNWQ3ZjczMTlkZWZjOWFmMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwM2NjNTE3NjI3NzBjNDQyODZmZjYxMzRhYWQ1MWNjMWM3YjllMjcwMmQ3NTczZjBjOWU5MjFmNzQwYjJkYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMDdhODU4MWQ1ZTYwNWVjOTRlN2FhYjM2ZmJiNWU4ZWNjODJiOTExMzdhMTY5MjgxMWExNjBiNTg2NTYwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3MDkyNTVjMDg3MjYwN2I2ZDFlNjIyMDVhMWI0OTgxZDYxZGYyZWY4Zjk2YTA1ZjRhMDU0MjQwOTZlYmM2NmMifQ"
+          "resource": "repo://tests/test_simulation_results.py#L71-L90",
+          "version": "repo-lines-v1:sha256:bfb116397c5edc90ba12f8882f9898a3c4f925a18181f24974606fa75c56f595:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNzA4Y2I2MjFmZmQ2MDUwZWI0NTVjZDIxN2JjZTNmOWVkZmRjMWQ3ODg4NzRhNmRlOTJmYTBjODVkZGFiY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMTYyZTgyMzM0OTBmYzZjZDg1N2U5ZWQ5ZmJmZjc4Mjc4ODJmYjY1NThlN2Y0ZTFkZTA3ZjdhMmE2ZjUyYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyYjc4M2RmNTQwOTk3ZGM1ZmI4YzNiYzU4OWJjNDczY2I0OGU0MTQ1ZGExZjRiNmIzYTBjNjMzMjE3NTk2NGMifQ"
         }
       ]
     },
@@ -35,26 +35,30 @@
       "statement": "Only urban_heat_simulation and air_quality_field are listed as simulations.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/runner.py#L125-L152",
-          "version": "repo-lines-v1:sha256:fa738c92dd37ae76396d247b2446737333c1f7ce86cb6f9a48b8b684b141325a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkNjVhNDIyMmE3MDRhMWYwYTcxZjBmZjE0YjY4ZmFhZWM0OTI1ZGQ3MGI5YjlkOWYzNmVmMTY1OWVjYzhhN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwZGY1M2JiNjk0NjI0Mzk4NmU2ZGM3NTBhNzc0ODQ3ZjUxNTNlNTE3MDU2ZTlkMjgyZjIxMDVjMzVmNGRkZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5MzRjMjY5ZGRlYWNjN2I4NzhkMzIzMWU2MGU5ZmNkZjAzZjA3MzVjNWNkYjgyMjBmZDcwODg2MDg3OWZhMzIifQ"
+          "resource": "repo://dtcc_agent/runner.py#L156-L200",
+          "version": "repo-lines-v1:sha256:e60dfea7263974dd80cc522dc39445f715f3313d10ccd21b36edde7871ce71c5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzZmIxNjJkOTY4NGE4ZGFmYzE3NDBjYzE3MDk1ZGY5OWM3NjZhZjExN2MyZThjMTI0NmM1OTgwZGE2ZTZmNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0NWM2ZmQ2ZTUzNTdmNzM2NDMxNTlhOTllNTY4NWU3YjI0ZjVmNGRiMGFiNTQ3NTMwYWIwYWI2OTU1NzgwNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmMjZmZjkzMTY1YzM2OWQ2MDY4MTVjMWUwNmE4MzcwN2RmN2JmMjBhZDk3NmM4NGJhZTA5YjJlZDhiYTM2M2YifQ"
         },
         {
-          "resource": "repo://dtcc_agent/runner.py#L21-L28",
-          "version": "repo-lines-v1:sha256:7555d7d393be32f75e84cdbbc774bc23aa389c8b0667dfd4c5e315f03d2421bb:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGY5ZWMxN2RhZjE3NjVlOTJiZWMwMTFkYTUwYmJkN2RlY2NiYTlmMTc0NzE3ZGZhNjkyODJiNzE5ZTcxODNjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmMxZjAyZmQ3ZWMxZDQ2MmMwY2I4MThiOTQ4ZmZlNGY3MTViMmMyYzQzMjYzMGMyMzJkZmUzNGQ0Mjc0M2ZhOSJ9"
+          "resource": "repo://dtcc_agent/runner.py#L23-L30",
+          "version": "repo-lines-v1:sha256:e84a2c086873ea6581da1cfbb104901de33a8bd541e9e8fc21b5b384482f6a33:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzcyN2FkZmY1MjRlMDYxNjAyMmVhZGQ4ZjRhZjIxYTA3NzhiMjlmYzRjNzdiZGZlZmQxYWZjZTJjYmY1ZTRiNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmY5YmM4ZDdmYzdhYjdjMTRjOTlmOGU4Y2Q4MmQ5NmVhM2M3ZDhjZmE3ODFmNTJhNWVhNDhhOTU5ZTMwMzUxZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2RiMGIyYmUyZDAyODViMjY0Zjk0MDU3Y2RmZjdiYWZiNWJkYjU5OWQ2YTRiMDY0ODI2YWVjNDNhYTk1MzgwMCJ9"
         }
       ]
     },
     {
       "id": "claim_d17e6a1166774bc99807ad8b310126ac",
-      "statement": "compare_scenarios runs both scenarios on the same bounds and, for local results, reports per-scenario summaries and B-minus-A difference statistics, requiring equal value counts.",
+      "statement": "compare_scenarios runs both scenarios on the same bounds and, whenever both results carry a readable scalar field, reports per-scenario summaries and B-minus-A difference statistics with the field's unit, requiring equal value counts.",
       "evidence": [
         {
           "resource": "repo://dtcc_agent/analysis.py#L54-L99",
-          "version": "repo-lines-v1:sha256:ba7409046f8f2fe2050ff851cdf2875bb616d6c8ff2b270bfd9a15c9fd023c33:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzMzY2ZWY5ZTY3ZTY1YzFlZDY0YzJlNzZhNjJlZTM1Mjg0ZDcxODgxZWViOWViNjMyNGVkODRlMmVjZmMzMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "version": "repo-lines-v1:sha256:db6cdd37c3b020347bdbbf2f1e92253c06ae259fa79a2a20b6f9da24767710a6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNjczYWJkNDU3YTk3ZWVhMTdhNjAwNjJlYjBmYWVhNmJkZjA5NDg2OGNjNmI4ZjhjMGViZGEyZjYxZWQ0MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNTBlMTIzNmY4MTM4OWFkNzZmMzY2ZTkzMmQzYmI5YjdkNzNjYzliNjY3MTIwZjkyNDRmNDBiNTBiNmUzNzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMifQ"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L545-L645",
-          "version": "repo-lines-v1:sha256:2d232ad9f48fac3bb9956227f61fdd2d7be21d0ee8158182bdde297e83607c79:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhMDIxOWY0NjRiMjVlODA3YzA3YjFlOTAxNTI4Yjk1Y2E5ZWM1ZjYzZjNiZGE3YTY1ZGNhNDdkZDc5NGZhNTNmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2NDc1ZTk0YTkwNGFjNDliMzE1NGQ0NjcyYTY2ZTg2MjliODZkYWM3NGUzZTI5MzdiZTY5MjdhZTNkYTExYzUzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1ZGZjMWJhZjc4ZTU4Nzc5YWUxMTY5ZTU2MGViZDliY2M4MzkwMTcwNzQxMzUyNjliMTYxZmE1Y2YxZDEyMmVkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNzI4ZjAwYmI2NDBlZDdhNTc3NGVjNjliNmRmZmI2NGVlM2E1NjRhMTdkODM0OGVkNzg3ODE4NmQ0ZTYwYWVmIn0"
+          "resource": "repo://dtcc_agent/server.py#L618-L702",
+          "version": "repo-lines-v1:sha256:1640fa9731c359bcfdc3dd3defb5cb3ff21b5bb774377519fb28473fdcaf68c8:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwMjE5ZjQ2NGIyNWU4MDdjMDdiMWU5MDE1MjhiOTVjYTllYzVmNjNmM2JkYTdhNjVkY2E0N2RkNzk0ZmE1M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4ZjBjMGZkMjdjNDM1YjlkNzhjM2I5ZGFlYjZiMzU2ZWVkNDIyYTAwYjUzNDY0YzFkNWFmMzU4ZGVmODE4YzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkZmMxYmFmNzhlNTg3NzlhZTExNjllNTYwZWJkOWJjYzgzOTAxNzA3NDEzNTI2OWIxNjFmYTVjZjFkMTIyZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4YmZmNThmYTQyYjY0NWU2MjkwNzgzZGMxY2Q3YjgzNmRlMWI5MDJjMWE2ODI0NTU2NzM0YmFlZDU3OGM3MjQifQ"
+        },
+        {
+          "resource": "repo://tests/test_simulation_results.py#L106-L123",
+          "version": "repo-lines-v1:sha256:0ed09d16d1b7a0e82ee3a00457e2f4386dc8cc96771935bb78de953e56113192:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYTg0ZWRjZjc1ZDA0MTRhNzIzOWM5MWYzYTZjNjY1NzE2ZDVlMGQ2MmQwZmRmNDQ4NjU1MDJmYmJiYWJjZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1ZTMwZTFhYzY5OWI4YjZiZDBjZDNhMWRkMTA1N2U1OTBhOWU5MWQzODc1MWQxMjY5MjIyZGUxZWRiNjVhZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyOGVlZDQ1MDU4ODU0NWFjYjU5NTkwNzc0YjZmNTYyMjIyZTVhMThmNjQ0OTRkOWYwMzQ4NGUxMTI4ODM2MzQifQ"
         }
       ]
     },
@@ -83,12 +87,8 @@
       "statement": "get_buildings downloads with runner.fetch_buildings only on a cache miss and builds every answer with runner.summarize_buildings for the bounds asked.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/runner.py#L245-L259",
-          "version": "repo-lines-v1:sha256:cdd23c1dca2bde0c78256d9ed9206b3f2c66fc5d60e07ec28e22fddf0a61f362:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMWU2Yjc1NmRlZDA1NzNmYzMzOGIyN2FmMGYwMWFkYWQzNGMyN2Q2NjNjNTUxMTVkMTMyNmJlNjg0ZTVjMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmM2I5ZTFkNGY4MmU5ZDBkZTc2NWY4ZTIzNWUyYmFiYzg4NTViYTVlMjI1MzNkMWI3NWE0NjhhYjEzZWIyN2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YzdmOTIzZDEyODg2ZmI1YTEwZmRmMGVhMTc0NjU5OTBhZmYxMDFiZDQzYmY1OGY4MWQ2MGZkMjE4OTRmNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0MTRjNDY1NGU3ZGM3M2I5MGRhMmI3ZGMwZDkzYmU1Nzk5ZTA5YjY3MzJkNDQ0YzQxZDE2MzA0NzQyOGYyMjEifQ"
-        },
-        {
-          "resource": "repo://dtcc_agent/server.py#L349-L383",
-          "version": "repo-lines-v1:sha256:825b16fea7d4524b3e38ff8732510361cf5e88d6763f42f70f28acc9a07fa5db:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMzFjODkwYWQ5M2E5OWExMWYyZTU0NTZmNmJjYTExZTViYjQwOWI0MmM2MmQ3MzIyOGI0MmRlNTk0MzRlM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiYzI2MGE4ODNiNDQ0OGUyMjViMjEwNmQzNDQ3Zjk5YzUxNjBmOTExN2M5NWUzYzM1MDIwNmE2ODAwMTNhOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4MGVkODExMGJmYTkzYjBlMDY3NTEyOWVhNDJjODQwYTA1ZjBjYmZmYjY3MTFiYTkwN2RjNTg0OWRjYWRhMDIifQ"
+          "resource": "repo://dtcc_agent/server.py#L443-L495",
+          "version": "repo-lines-v1:sha256:1b380a2b7879f81bce968be48bc00dd49b4dcb8751ce9541bf8ffb57bd281d67:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzZGMxMzBjYzk2MjY2MDBjNWRiMGNmNGU5MmRkODU1ZjU4ZjE1NDllN2FkZWVkZmQ4MjE0Mzc4OTQ5YTVmYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjY2RlZjVkZWI2NmRkOGE2YTkxODFkNWNmNDZhZDNlOTJlMzVhOGQ1ZTFiNzU4YjRiNGNhMDA4ZGU1MWMyNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNzllYmQ0NTgyODJlZmVjN2E2Y2M4MjU2MDkwZTc4YjI0NDFjNGZmZTEwYmViNjI5OWVkMGM2NTY5NTAyNzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzZjJlODYwODU0MmQ5NWI0OGZiMWQ0M2EwN2E2MmRkYzVhMTM3NTVhMWJmYmQxYzU0YjIyODZjYjY4NzNiZDAifQ"
         }
       ]
     },
@@ -104,19 +104,19 @@
     },
     {
       "id": "claim_09fac846eb87414592edb4cbb199d81f",
-      "statement": "get_buildings, run_simulation and compare_scenarios refuse bounds that describe no area with an Invalid bounds error before any download or run.",
+      "statement": "get_buildings, run_simulation and compare_scenarios refuse bounds that describe no area with an Invalid bounds error before any download or run, and get_buildings also refuses an area over the download cap.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/server.py#L398-L402",
-          "version": "repo-lines-v1:sha256:1e7602c49b450d3527c809977b55ee1e9e3daa7ab6779792971cdbc751f77d09:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmU4NzdkOWJkZDQ5ZGRkOTQ2YTYwYzIyMTkwNDhhODczN2U0MTJhZDkxNzQyMzEzZDVhYjdhZTY0MDRiODljMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzZjYzE2ZWJmNGE4MTA3NzBjZDk5MDZjOWY4NDdlYmJkM2Y5NTk3NjMwZmJlNzkxNmQzODY1N2FkOWMyZjg2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmFjZDI0OTk0ZTNmY2UxMTc1ZTMzOThjYjE2YTNjZWQwMWExZWU5NTZiYjAwNmVlNzljYzZmNjdiMDRjODkyNCJ9"
+          "resource": "repo://dtcc_agent/server.py#L465-L470",
+          "version": "repo-lines-v1:sha256:9ab6790f3b5bdbc8cd320eee0d247cdb9f4cc0970ea592a82a3f4d0cc52a7f9d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjhkZjllMzU0MGQ0MDMzYzNjYzZlM2VhMjVmZDZkNWFhNzFkNDIwNjcwNDUwOTkyMGIwODMwN2NiNzk0ZGVjMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzUwM2IyN2NhMTIxMDhkMzA4MDc4MDFlMmU5NzlkZjc5MGJkMDI5MWE4NzJlNjRmYzMwOTg2MzAzZjJmNDEwNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzZjYzE2ZWJmNGE4MTA3NzBjZDk5MDZjOWY4NDdlYmJkM2Y5NTk3NjMwZmJlNzkxNmQzODY1N2FkOWMyZjg2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTBiNTc1NzZkNTI3MmQ0OWM0NWY3ZGY4YzQzOTY1YjVhZTM0MTFhYjZiMmJjMTlhZmZlMTU4YmVkMjFmYjJkOSJ9"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L499-L503",
-          "version": "repo-lines-v1:sha256:5c716ed41540a760f85c2927149b27b55ebebaa3382af220a44fcd22030060c8:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcxYmVhYTBhNTUyYzZhNTJiYzMxZDY3MmM1MGQ3MTVkNmNhMWQ0ZTZmNzQ0NzgzNDIyYWUxNjE1ZWFjZjM0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTY3MjBlZGQ3NDY4MmZkMjU2YjE5NjhhNThlY2QwNTk4MTE1YTM2ODc3NWFkZmEyMzc1ZDYwNDdjNjZhODYwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzI4M2FhODEyYWFkNTkxMWMwZjA0N2NhMzY5ZDU2MWM3MTA5MGI4ZmU3YjBmM2Q5YWJjYmM2MzY4ZjQyYjEyZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzJkZWFmM2E4MWY5MTQ3ZDlmN2I0NDEwYmY4Y2NiZDc2MTcwNjZjNTc4MjM4NzRkODg2YjFjY2U5MDc5MjI5OSJ9"
+          "resource": "repo://dtcc_agent/server.py#L575-L580",
+          "version": "repo-lines-v1:sha256:0bc9e6850a3310dbdf64ec4ff85a93106badc8582b28d715e3a4afb10e6a2353:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmE3NWVmNDc3MjZkMzMxZDIwYTEwOGYzMTI5Mzk1YmE1MjMzMjE4OGY5NDQ5NTU3NDM1YmUxNmEyNTY3MGEyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTY3MjBlZGQ3NDY4MmZkMjU2YjE5NjhhNThlY2QwNTk4MTE1YTM2ODc3NWFkZmEyMzc1ZDYwNDdjNjZhODYwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmQ3YTJkNmEyMzNmYTE0ZDk1OGJjOWY5ZDBhZDc0NDkxMDIzMTBkMjIzMWE5ZjhjNWY2MDExZTY0ZDhkNThiMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzJkZWFmM2E4MWY5MTQ3ZDlmN2I0NDEwYmY4Y2NiZDc2MTcwNjZjNTc4MjM4NzRkODg2YjFjY2U5MDc5MjI5OSJ9"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L588-L592",
-          "version": "repo-lines-v1:sha256:b47269dcf9ecada1e78a7d7b972d0d713daf41e83bb39abc6c479d0d0de7690e:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcxYmVhYTBhNTUyYzZhNTJiYzMxZDY3MmM1MGQ3MTVkNmNhMWQ0ZTZmNzQ0NzgzNDIyYWUxNjE1ZWFjZjM0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTRmZmNiNzc4ZDFhOTQwNjY0YzliZWYyOGM1NDM0NWUzODhhZWRkZDFiZGQxNTk0ZjExNzhlNzkwZjVmMzFjNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzRjMWFjOTUyOTBlNWY0M2QyMWViMGNmZWUxNjQ3ZDI3YzVmODM2ZGNlZTYxY2JjOTBlNmE4NWViOGZmOGUzMiJ9"
+          "resource": "repo://dtcc_agent/server.py#L645-L650",
+          "version": "repo-lines-v1:sha256:ae3d0175765b1cfd693fc95a70a908a4b38e8e87af42d41f5072021fea4ff8e8:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmE3NWVmNDc3MjZkMzMxZDIwYTEwOGYzMTI5Mzk1YmE1MjMzMjE4OGY5NDQ5NTU3NDM1YmUxNmEyNTY3MGEyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2JiNGFiNjg2YmE0OGI5Zjc1YzhkYTUyOTM4NGUxNjllZTRiODkzZTI2ZWRmYzBlMTY4OGFkOTMwZmYyNzRhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzRjMWFjOTUyOTBlNWY0M2QyMWViMGNmZWUxNjQ3ZDI3YzVmODM2ZGNlZTYxY2JjOTBlNmE4NWViOGZmOGUzMiJ9"
         }
       ]
     },
@@ -125,16 +125,16 @@
       "statement": "A simulation result is stored once, as an Object in the Session's ObjectStore; the Run in the Session's results records its object_ref and no copy, and get_run_summary reads the result through that reference, reporting an evicted result instead of a dangling one.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/server.py#L255-L281",
-          "version": "repo-lines-v1:sha256:074a1d983cf2c178ad52df4dc37e8f4a2370bf493a967771eda9522772b61413:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzllNDM4MDI5MTFmODBhMjgwODM0NTYwZTk1ZGI3OTcyODI3YzBiYjdmZmU4MmI2NjFjNDRkYjI4ZDY5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMGFlZTA4OTg1ZDNiOTkwMjRiOGQ5ZGJjY2RiNjU0MWI0OGUyNWRjMGEyYWQ2NjI3ZDZjMGQ2YTUwMjQ4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0MzVlZWU4ZTg0ZmU0N2U3ZDJkNGU3ZWY4Yzg1MDg2MWQ1NjE4ZTUyMjNlMTFkNTNiZGZmYzcwYWQ4NWQ5NDcifQ"
+          "resource": "repo://dtcc_agent/server.py#L322-L380",
+          "version": "repo-lines-v1:sha256:9b9ce6ccbc88770a73098d8ec3a9eab3a33eacc6968e550f676ea263b47ee8ff:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMzllNDM4MDI5MTFmODBhMjgwODM0NTYwZTk1ZGI3OTcyODI3YzBiYjdmZmU4MmI2NjFjNDRkYjI4ZDY5ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxMGFlZTA4OTg1ZDNiOTkwMjRiOGQ5ZGJjY2RiNjU0MWI0OGUyNWRjMGEyYWQ2NjI3ZDZjMGQ2YTUwMjQ4NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiMjliMWUzODI0NWFmZTZmYmUxNzUxZWFjZmY4YjhlOGFjNzQ3NzQ5NTUyMzkxZWMyZWNmOGQyYTJhNDQxZTUifQ"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L699-L740",
-          "version": "repo-lines-v1:sha256:3c9400b14b1ee21ec10ed86a3de4a4b0ba8f7e9f71b078f661754e594fc637f1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwYjQ2N2FmOGYzOTQzNGU3ZTE0YzRjODBkODkzMmE4NDBjM2QzOThmNDI3Mjc1MDE1ZjM4MDY4NWM4ZDVhZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkZmMxYmFmNzhlNTg3NzlhZTExNjllNTYwZWJkOWJjYzgzOTAxNzA3NDEzNTI2OWIxNjFmYTVjZjFkMTIyZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlN2Q3MDEzM2NmODQyMzgwZDZiNDQ1MDA0MzdhOTk1M2NiYmEyM2Y2YzhiOTY0YWIwMmI2NjkyYmE0MzQ2ZmQifQ"
+          "resource": "repo://dtcc_agent/server.py#L738-L775",
+          "version": "repo-lines-v1:sha256:b5497308af3d70415d8be39b0cea2f103f110307f74891188aa0d5be6ea152dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwYjQ2N2FmOGYzOTQzNGU3ZTE0YzRjODBkODkzMmE4NDBjM2QzOThmNDI3Mjc1MDE1ZjM4MDY4NWM4ZDVhZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkZmMxYmFmNzhlNTg3NzlhZTExNjllNTYwZWJkOWJjYzgzOTAxNzA3NDEzNTI2OWIxNjFmYTVjZjFkMTIyZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlYmUwNjdiZjAxMjE5NGQwNTdlM2I4OWM3NTU1YTdkM2YyNjAwMjUwN2VjNDM1NTVkZmI4ODAwZTFkMGNmZDkifQ"
         },
         {
           "resource": "repo://tests/test_server.py",
-          "version": "repo-file-v1:sha256:893642ed7af641781d81acbe75d45e7cbee3676438832e0997bd82d942ef728f"
+          "version": "repo-file-v1:sha256:6d94ac03817f4c1cb5d811ed8cf93536a9321cefa0390af3f3672a7c55e58046"
         }
       ]
     },
@@ -151,10 +151,24 @@
           "version": "repo-file-v1:sha256:4eabbff01c28599c696ac4eb0a9c714512379dcded1dec5203b2e92c797118bb"
         }
       ]
+    },
+    {
+      "id": "claim_5bfd7116e8494335a76fe4f2afdb0047",
+      "statement": "All four Run tools read field statistics through one helper that takes the first one-dimensional Field of a VolumeMesh (or a legacy dolfinx Function's values) with its name and unit, and a remote result without a readable field still answers with a message explaining why there are no numbers.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/server.py#L1517-L1545",
+          "version": "repo-lines-v1:sha256:d32da0bc9c70130040438e2ed5ed930ed1f223c9b558d8089c6adb2a47818e22:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkNmY2MWFjOWJiMWU1NDZkNGM5NjAxMTUwODU0NjA2YzdkM2MwYzlmOTY0NzdjNTM2NDE2YWJmYWNkZmU4MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjRiOTAwMzk3MzgyZGI4M2YxMGQxODgzNmVjMTA4NGJhNDU2ODIwNWUyMjAxNDkxYjE0YzJmZDc5MzNhOTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxNWMxYzA0YTM3ZDAzZTMxZTVmYWEzN2Q4N2M0Y2U1NDlhMGNiMjUzNzZiNTljYmUzNDQxZjlhODU4MzFlNzcifQ"
+        },
+        {
+          "resource": "repo://tests/test_simulation_results.py#L92-L140",
+          "version": "repo-lines-v1:sha256:9dd7319158b8e53bdb674ce7563807512a4270d2a68976daea0a7a05a7bd8f76:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczNWY5NDYyMGJhNTdmOTZmOTI0ZDAxN2UwNDFkNDNjYTVhMWU1YjgzMjU0MjVjMzkzNTFkYzEwZjcwMjNhYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMDhhZDdlMTZiNzkwZWNmYjI5MzA0YmYyZDg1YTNjMzE3OThjZGRmODAyMWFlMzA4ZTYwZTZmNDgyNzEwOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjYmY3MWVkYjkzZjg4ZDZmOTFkYzNlNjY1MmY1M2NiMzY1YmExNWU3OGM5MDg0NTc1ZmYzMWZjZjAxZmJmNzgifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-01T20:29:16.810Z"
+    "at": "2026-10-13T19:36:58.526Z"
   }
 }

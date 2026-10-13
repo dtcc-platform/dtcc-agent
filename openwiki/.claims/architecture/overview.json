@@ -1,22 +1,26 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1237857258b6c03653477b9d69d52dc9dc9d06678f56166f08e75dcbf40dfc33",
+  "pageVersion": "sha256:58381016a9ae7a84d2f995347d38d6730b6b22a5945abcc731a7a78f512c4f31",
   "claims": [
     {
       "id": "claim_b19ba07e1e2842748016f689ceb73672",
-      "statement": "The repository ships two packages: dtcc_agent, an MCP server exposing dtcc-core/dtcc-sim operations as tools, and chatbot, a FastAPI web app that drives a Claude Agent SDK session against that MCP server over a WebSocket.",
+      "statement": "The repository ships two packages: dtcc_agent, an MCP server exposing dtcc-core operations and simulations as tools, and chatbot, a FastAPI web app that runs a pydantic-ai agent on Amazon Bedrock against that MCP server and streams the conversation over a WebSocket.",
       "evidence": [
         {
-          "resource": "repo://chatbot/app.py#L188-L286",
-          "version": "repo-lines-v1:sha256:4e5fb96315809389a9a609cdb225c3043fb8d2a75b3a6294fe695e293c879bc3:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzZDQ3YzZlYWYyMWFlY2U4NDM2NmFhNDVkZjE0ZTExNTI4NjRhZGQyNWJkYzAxNGNjZWFmZmMzNzhiNGQ2MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhNjVhMmIwYWJlZTVkNTk5YTQ3YzIyZTYxMTA5MDRjYzRiMTVlYWQyYjc2NTRlNDgzMmExOGNhMDE0MDc4OGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkODQ1YWJhMDBjZTFiNzM4MWQ1ZDkyOWQzZTczYTEwM2FlNDk5NTk1NTdmYWNhNDFjZGQ1YTNkNTQ3Yjg5OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5M2JkNjZlMmJiNzFmM2I4YTkyNDA2NGJiZjdiMDdjNTkwM2E3NzNmYTRmOGMzNTQ2MDYwMzg2NjcxZDNhNzMifQ"
+          "resource": "repo://chatbot/runtime/pai.py#L1-L10",
+          "version": "repo-lines-v1:sha256:6da57addc1517212acd58cacbe3e35d2cd9a3d660a26e286cf0c245653bc09df:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmMjViYTYyYzlkNThkNjk1MDNhNzZmYzRlZTg2NTUzNzU4ZTk3YWQxZWExZWZmMzZiODA1ZDM1ZDg0M2VlYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkZjg1ODdkZGFiYzRkZjgzOTc4M2FjNGIxODJiMjJmNDMxMjE4Njg5MzRjMjM0ZWU2OTU5OWEwMjgwODVmYzcifQ"
+        },
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L118-L125",
+          "version": "repo-lines-v1:sha256:f84dfdf943db0e48c2b5aeb1df92a190b9929f872eea2eb587ada11b8af5c0dd:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGJkN2QyODQ1OTg5ZDZkYzM0OTI0ZTk4NTFjOTFiNmUzYTQyODBjYjU3OTUzOWVlNDBlMWZjNWQ3MDVhMTY1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U0NzUzMjE0ODA3N2Y1NzkzNTJkYWY4NmIxNjA3YTY0N2YxNWM5MGQxZjQxN2ViMjRkN2EyZWE1MTAxNDA0YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTRkMDM3NzBiOGY0YzNmMWQ3ZmE1OGQ0MTBlNDkwNjgyNTdkZDQ4YWE0NTEzOTQ0NzI2ODYyMmEyZWFhZGRjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmNmOGIzOTI0MjExMDNlNzgzYTkyNDIzMDdhNzgwMGRiOWI1Yzk3MmZjMTdhMTU0MTViY2NkNDYwNzI2ZjIwZCJ9"
         },
         {
           "resource": "repo://dtcc_agent/server.py#L1-L10",
-          "version": "repo-lines-v1:sha256:9297c6264811e83abe52b36555314efc6061dd779220aeb7e86149962f6dfe8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxODE5YzM4MTA4ZWExZjhlZGMzYjhlNWVhODE2YTcwNDYzNDZlYzAwZTkwOGM5NTY3YzA3OTZmMmUzMmFhNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzODRiZmRiMmRmMzgwYjY1NTdjYzdhNzFkMTY4OTE0MTViY2NhYTg3Njk5NDA2ZTIzNmY3NTJjNjQxNTM4OWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwNGMxMmI0NjQyMjYwZjYzYzdkNDBjY2NhNjMyMzMxYTA1MzBlYTE5ODlmMTU2YTc3NDNmZDRkNjExNDE3YzUifQ"
+          "version": "repo-lines-v1:sha256:9297c6264811e83abe52b36555314efc6061dd779220aeb7e86149962f6dfe8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxODE5YzM4MTA4ZWExZjhlZGMzYjhlNWVhODE2YTcwNDYzNDZlYzAwZTkwOGM5NTY3YzA3OTZmMmUzMmFhNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzODRiZmRiMmRmMzgwYjY1NTdjYzdhNzFkMTY4OTE0MTViY2NhYTg3Njk5NDA2ZTIzNmY3NTJjNjQxNTM4OWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViNzVlYTQyYmZkM2U1MzZiN2EwOWRmNTRlNTVjYzUyMjA0OTFmMDVkODNhMjNhNmNkOTFjZDM3YmM4NWFiNjgifQ"
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
+          "version": "repo-file-v1:sha256:4f488915ec64a621a25ce642268e12c027fdc35bc8777dea6ab9a8269436d4df"
         }
       ]
     },
@@ -32,15 +36,15 @@
     },
     {
       "id": "claim_16826a3e6d794c60acfc660086d79edf",
-      "statement": "Simulations run through a remote dtcc-sim service when DTCC_SIM_SERVICE_URL or DTCC_REMOTE_SERVICES is configured, and fall back to in-process dtcc-sim otherwise.",
+      "statement": "Simulations run on exactly one path chosen by configuration with no fallback: the DTCC Engine when DTCC_ENGINE_URL is set, else the dtcc-sim mini-service when DTCC_REMOTE_SERVICES or DTCC_SIM_SERVICE_URL is set, else in-process dtcc-sim.",
       "evidence": [
         {
           "resource": "repo://dtcc_agent/runner.py#L1-L14",
-          "version": "repo-lines-v1:sha256:f37b8511f4b006d480a0e50d8a5988d0d9243991bccab138e967115436314505:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwYWMwNGQ0ZTYxMjMxOGVkMGQ4NDYxNDVkN2IzMTcwNWIzODhjNTU4MGI5MGFjMGU4NzJmNmRjOTU5NWQ5YzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+          "version": "repo-lines-v1:sha256:3c48b4a9fbcbd8b58f0f2f803e9a526f28b097338d981138150428a8cf75b62a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNzgzNzVmYjI4MTkwZDEzMjdjOTY0MzNiNTc4YTk3YWJjNjUzM2QwODkyOGZlZWI2MTljZDljYzBlYTJkZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3ZGU1MmQzMTc2MDdlNmU2MWU4MWZjZDQ5NDhiZWVmYjM0YWFjNTU5OTg3ZDcxOGI2ODVlZjQ1MWI3M2NiNGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwNzZmYzNlZDFiNzcyY2M2N2I5ZmNhNjI2ZjgwYjUyNDYyYWYyOGQ1YTk1ZTBmMTY1MDlkZDgxMGU1ZjY1NWYifQ"
         },
         {
-          "resource": "repo://dtcc_agent/runner.py#L54-L123",
-          "version": "repo-lines-v1:sha256:6c269e77f662f2512713fab4871523704edfbcc290d1551416094614d2033828:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MTYyMGYyOTZmOWU0ZjU4MDY4Mzk5Y2MwMmY1MmY0Njg2OTY2YmI1OGZkNjBkMTAwOGI5NGE2MDFiNDQ4YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5MmExYmQ5NjE5ZGI4M2YxMDhlZWY1M2Q1YmIwMjgyNmQyNTJlMjY5NzBhNmQ3MWE2N2Q1ZDZkNjBjNWZkMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4NDlkMWFjZjJiNThmMmE0NjBlM2EyNDY4NjAxYzFiZWFlODIyYmQ2NzY0OWVmZGE0MTE4MDY0N2ZhNjNiMWYifQ"
+          "resource": "repo://dtcc_agent/runner.py#L224-L320",
+          "version": "repo-lines-v1:sha256:d53addf85a1c1f6bf8fbc174e552fd33460ad3d1baf93c1867f7dde64b2bf818:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMjcxNmRjYTRkNjM4MGUzY2VjYWZhOTg0NjBhZDJkODNkNWNiNWNjZDhkYTIwNWQ3ZjczMTlkZWZjOWFmMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMDdhODU4MWQ1ZTYwNWVjOTRlN2FhYjM2ZmJiNWU4ZWNjODJiOTExMzdhMTY5MjgxMWExNjBiNTg2NTYwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlN2EzMGQzMDM2NWUwYTJkYjY3ZDdkMGRjMGNlNzEzODM3M2NhMzZiMGFmN2NlY2E1NTUxYmE1ZTllMWFmNjkifQ"
         }
       ]
     },
@@ -56,17 +60,17 @@
     },
     {
       "id": "claim_89e5c3c50ec0498caa28f2cf5b0ca361",
-      "statement": "docker-compose.yml runs the MCP server and the chatbot as two services from one image; the MCP server binds 127.0.0.1:8051 without publishing it, and the chatbot shares its network namespace and the /data volume.",
+      "statement": "docker-compose.yml runs the MCP server and the chatbot as two services from one image; the MCP server binds 127.0.0.1:8051 without publishing it, and the chatbot shares its network namespace and the /data volume, with the chat port 8050 published on the MCP service.",
       "evidence": [
         {
           "resource": "repo://docker-compose.yml",
-          "version": "repo-file-v1:sha256:d90a037d27f7becd506caca20284393874e721a6b88cc59f8ee15ebc16f93f68"
+          "version": "repo-file-v1:sha256:5bb21d87f3c5715dd2d6c41b161682874e2c01e8fbc5170010ea9f0d3c156670"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-01T20:29:16.810Z"
+    "at": "2026-10-13T19:36:58.526Z"
   }
 }

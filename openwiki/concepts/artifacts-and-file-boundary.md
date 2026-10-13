@@ -3,12 +3,13 @@ type: concept
 title: Artifacts and the file boundary
 description: How files leave and enter dtcc-agent. Tools write renders and exports into a private per-Session folder and return a name, never a path; the chatbot serves them at /artifacts; run_operation refuses every file-path parameter; load_geojson reads only the shared results folder.
 tags: [artifacts, filesystem, security, rendering, export, chatbot]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-10-01T20:29:16.810Z
 sources:
   - id: openwiki-source-d82fbc21a9f74516f7bfd0f8
     resource: repo://chatbot/app.py
+  - id: openwiki-source-5f2b4e0b591e0b8e093c4c16
+    resource: repo://chatbot/runtime/__init__.py
+  - id: openwiki-source-6ed7b95a502f0a6d7126df1d
+    resource: repo://chatbot/runtime/pai.py
   - id: openwiki-source-f4e2e41b78ef4f0591d5eac2
     resource: repo://chatbot/sessions.py
   - id: openwiki-source-58b44e3a6e999eaaad2363b4
@@ -25,9 +26,14 @@ sources:
     resource: repo://tests/test_artifact_tools.py
   - id: openwiki-source-104417024fe98bcbdd7d4cb6
     resource: repo://tests/test_artifacts.py
+  - id: openwiki-source-9b5246b31b1e97d9e4442ac9
+    resource: repo://tests/test_chatbot_app.py
   - id: openwiki-source-f7a9ed42f310602857a88be4
     resource: repo://tests/test_path_refusal.py
-generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
+generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-10-13T19:36:58.526Z
 ---
 
 # Artifacts and the file boundary
@@ -54,7 +60,7 @@ Which Session a tool writes for comes from `_Session.id`: the `X-DTCC-Session` h
 
 - `GET /artifacts/{session_id}/{name}` returns 404 unless the session is live in `SessionManager` and `find()` resolves the name. Every response carries `Cache-Control: private, no-store` and `X-Content-Type-Options: nosniff`. PNGs are served inline as `image/png`; anything else is an attachment named after the artifact without its token (`download_name`).
 - Until admission control (T14) the URL is the credential: the live session id plus the random token.
-- After each tool result the chatbot runs `_artifact_frame`. It unwraps FastMCP's structured form (`{"result": "<tool JSON>"}`, which is what the Claude CLI actually delivers), checks that the named artifact exists in *this* session's folder, and sends the page an `image` frame or a `file` frame with the URL. The page appends an image to the message or a download link (`chatbot/static/index.html`).
+- After each tool result the runtime calls `artifact_frame` (`chatbot/runtime/__init__.py`; see [Model runtime](../architecture/model-runtime.md)). It accepts the result as JSON text, a list of text parts or already parsed (pydantic-ai hands it over parsed), unwraps an MCP server's structured form (`{"result": "<tool JSON>"}`), checks that the named artifact exists in *this* session's folder, and sends the page an `image` frame or a `file` frame with the URL. The page appends an image to the message or a download link (`chatbot/static/index.html`).
 - The old `/renders` static mount is gone: it served a fixed folder the renderer never wrote to (#38).
 
 ## Tools that write artifacts
@@ -92,7 +98,7 @@ Against the pinned Core this covers 18 operations: the `io.load_*` and `io.save_
 
 ## Reading: `load_geojson`
 
-`load_geojson(name)` takes a path relative to `$SHARED_RESULTS_DIR`, where dtcc-sim writes results. `shared_result()` resolves it, follows symlinks, and refuses anything absolute, anything that resolves outside the folder, and any missing file. Without `SHARED_RESULTS_DIR` set, nothing can be loaded. Nothing in the agent yet tells the model which files dtcc-sim wrote.
+`load_geojson(name)` takes a path relative to `$SHARED_RESULTS_DIR`, where dtcc-sim writes results. The same folder carries every simulation result in the dtcc-sim mini-service path, which Core's remote protocol reads and then deletes; with the DTCC Engine configured the folder is not mounted at all, and `load_geojson` has nothing to read (see [DTCC Engine integration](../integrations/dtcc-engine.md)). `shared_result()` resolves it, follows symlinks, and refuses anything absolute, anything that resolves outside the folder, and any missing file. Without `SHARED_RESULTS_DIR` set, nothing can be loaded. Nothing in the agent yet tells the model which files dtcc-sim wrote.
 
 ## Tests
 
@@ -100,4 +106,4 @@ Against the pinned Core this covers 18 operations: the `io.load_*` and `io.save_
 - `tests/test_path_refusal.py`: the pinned set of path operations; required and given paths refused before Core is called; `null`/`""`/absent optional paths allowed.
 - `tests/test_artifact_tools.py`: render and export return artifacts in the calling Session with no paths in the text; a failed export leaves no file; building exports in each format, in WGS84; `load_geojson` refusals.
 - `tests/test_renderer.py`: every geometry type produces a PNG; subsampling; empty geometry draws nothing; size clamping.
-- `tests/test_chatbot_app.py`: the route's 200/404 cases and headers; frames for image, file and FastMCP-wrapped results.
+- `tests/test_chatbot_app.py`: the route's 200/404 cases and headers; frames for image, file and MCP-wrapped results.
