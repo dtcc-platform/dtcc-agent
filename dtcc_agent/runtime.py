@@ -14,7 +14,7 @@ import sys
 
 import anyio
 
-from . import registry
+from . import engine, registry
 
 # Tool bodies running at once, across every Session (#19). Each operation may
 # deepcopy a heavy input, so anyio's default of 40 threads would trade a
@@ -35,8 +35,10 @@ def start() -> None:
     """Build the catalogue (over a second, cold), so no request pays for it.
 
     Raises registry.CatalogueError on a broken Core install: the process then
-    fails to start instead of serving a partial catalogue.
+    fails to start instead of serving a partial catalogue, as it does when
+    DTCC_ENGINE_URL is set without DTCC_ENGINE_TOKEN.
     """
+    engine.check_config()
     catalogue = registry.build()  # and starts asking dtcc-sim, in the background
     print(f"dtcc-agent: catalogue built: {len(catalogue)} operations",
           file=sys.stderr, flush=True)

@@ -30,8 +30,14 @@ LLM (Claude) ←→ MCP (stdio, or streamable HTTP + X-DTCC-Session) ←→ dtcc
                                     └── disk_cache          (the two downloads: containment, TTL)
 ```
 
-dtcc-agent can run in two modes:
+dtcc-agent runs simulations in one of three ways, chosen by configuration, with no fallback
+between them:
 
+- **Engine mode** (#109), with `DTCC_ENGINE_URL` set: each simulation is a DTCC Engine job
+  (`dtcc-twin` `apps/engine`). The agent submits it, polls it, and downloads the result as a
+  `.dtccpkg` that Core reads, all over HTTP: nothing is shared on disk, so the agent and the
+  Engine can run on different machines. dtcc-sim settings are ignored while it is set. Buildings,
+  terrain and the other operations still run in the agent (#110 measures moving them).
 - **Mini-service mode**: Lurkie and the MCP server run in a lightweight
   Python container. Simulation tools call the `dtcc-sim` mini-service through
   the same `dtcc-core` remote dataset protocol used by Atlas. Jobs are submitted
@@ -157,6 +163,18 @@ docker compose up --build
 
 Compose refuses to start without `DTCC_MCP_SECRET`, `DTCC_AGENT_ACCESS_CODE` and `AWS_BEARER_TOKEN_BEDROCK`, naming
 the one that is missing.
+
+#### Simulations on the DTCC Engine (#109)
+
+| Variable | Default | Effect |
+|---|---|---|
+| `DTCC_ENGINE_URL` | unset | The Engine's base URL. Set: simulations run as Engine jobs, and `DTCC_REMOTE_SERVICES`, `DTCC_SIM_SERVICE_URL` and the shared results folder are not used. |
+| `DTCC_ENGINE_TOKEN` | unset | The Engine's API token, sent as a bearer token. Required with the URL: the tool server does not start without it. |
+| `DTCC_ENGINE_TIMEOUT` | `900` | Seconds a simulation may take before the tool reports a timeout, naming the job. |
+
+A local Engine runs from `dtcc-twin` with `docker compose --profile engine up -d`, on
+`127.0.0.1:8000` with token `local-dev-engine-token`; from the agent's container that is
+`http://host.docker.internal:8000`.
 
 #### Admission (T14)
 

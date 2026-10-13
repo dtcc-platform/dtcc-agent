@@ -1,9 +1,14 @@
-"""Simulation runner for local or remote dtcc-sim simulations.
+"""Simulation runner: the DTCC Engine, the dtcc-sim mini-service, or in process.
 
-In mini-service mode, configured with DTCC_REMOTE_SERVICES or
-DTCC_SIM_SERVICE_URL, simulations are delegated through dtcc-core's remote
-dataset protocol. Without a remote service configured, this module falls back
-to direct in-process dtcc-sim access.
+Exactly one path runs, chosen by configuration, with no fallback between them
+(a silent fallback would hide a broken Engine):
+
+1. Engine (#109), with DTCC_ENGINE_URL set: each simulation is an Engine job,
+   and its result comes back over HTTP as a package (``engine.py``).
+2. Mini-service, with DTCC_REMOTE_SERVICES or DTCC_SIM_SERVICE_URL set:
+   dtcc-core's remote dataset protocol, whose results are read from a folder
+   shared with dtcc-sim (SHARED_RESULTS_DIR).
+3. In process, with neither: dtcc-sim imported directly.
 
 Usage:
     from dtcc_agent.runner import list_simulations, run
@@ -31,7 +36,7 @@ _SIMULATION_NAMES = {
 
 @dataclass
 class RemoteSimulationResult:
-    """Metadata returned when a simulation runs in the dtcc-sim mini-service."""
+    """A simulation that ran elsewhere: as an Engine job or in the dtcc-sim mini-service."""
 
     simulation: str
     bounds: list[float]
@@ -71,7 +76,12 @@ _REGISTERED_REMOTE_SERVICES: set[str] = set()
 
 
 def _remote_services() -> list[str]:
-    """Return configured remote service URLs."""
+    """Return configured remote service URLs; none while the Engine is used,
+    so dtcc-sim is neither asked nor merged into the catalogue."""
+    from . import engine
+
+    if engine.url():
+        return []
     explicit = os.getenv("DTCC_SIM_SERVICE_URL", "").strip()
     if explicit:
         return [explicit.rstrip("/")]
@@ -151,6 +161,15 @@ def list_simulations() -> list[dict[str, str]]:
     -------
     list of dicts, each with keys: name, description
     """
+    from . import engine
+
+    if engine.url():
+        return [
+            {"name": name, "description": described.get("description", "")}
+            for name, described in engine.client().datasets().items()
+            if name in _SIMULATION_NAMES
+        ]
+
     base_url = _remote_base_url()
     if base_url:
         all_datasets = _list_all_remote()
@@ -186,6 +205,13 @@ def get_schema(name: str) -> dict[str, Any]:
     -------
     dict — the JSON Schema from the Pydantic ArgsModel.
     """
+    from . import engine
+
+    if engine.url():
+        if name not in _SIMULATION_NAMES:
+            raise KeyError(name)
+        return engine.client().describe(name)["args_schema"]
+
     base_url = _remote_base_url()
     if base_url:
         ds = _get_remote_dataset(name)
@@ -216,6 +242,8 @@ def run(
     In process: what the simulation returns, a VolumeMesh whose scalar Field
         holds the values (dolfinx.fem.Function, with result.x.array, before
         dtcc-sim#8).
+    On the Engine: a RemoteSimulationResult whose model is the package's
+        VolumeMesh, and whose task_id is the Engine job id.
     In mini-service mode: a RemoteSimulationResult; its model is the decoded
         VolumeMesh when the service offers the native format.
 
@@ -229,6 +257,26 @@ def run(
     kwargs: dict[str, Any] = {"bounds": bounds}
     if parameters:
         kwargs.update(parameters)
+
+    from . import engine
+
+    if engine.url():
+        if name not in _SIMULATION_NAMES:
+            raise KeyError(name)
+        client = engine.client()
+        model, job_id, size_bytes = client.run(name, kwargs)
+        return RemoteSimulationResult(
+            simulation=name,
+            bounds=bounds,
+            parameters={k: v for k, v in kwargs.items() if k != "format"},
+            base_url=client.base_url,
+            task_id=job_id,
+            result_file=None,
+            size_bytes=size_bytes,
+            output_format="dtccpkg",
+            content_type="application/zip",
+            model=model,
+        )
 
     base_url = _remote_base_url()
     if base_url:
