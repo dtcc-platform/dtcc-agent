@@ -507,9 +507,14 @@ def list_simulations() -> str:
     Use get_simulation_schema() to see the parameters for a specific
     simulation before running it.
     """
+    from .engine import EngineError
     from .runner import list_simulations as _list
 
-    return _fmt(_list())
+    # Returned, not raised: a raised error fails the whole chat turn.
+    try:
+        return _fmt(_list())
+    except EngineError as exc:
+        return _fmt({"error": str(exc)})
 
 
 @tool
@@ -524,12 +529,15 @@ def get_simulation_schema(simulation_name: str) -> str:
         simulation_name: Name of the simulation (e.g.
             "urban_heat_simulation", "air_quality_field").
     """
+    from .engine import EngineError
     from .runner import get_schema
 
     try:
         schema = get_schema(simulation_name)
     except KeyError:
         return _fmt({"error": f"Unknown simulation: {simulation_name}"})
+    except EngineError as exc:
+        return _fmt({"error": str(exc)})
     return _fmt(schema)
 
 

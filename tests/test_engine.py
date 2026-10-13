@@ -247,3 +247,22 @@ def test_run_simulation_reports_statistics_from_an_engine_package(on_engine, hea
     assert summary["unit"] == "degC"
     assert payload["remote_result"]["task_id"] == "j1"
     assert payload["remote_result"]["size_bytes"] == len(heat_package)
+
+
+def test_a_rejected_token_reaches_the_model_from_every_simulation_tool(on_engine, monkeypatch):
+    """Raised, an error fails the whole chat turn ("Sorry, an error occurred"),
+    which is what a wrong token did live before this test."""
+    monkeypatch.setattr(server, "_local_session", server._Session())
+    rejected = httpx.Response(401, json={"detail": "Missing or invalid Engine API token"})
+
+    class Rejecting(FakeEngine):
+        def __call__(self, request):
+            self.requests.append(request)
+            return rejected
+
+    on_engine(Rejecting())
+
+    for payload in (server.list_simulations(), server.get_simulation_schema(HEAT),
+                    server.run_simulation(HEAT, BOUNDS),
+                    server.compare_scenarios(HEAT, BOUNDS, {}, {})):
+        assert "rejected the agent's token" in json.loads(payload)["error"]
