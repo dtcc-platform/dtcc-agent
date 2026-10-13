@@ -544,8 +544,9 @@ def run_simulation(
 ) -> str:
     """Run a simulation and return summary statistics of the result.
 
-    This calls the simulation directly in-process. For urban_heat_simulation,
-    expect ~1–5 minutes depending on domain size and mesh resolution.
+    The simulation runs on the DTCC Engine or dtcc-sim, as configured. For
+    urban_heat_simulation, expect ~1–5 minutes depending on domain size and
+    mesh resolution.
 
     The result is stored in memory with a run_ref so you can reference it
     later in compare_scenarios().
