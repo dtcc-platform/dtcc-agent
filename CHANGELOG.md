@@ -14,7 +14,7 @@ Last updated: 2026-10-13.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-13 | **First M4 task:** simulations run as DTCC Engine jobs when the Engine is configured, so the agent no longer needs a folder shared with dtcc-sim ([#113](https://github.com/dtcc-platform/dtcc-agent/pull/113), T40, fixes [#109](https://github.com/dtcc-platform/dtcc-agent/issues/109)) | 🔍 |
+| 2026-10-13 | **First M4 task:** simulations run as DTCC Engine jobs when the Engine is configured, so the agent no longer needs a folder shared with dtcc-sim ([#113](https://github.com/dtcc-platform/dtcc-agent/pull/113), T40, fixes [#109](https://github.com/dtcc-platform/dtcc-agent/issues/109)) | ✅ |
 | 2026-10-12 | A cropped building cache matches a fresh download exactly, using Core's `source_bounds`; also fixes buildings sharing one Lantmäteriet id being dropped together ([#107](https://github.com/dtcc-platform/dtcc-agent/pull/107), fixes [#49](https://github.com/dtcc-platform/dtcc-agent/issues/49)) | ✅ |
 | 2026-10-12 | A rejected Bedrock key says so, in the chat and at startup, and answer records keep the HTTP status ([#106](https://github.com/dtcc-platform/dtcc-agent/pull/106)) | ✅ |
 | 2026-10-12 | The Agent SDK rollback runtime is gone; the chat runs on pydantic-ai only ([#105](https://github.com/dtcc-platform/dtcc-agent/pull/105)) | ✅ |
@@ -73,11 +73,11 @@ Last updated: 2026-10-13.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93 → (#95–#99 not recorded) → 582 with #102 → 583 with #104 → 571 with #105, which removed the SDK tests → 581 with #106 → 584 with #107.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93 → (#95–#99 not recorded) → 582 with #102 → 583 with #104 → 571 with #105, which removed the SDK tests → 581 with #106 → 584 with #107 → 600 with #113.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
 ### Simulations run on the DTCC Engine · 2026-10-13 · [#113](https://github.com/dtcc-platform/dtcc-agent/pull/113)
 
@@ -91,14 +91,15 @@ HTTP. Without the URL, dtcc-sim works as before; there is no silent fallback bet
 problems reach the user as plain messages (rejected token, refused parameters, queue down, failed or
 expired job, timeout).
 
-**How we know:** 599 tests pass, 15 of them new, including a real package written by Core the way the
+A wrong Engine token was also tried live. The first try failed the whole chat turn ("Sorry, an
+error occurred"), because two discovery tools raised the error instead of returning it. After the
+fix, the chat says the Engine rejected the agent's token and an administrator must fix it, and still
+answers the part that doesn't need the Engine.
+
+**How we know:** 600 tests pass, 16 of them new, including a real package written by Core the way the
 Engine's worker writes it. Live, against a local Engine (dtcc-twin `22d0624`) with dtcc-sim stopped
 and no shared folder mounted: the heatwave question answered twice with full temperature tables
 (mean rise about 17 to 19 °C), 4 Engine jobs of about 30 s each, $0.09.
-
----
-
-## ✅ Merged
 
 ### A cropped building cache matches a fresh download exactly · 2026-10-12 · [#107](https://github.com/dtcc-platform/dtcc-agent/pull/107)
 
