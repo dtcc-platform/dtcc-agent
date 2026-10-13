@@ -18,10 +18,12 @@ sources:
     resource: repo://tests/test_memory_budget.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
-generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
+  - id: openwiki-source-78cb3829d99282044a473bc8
+    resource: repo://tests/test_simulation_results.py
+generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-01T20:29:16.810Z
+    at: 2026-10-13T19:36:58.526Z
 ---
 
 # Simulations, runs and geocoding
@@ -40,7 +42,8 @@ These tools are hardcoded in `server.py` and use `runner.py`, `geocode.py` and `
 
 1. **Hardcoded districts first.** `KNOWN_BOUNDS` holds 15 Gothenburg districts (Lindholmen, Chalmers, Haga and others). The full lower-cased query is checked, then its first comma-separated part, so "Lindholmen, Gothenburg" matches. `source` is `"hardcoded"`.
 2. **Otherwise Nominatim.** It sends `GET https://nominatim.openstreetmap.org/search` with a `dtcc-agent/0.1` User-Agent. A returned `boundingbox` (south, north, west, east in WGS84) is transformed with pyproj. A point result becomes a square of ±`radius` metres. `source` is `"nominatim"`.
-3. **Failures.** HTTP errors raise `RuntimeError`, and an empty result raises `ValueError`. Both messages list the known places.
+3. **Sweden only** (#80). The Nominatim query carries `countrycodes=se`, and a result that still lands outside SWEREF99 TM's area of use is refused with a message suggesting the town be added (before this, "central Gothenburg" once resolved to New Zealand).
+4. **Failures.** HTTP errors raise `RuntimeError`, and an empty result raises `ValueError`. Both messages list the known places.
 
 The chatbot's system prompt asks for the 250 m default, because large boxes download millions of points.
 
@@ -62,19 +65,18 @@ The MCP tool checks the disk cache first and shares both its cache entry and its
 
 ## Simulations (`runner.py`)
 
-Only `urban_heat_simulation` and `air_quality_field` are treated as simulations (`_SIMULATION_NAMES`). The path depends on configuration:
+Only `urban_heat_simulation` and `air_quality_field` are treated as simulations (`_SIMULATION_NAMES`). Exactly one path runs, chosen by configuration, with no fallback between them:
 
-- **Remote (mini-service mode)**, when `DTCC_SIM_SERVICE_URL` or `DTCC_REMOTE_SERVICES` is set:
-  - The configured URLs are registered with dtcc-core's `register_remote_service`, each once it answers. `list_simulations`, `get_simulation_schema` and `run` register any service not yet registered on the spot. Separately, a background thread started with the operation catalogue asks every 30 s until each service has answered, so the same datasets also reach `list_operations` and `run_operation` without a request waiting on dtcc-sim (see [Operation catalogue](../concepts/operation-catalogue.md)).
-  - Registration is Core's own: at the pinned Core it is all or nothing, so a half-broken discovery reply registers nothing and the service is asked again later, and a remote dataset is skipped with a warning when its name belongs to a non-remote one, so a service cannot replace Core's `point_cloud` or `buildings` (dtcc-core#128, #132). The agent carried a repair step for both until the pin moved (#55, #58, removed in #59).
+- **The DTCC Engine** (#113), when `DTCC_ENGINE_URL` is set. Each simulation is an Engine job: submitted, polled, and its result downloaded over HTTP as a `.dtccpkg` that Core reads into a `VolumeMesh`. Listing and schemas come from the Engine. Details in [DTCC Engine integration](../integrations/dtcc-engine.md).
+- **The dtcc-sim mini-service**, when `DTCC_SIM_SERVICE_URL` or `DTCC_REMOTE_SERVICES` is set:
+  - The configured URLs are registered with dtcc-core's `register_remote_service`, each once it answers. `list_simulations`, `get_simulation_schema` and `run` register any service not yet registered on the spot, and a background thread keeps asking a service that is down (see [Operation catalogue](../concepts/operation-catalogue.md)). Registration is all or nothing, and a remote dataset never replaces a non-remote one of the same name.
   - Datasets are resolved from Core's registry and must carry a `base_url`.
-  - `run()` validates and calls the remote descriptor's `build()`. This reuses Core's submit, status and result protocol rather than a copy of it.
-  - It returns a `RemoteSimulationResult` (task id, size, format, `remote=True`). **The light container does not deserialise the FEniCSx output, so no field statistics are computed.**
-- **Local (direct mode)**:
-  - `import dtcc_sim.datasets` registers the simulations. The import is lazy, so the mini-service starts without FEniCSx.
-  - `run()` calls the dataset in-process and returns a dolfinx `Function`, whose values are `result.x.array`.
+  - `run()` asks for Core's native `dtcc` format when the service offers it (dtcc-sim#8), otherwise the first format listed, then validates and calls the remote descriptor's `build()`, reusing Core's submit, status and result protocol. That protocol reads the result file from `SHARED_RESULTS_DIR`, a folder both services mount. A `dtcc` result is decoded with Core's `load_model` into a `VolumeMesh` (#102); any other format is kept only as metadata.
+- **In process**, with neither: `import dtcc_sim.datasets` registers the simulations (lazily, so the light container starts without FEniCSx) and `run()` calls the dataset directly, which returns a `VolumeMesh` with its field.
 
-`list_simulations`, `get_simulation_schema` (the dataset's `show_options()` JSON schema) and `run` all follow the same branch.
+The first two return a `RemoteSimulationResult` (job or task id, size, format, `remote=True`) whose `model` holds the decoded `VolumeMesh`; `as_dict()` leaves the model out of what the tool returns.
+
+**Field statistics on every path.** `server._scalar_field` reads the scalar field the statistics come from: the first one-dimensional `Field` of the `VolumeMesh` (from `model` on a remote result, or the result itself in process), with its name and unit (for heat, `temperature` in `degC`), or `result.x.array` for a legacy dolfinx `Function`. All four Run tools use it. When a remote result carries no readable field (a dtcc-sim build that offers only XDMF), the tool still answers and says why there are no numbers. The values are summary statistics with no locations, and the system prompt tells the model not to say where values are high or low (#104).
 
 ## Tools and Runs
 
@@ -82,8 +84,8 @@ Only `urban_heat_simulation` and `air_quality_field` are treated as simulations 
 |---|---|
 | `list_simulations` | Name and description of each available simulation |
 | `get_simulation_schema(name)` | Parameter JSON schema |
-| `run_simulation(name, bounds, parameters, label)` | Runs and stores a Run; returns `run_ref`, the result's `object_ref`, and a field summary (local) or `remote_result` (remote) |
-| `compare_scenarios(name, bounds, a, b, label_a, label_b)` | Runs A then B on the same bounds, stores both as Runs (`run_ref_a`, `run_ref_b`); locally returns per-scenario summaries plus B−A difference statistics |
+| `run_simulation(name, bounds, parameters, label)` | Runs and stores a Run; returns `run_ref`, the result's `object_ref`, the field summary with its unit, and `remote_result` metadata on a remote path |
+| `compare_scenarios(name, bounds, a, b, label_a, label_b)` | Runs A then B on the same bounds, stores both as Runs (`run_ref_a`, `run_ref_b`), and returns per-scenario summaries plus B−A difference statistics and the unit, on every path that yields a field |
 | `list_past_runs(limit)` | Most recent Runs in this Session, each with its `run_ref`, `object_ref` and summary, or `evicted: true` once its result is gone |
 | `get_run_summary(run_ref)` | Re-summarises one Run and returns its `object_ref`; refuses an Object reference as the wrong kind |
 
@@ -93,6 +95,8 @@ Only `urban_heat_simulation` and `air_quality_field` are treated as simulations 
 
 ## Tests
 
+- `tests/test_simulation_results.py` covers the native format being asked for and decoded, statistics through all four Run tools, the comparison's difference, an older sim build that offers only XDMF, and an in-process `VolumeMesh` (#102).
+- `tests/test_engine.py` covers the Engine path, including a real package through `run_simulation` (#113).
 - `tests/test_analysis.py` covers statistics, NaN handling and size mismatch.
 - `tests/test_geocode.py` covers the hardcoded fallbacks offline and Nominatim under the `external` marker.
 - `tests/test_server.py` covers the Run tools' error payloads and Run/Object id characterisation.

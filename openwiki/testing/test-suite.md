@@ -8,12 +8,18 @@ sources:
     resource: repo://.github/workflows/ci-build-tests.yml
   - id: openwiki-source-05ccef8d4cf1698187f20464
     resource: repo://pyproject.toml
+  - id: openwiki-source-f0a6e7dc03522b2682f88655
+    resource: repo://tests/conftest.py
+  - id: openwiki-source-456d11852f0964a8eeba901c
+    resource: repo://tests/test_bedrock_auth.py
   - id: openwiki-source-1ce45006eecf563d5acf22dc
     resource: repo://tests/test_buildings_summary.py
   - id: openwiki-source-c0b62da1c8d12500b49cd428
     resource: repo://tests/test_catalogue_startup.py
   - id: openwiki-source-45618922e75f513256096f36
     resource: repo://tests/test_crop.py
+  - id: openwiki-source-0e41257659137c7a2c27de1c
+    resource: repo://tests/test_engine.py
   - id: openwiki-source-a4f55aeddd9f309fcd59982a
     resource: repo://tests/test_geocode.py
   - id: openwiki-source-f7a9ed42f310602857a88be4
@@ -22,15 +28,15 @@ sources:
     resource: repo://tests/test_server.py
   - id: openwiki-source-fa7af1493a897412d61af4b0
     resource: repo://tests/test_worker_pool.py
-generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
+generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-01T20:29:16.810Z
+    at: 2026-10-13T19:36:58.526Z
 ---
 
 # Test suite
 
-All tests live in `tests/` as plain pytest modules. There is no `conftest.py`; fixtures are local to each module and monkeypatching is the usual technique. `pyproject.toml` sets `pythonpath = ["."]` and declares one marker, `external`, for tests that need the network (the Nominatim cases in `tests/test_geocode.py`).
+All tests live in `tests/` as plain pytest modules. One small `tests/conftest.py` sets `DTCC_AGENT_BEDROCK_PROBE=0` so no test ever reaches Bedrock; otherwise fixtures are local to each module and monkeypatching is the usual technique. `pyproject.toml` sets `pythonpath = ["."]` and declares one marker, `external`, for tests that need the network (the Nominatim cases in `tests/test_geocode.py`).
 
 ## Requirements
 
@@ -42,7 +48,7 @@ All tests live in `tests/` as plain pytest modules. There is no `conftest.py`; f
 
 | Area | Module(s) | What they pin |
 |---|---|---|
-| Tool surface | `test_server.py`, `test_server_import.py` | Exact set of 22 tools, descriptions, required params, error payloads instead of exceptions; import smoke test guarding `mcp<2` |
+| Tool surface | `test_server.py`, `test_server_import.py` | Exact set of 22 tools, descriptions, required params, error payloads instead of exceptions; import smoke test guarding the `mcp>=2.3,<3` range |
 | Typed references (ADR-0010) | `test_server.py` | `obj_`/`run_` prefixes; a reference of the wrong kind refused by object tools, `get_run_summary` and `run_operation`; a Run records its result's `object_ref`; an evicted result is reported. These replaced the M0 characterisation tests that pinned the old, untyped behaviour (#57) |
 | Tool execution | `test_tool_execution.py` | Every tool registered async; `asyncio.run()` inside a tool under uvloop; tools still directly callable |
 | Concurrency | `test_worker_pool.py` | Pool bound across Sessions, per-Session share, env sizing and validation, worker returned on exceptions, single-flight tile and buildings downloads, cancellation |
@@ -52,10 +58,14 @@ All tests live in `tests/` as plain pytest modules. There is no `conftest.py`; f
 | Dispatch and storage | `test_dispatcher.py`, `test_object_store.py`, `test_serializers.py` | Reference, bounds and enum resolution; tuple storage; summaries |
 | Memory (T11) | `test_object_store.py`, `test_memory_budget.py` | Accounting by graph walk (the #13 probe within an order of magnitude, shared arrays once, `.x.array`, slots); LRU within a store and across stores under one budget; per-store cap and oversized objects refused; `not_stored` notes from operations, tuples, simulations and GeoJSON; the Run cap |
 | Files (T7, #68) | `test_artifacts.py`, `test_path_refusal.py`, `test_artifact_tools.py`, `test_renderer.py` | Per-Session folders, unguessable names, traversal and cross-Session lookups refused; the exact 18 path-taking Core operations, refused before Core runs; render and export returning artifacts with no paths; building exports as GeoJSON (WGS84), GeoPackage and City JSON; every geometry type rendered by matplotlib |
-| Cache | `test_disk_cache.py`, `test_crop.py`, `test_builder_calls.py` | Containment, TTL, budget, hashing; `get_buildings` answering a sub-area from a cached download and every cache failure path; the building crop matching Core's footprint rule with real Core buildings; the cache trust check (private creation under umask 002, refusals for other owners, writable dirs, parents and files, symlinks); two caches sharing one directory; builder calls recorded instead of cached |
+| Cache | `test_disk_cache.py`, `test_crop.py`, `test_builder_calls.py` | Containment, TTL, budget, hashing; `get_buildings` answering a sub-area from a cached download and every cache failure path; the building crop matching Core's containment test with real Core buildings, on `source_bounds` and on the older outline rule, and Core's real loader on a GeoPackage matching a fresh download at the edge (#107); the cache trust check (private creation under umask 002, refusals for other owners, writable dirs, parents and files, symlinks); two caches sharing one directory; builder calls recorded instead of cached |
 | Building summaries | `test_buildings_summary.py` | Heights from Core's estimate then measurement, empty stats as `None`, area over every building, bad bounds refused at every entry point, `BuildingCollection` serialisation |
+| Model runtime | `test_chatbot_runtime_pai.py`, `test_bedrock_auth.py` | The pydantic-ai turn: streamed frames, history and memory, the fresh retry with summed usage, refusals, usage mapping, the model seeing only dtcc-agent tools; a rejected Bedrock key's message, `http_status` through exception chains, the startup probe's logs |
+| Simulations and the Engine | `test_simulation_results.py`, `test_engine.py` | Field statistics from a decoded `VolumeMesh` on every path (#102); the DTCC Engine client against `httpx.MockTransport`: backoff, every error answer, polling instead of resubmitting, the startup token check, path selection, a real canonical package through `run_simulation`, errors returned from all four simulation tools (#113) |
+| Provenance and measurement | `test_provenance.py`, `test_eval_measure.py` | Answer and operation records, the join, hashing instead of values; the question set, cold/warm order, the simulation probe, the cost cap and the report |
+| Download size | `test_download_area.py` | Heavy downloads over the area cap refused before they start; light ones exempt; the cap configurable |
 | Domain helpers | `test_analysis.py`, `test_geocode.py`, `test_geojson_store.py` | Field statistics and comparison; hardcoded and Nominatim geocoding; GeoJSON load and query |
-| Chatbot | `test_chatbot_app.py`, `test_chatbot_config.py`, `test_chatbot_memory.py` | App with mocked Chroma and SDK; the `/artifacts` route and image/file frames, including FastMCP-wrapped results; MCP config, header and stdio session env; session-filtered memory |
+| Chatbot | `test_chatbot_app.py`, `test_chatbot_config.py`, `test_chatbot_memory.py`, `test_chatbot_sessions.py`, `test_chatbot_prices.py`, `test_chatbot_runtime.py` | The app with mocked memory and runtime; admission (4401) and session expiry (4408); one answer record per turn; the `/artifacts` route and image/file frames, including MCP-wrapped results; MCP config with session, subject, turn and secret; model and access-code configuration; pricing; the runtime loader refusing the removed SDK |
 
 Test names are sentences describing the behaviour (for example `test_a_session_with_a_tool_in_flight_is_never_evicted`). The repo's review guidance asks that tests prove the behaviour they name without sleep-based timing. `test_worker_pool.py` uses gates and gauges rather than sleeps.
 
@@ -68,4 +78,4 @@ uv run --no-sync pytest -q tests/test_worker_pool.py
 uv run --no-sync pytest -q -k session
 ```
 
-At #68 (2026-10-01) the suite collected 427 tests. `CHANGELOG.md` tracks the count per merged PR.
+At #113 (2026-10-13) the suite collected 600 tests (427 at #68). `CHANGELOG.md` tracks the count per merged PR. Live checks against Bedrock, dtcc-sim or an Engine are not part of the suite: they run through the measurement harness (see [Provenance and evaluation](../operations/provenance-and-evaluation.md)).

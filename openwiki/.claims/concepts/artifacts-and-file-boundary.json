@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a730a7c209a7359f615e246d8b5765302291306a53c511340eddfaa1a1e745c5",
+  "pageVersion": "sha256:25bfc6e95e0125fa65cb72e9fc01458483af946e3512f744bb9f27524ec5a46a",
   "claims": [
     {
       "id": "claim_776ce99ee18a4db2ae49cdc5a367869e",
@@ -38,15 +38,19 @@
     },
     {
       "id": "claim_256c3f52efe94cf7b913fbddcfc005a9",
-      "statement": "After each tool result the chatbot unwraps FastMCP's {\"result\": ...} structured form and sends an image or file frame only for an artifact that exists in the current session's folder.",
+      "statement": "After each tool result the runtime's artifact_frame unwraps an MCP server's {\"result\": ...} structured form and sends an image or file frame only for an artifact that exists in the current session's folder.",
       "evidence": [
         {
-          "resource": "repo://chatbot/app.py#L198-L202",
-          "version": "repo-lines-v1:sha256:844409886ab9318dbd15a9b14c59a992979486cd9a826d1a0d2b8af8e823d38a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDgyMWQ1ZjMxNzY0YWFiMDY2ZjFhZGUwNmI5ZGNjZTNjODAyOTcyZTE3NjA0NDAyNzU3YjRlMDUxNWFiZWQ4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAwY2NlMjI4MzU3ZDE2MzYwNGEzOWVhMzQxMWE2NjM0YmIyYjQyZmM1MWRhYzZiYzIwNDVmZDIwZGM4YWNmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjliOGRjYjg4NDg3YjNlMWIzNzE2MjcxNTkxM2ZmNDM2ZjhkNjBlNTQ5NmM0ZjA0YzM3MzY3ZDIwN2FjYjhjMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTA3NmJkNGU2NWI5MzEyMGFhMmM0ODNlZTViN2ViMDE0N2YyZjliOGViNDkyNGE2ZDk5ZjVlYjM5ODVjNDg2YyJ9"
+          "resource": "repo://chatbot/runtime/__init__.py#L38-L61",
+          "version": "repo-lines-v1:sha256:58be364de657ca2ae6007c7780e05534e80b46916488315cc3f554d566d77aa7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNDlhNGE3Y2Y1ODhlNmQzYzA1MzNiMWIyZTk3MTMzYTNhOWUxZTUyYjA2ZjBhYjgyYTg4YjA5N2U1N2Y0ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViOTAxYjNkNmEwMTJjMzkyNTU2ZTUwNTllMzFiMmI4MmRmMjYwNThiODM1NjRhZDkwM2EyYjRmMzU5NmEwOGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5NTI3OWFjMmI1MjI4MTZlOWMzMDdlYjJlMGY3YjcwZmU5YTU0YWQzMTY0ODE1OGMxMjU3MjE2MDlhZTQ2ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://chatbot/app.py#L95-L125",
-          "version": "repo-lines-v1:sha256:7e012d5e48113fc71f09209b98bfddb43ea97d0caf8fa9b6eb24238ebd8a3e73:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjYWQ1OGM2NmNjNGFkMTczODUyOWI2ZWJkYzNiMDM0NmVmNWE2NmJjYWUxNmM4ZDczNTU5YTA1YzJhYzk3OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwYmY1ZmM3YmZkNGZiNjFiOTFlOTQ0NTM2NmY1NGY0NzAyZTg1NWY5ZWM3ZGNiZTkyMDhmNjJiNjBmMWY5M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0YTJhZTczMDM1ODFlMTI3NGRlZGEzMGZjMTVmNWJjNjBiYTJjMWM0NjZmNWZlZDJlZjY3M2JkY2Q0ZTZiZDkifQ"
+          "resource": "repo://chatbot/runtime/pai.py#L196-L199",
+          "version": "repo-lines-v1:sha256:48c588814c5538808b9147b190fa01d6809f5160e009e877891f7d778671ebc6:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTgyMzdjZjFiNTQwMzllMjQyNmExNjhlNDJkYTQ3ZDhjODg4MTJkNjVmYTIxYzJmNTdiZmMzZjAxYmE4M2Q1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjM0ZmUwODQwZTEyNDAyOWJiZjExNDljM2RlN2YxYzhjMThlMTg4ZDU0NmQ1MzhhMzQ5ODJmNDUzODFhZjU0MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWM4ZWU3ZmY3MGU4ZjFlMjBhNjhiODA2MTYxZDI1ZWZiOTUwYTE0ZTc3OGQxZDVmYmQzMjljMjNjMGZlOWYzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBhNGIyOWU1MTY3YTM5NzE2N2RjZDFjZjM4YjFiYTZmOWZkODc2ZDFmNzYzMmU3YTk1NzYzMjI3NDgxNjY4ZiJ9"
+        },
+        {
+          "resource": "repo://tests/test_chatbot_app.py#L130-L170",
+          "version": "repo-lines-v1:sha256:c22e55c7600c3d65be820b7f89972f44ab16c28ac1c8cc856b854c4d820e45e8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NzQ0ODE4NjI2ZmE5NDgwOGE4MDliNzk1ZWY4YzJhZjY1YzE5NmUzM2U1NzQ4MzRhNzMyNjAyZjNhYmNlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYWQ4YTEwZGZhZWE2M2Y1ZGQ2MTA0Yzg0OTMzMzcxMmFmY2QwOTQ5NWRiY2ZmY2I4YjY5MWE4ZWQ5ODkwNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWY2N2RlMzMwYWM3NzBlZThiZDI2ZmJmZjY2ODZkOTAxNTY4NjM4NDMwYWM3OWEyNzkyMDY0MTZlNjUyYTAifQ"
         }
       ]
     },
@@ -123,6 +127,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-01T20:29:16.810Z"
+    "at": "2026-10-13T19:36:58.526Z"
   }
 }

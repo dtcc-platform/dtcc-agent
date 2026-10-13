@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:9f370d1f44ae45a5806f2e28e6da73fa99bc98e141408acc262974b8d04a8678",
+  "pageVersion": "sha256:db8039372e3553da28992dda9790c9058f17af8033b09f54490c827683e24a2b",
   "claims": [
     {
       "id": "claim_548542bb861e4fc5ace823d8124d1385",
@@ -31,18 +31,18 @@
       "statement": "build() creates the catalogue once per process behind a double-checked lock, and a failure in any Core section raises CatalogueError naming the section rather than returning a partial catalogue.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/registry.py#L495-L510",
-          "version": "repo-lines-v1:sha256:414f6bac5580f29466ea42e29978185df852e15f6b42c42167b23170220bf9ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOTY1MGQwNjI2MDc3MTczNTIyMTZmOWUyZGJmOTE1NDRlODAyMWMyOGRjZDUxYTZmNjE1ZjY0NzFmOTM2Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YzkxMDQ5NGJlNTJlYTk2ODY2MTc1ODg3YmZjNzVlYmQxY2FiMzViOGUyZDk2MDMwNGE1ZDI4N2Q1OGNkMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMTQyMzNjMGEyMTllYjBkMWZhMDc3YzVjMjkxMmM3MjBlMjJkMzYzM2E3Y2U1ZWNkYjNiNzdmMzdjMzYwNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MDMzYWJjYmE0OTIxZDExNmI4NjNjYzI5MTVjMjRiNTI0NzlmNDkzYWViODU1NjFhYzU3ZmNmMjYwYjIyNDUifQ"
+          "resource": "repo://dtcc_agent/registry.py#L509-L528",
+          "version": "repo-lines-v1:sha256:200d565b745d48ecfe17e9216ee3790c7c03d771809356c9ecd4d1493ce8f1a6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOTY1MGQwNjI2MDc3MTczNTIyMTZmOWUyZGJmOTE1NDRlODAyMWMyOGRjZDUxYTZmNjE1ZjY0NzFmOTM2Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMTQyMzNjMGEyMTllYjBkMWZhMDc3YzVjMjkxMmM3MjBlMjJkMzYzM2E3Y2U1ZWNkYjNiNzdmMzdjMzYwNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3Y2RjN2I4NDNlZDBlMDlhYzNiZmM3ZDJhYjY3OTMyMmViNmI5MGE0YmU3NzMyNDlkMDQ3MTY3MTkwNWQxNjUifQ"
         },
         {
-          "resource": "repo://tests/test_catalogue_startup.py#L152-L215",
-          "version": "repo-lines-v1:sha256:5dea21313ce0f75390225f59ab9ebe56693ddea58bb3a3ee0dd533e8c9971f51:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMDYwYzkyMmQ2NWY1NmVhM2YxNGNhYmI3ZjUzMTU0ODE5MzUzZmExMjc0MjExMTQzNjBmNWQ1MWFmNWJjOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5YmVhNzk4OTU4NzRkMWRjNDFlNTU4OTczNzJiY2FjZDJkMTNjMDlhN2VkNDJhNmM3MDMzNWEyOWJkMzQ5MzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzZjYzYjhhNTI0ODQ0NmMyOGJjNjQwYTllZDljNWI2NTE1ZDY0ZjQ1NTkwOTAwYTk2MTAxY2QyYWQ2ZGRhOTAifQ"
+          "resource": "repo://tests/test_catalogue_startup.py#L153-L215",
+          "version": "repo-lines-v1:sha256:456da0a7fa9d674e52f91a6fd24300f39ef45f6b7e26dd472e1bb644e6bb4993:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMDYwYzkyMmQ2NWY1NmVhM2YxNGNhYmI3ZjUzMTU0ODE5MzUzZmExMjc0MjExMTQzNjBmNWQ1MWFmNWJjOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ZGQzM2ZhMzc1ZjNmNDI2ZDlmNDcwODZjY2RjYWE4NzE2OWEyM2JmMTczYmYxMzNhOTdkYjUwZTNhZTJlNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5YmVhNzk4OTU4NzRkMWRjNDFlNTU4OTczNzJiY2FjZDJkMTNjMDlhN2VkNDJhNmM3MDMzNWEyOWJkMzQ5MzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViZGFiNmZjNGM0ZjUzOTI3N2U4MjM5OTZjMDFmZWUxMzY1YjI1ZmE4MTMwYWViNDhmZDc1Y2RjMWQzMWZlMDUifQ"
         }
       ]
     },
     {
       "id": "claim_934b316695b64495a4479fce5300583c",
-      "statement": "dtcc-core is pinned to a full commit SHA in pyproject.toml and the pin is moved only after the dtcc-core contract workflow runs the suite green against a candidate SHA.",
+      "statement": "dtcc-core is pinned to a full commit SHA in pyproject.toml (a78df16 since #107) and the pin is moved only after the dtcc-core contract workflow runs the suite green against a candidate SHA.",
       "evidence": [
         {
           "resource": "repo://.github/workflows/dtcc-core-contract.yml",
@@ -50,11 +50,11 @@
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
+          "version": "repo-file-v1:sha256:4f488915ec64a621a25ce642268e12c027fdc35bc8777dea6ab9a8269436d4df"
         },
         {
-          "resource": "repo://tests/test_core_dependency.py#L27-L47",
-          "version": "repo-lines-v1:sha256:7bd396d3367e7c866b4ede7cc16ef856352884352a05378636ab0633699d7795:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NzBiZDJiY2UzOTk0NTA2NGYyZDgyOTg0MmVjMDcwNGJjMjQ4MWE5MGM0NWNiZTIwNDMyNzAzMWIyZmE1ZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjYTc2NmJkMjRiYWM3MDIyOGM0NTY4NDVkZThmNzc0YTIxYjk1ZDg3OGEwM2E0N2I5NGM5MjZmODJmZDI2MGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwMDlhYTQ2MGYzNzI3ODRhZGVjZjBjYzQ3N2E2N2IzMWVjOGM1NTVlNDk5ZDhmODYzOWZlNjY1NGU5NTY0ZWEifQ"
+          "resource": "repo://tests/test_core_dependency.py",
+          "version": "repo-file-v1:sha256:9238d8940b292860851a419f7acee6a55ef60c791eb2395070fa320d4cb4183e"
         }
       ]
     },
@@ -91,12 +91,12 @@
       "statement": "dtcc-sim's remote datasets are not registered during the build: build() starts one daemon retrier thread that asks unregistered services every 30 seconds until all answer, and get_registry() merges registered services into a copy of the catalogue that it swaps in, without any network call and without waiting on a merge in progress.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/registry.py#L401-L518",
-          "version": "repo-lines-v1:sha256:e7a99a8037786a0fda79db17c02c3a10bbe9a88ca11efadbdfd4583ba9f1b2f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiOThlM2RkOWQ3MTRkODZhZmU4OGM4YTRiZDUxNjg0OTA5NjI5YjdlNmUyY2QxYTNmNmQ5NmI4YWRlZDJlNTVmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjN2M5MTA0OTRiZTUyZWE5Njg2NjE3NTg4N2JmYzc1ZWJkMWNhYjM1YjhlMmQ5NjAzMDRhNWQyODdkNThjZDEwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4MTU1NGZhNTYwMTQ0YjRkOWQyN2U4MWQzYWRhNzM1MWZkYzZjNmFlNGY1ZWMyNWVhODdkMzI5NTQ4ZGRjNzNjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2MmUwYWZhNTk0ZjA3M2FiYmZjZWE3YWY5M2E3MDhmNzNmOTdkMzdmZDc4YWJlNzYyY2Q2YjY3NzlhY2QxNDAzIn0"
+          "resource": "repo://dtcc_agent/registry.py#L420-L536",
+          "version": "repo-lines-v1:sha256:f9e45433bba77ff3dbe895ee5c1cffa8ccedabc98a4fc369abfe0877aa17eaed:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0NzA5YzhlMjRhZjY4NjdiMDgyODUyZTJkYzk3OWExNTk3NjgxOTJlNjNlMTY1NGQ3Nzg5MmUxYzcwZDVmMjU5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1MWE4NTZhNmM5MTRjOTA5ZGYwOTUwNTg3ODQ2Mzk5M2UzNjMxNGEwMmRhMTI5MTM2ZmUzM2IxNmJjNDdiYzkyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5YmVkOTE3M2E1NWMzYjFkNjFiMjFjYmUzYzg5OTgxNDNiNzcxYTBjODY1NjNkOGUxZDgyZDJkYjFlMjRlMDNlIn0"
         },
         {
           "resource": "repo://tests/test_catalogue_startup.py#L422-L600",
-          "version": "repo-lines-v1:sha256:0e1a4a986dc1a5329af59a9e000b100b96e5e1a1ccdd2725e0afb4299f85eefc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTc5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYjZiMjVjZWJmNmZmYzU5OGFhZTBlMmUxNDUwYzg0YTljMzZkMzRjZmY0ZDk0NjZlZmUzODIzOTQ1MjY4Y2MwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyYzdiYWJkMjU4NWNlODE1YmM1M2RiMDRhM2I3NDJkZDBiZTIyZDUwMDAzZDFmMDA1YWUyOGJmZjZmZDU5N2JhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0NDlmYjM0NjNmYzkwNmIyZTNhMDU0MWFmMWEyMzI5NGU5ZDJjYWY4Y2Q4MTI5N2QzMGE4Y2Y4OTZiMzc0ZTkzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyYjliOTZjM2Y3M2JiYzBjZGMwODg2NTRiMGI4YmU0NGJlMWMzNDVmZWM5YzVhZWQzMmY3ZGQyMmM3MTYyODIxIn0"
+          "version": "repo-lines-v1:sha256:920bbb8654f057bde9734afc27de6ecac3a53b2cc36af219635f8f43854a2cbd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTc5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiZjkwMmYxYWYwMTM5NjMyODRlNDU3Yjg3ZjdhMWY0OTRhNzY5NjczZDA5OTlmYzUwNjYxNmM2MDlkYjI2NjM2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwNDQ2MWM2OGY2MWI1ZGNjZDdkNGQ1NzhjODdmMzYwYWQ2NTI0ZTI5NGY3ZTk1MmRhNTRiOWUxMTcxZTM4ODg3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0NzgyOTBmZWE3NjY5Y2VjOTg3MTI2ZjI5NGQwYmI5ZDM2YTUwZmQ1NWZiYTBjNjEzNjc5NjhjMjU5MjdiZGU0In0"
         }
       ]
     },
@@ -119,16 +119,16 @@
       "statement": "dtcc-sim services are registered through Core's register_remote_service, which at the pinned Core registers a service all or nothing and never lets a remote dataset replace a non-remote one of the same name; the suite drives that real function with only the HTTP reply faked.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/runner.py#L73-L85",
+          "resource": "repo://dtcc_agent/runner.py#L102-L114",
           "version": "repo-lines-v1:sha256:8629f6d6e4814503c61399ff6c76bda3ac1a3936b7d7e74aad06028855c68bfc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0OTExMzIxNWMxYWU5MzA0MTQ4MGU0MGM1NzYzN2E3OWNkMTQyNWNiZDNjODAzYmU4NTUxNGMyNmZhYzU3ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3MThmZTljNTFmOGQ5NzgzMmFkZTIyNWYwNTNjZTJmNjFhZGUyZmYxMWRkODZlYzg1MzQ3YzJlMTUzYzM5MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMWM3M2M4NWM3OTYzZDM0ZDQ0MzU5MDJhNmU1Y2YxMzQ3M2RiM2IzZjAxYTAyNWQzODIwN2EyNDExZjc1NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhZmU5N2I4OTA0ZmU4MmMyYzM0NjMyODlmNjY1N2ViMTQzMWJhY2QwYWEwMzJhZmIzYmYyZDEzM2RlOTUyOTgifQ"
         },
         {
           "resource": "repo://pyproject.toml",
-          "version": "repo-file-v1:sha256:b8031e0d3ba42c82e026ac042cd6dce2c15392faec987eaba73dfaea7a330c1c"
+          "version": "repo-file-v1:sha256:4f488915ec64a621a25ce642268e12c027fdc35bc8777dea6ab9a8269436d4df"
         },
         {
           "resource": "repo://tests/test_catalogue_startup.py#L763-L834",
-          "version": "repo-lines-v1:sha256:79bee0d9409b51498ed2ea7a9bdc2f3ef7ee3d3736dbb46d8e6908aa2d6ad574:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ODU5ZmFhZGI4ZTI3OWJiZmI5OGVmNDdmOWM3NDE4Mjc3ZjNmYmFmZGRmNThkMGYxZTg1MWVlNGZkY2Y1NjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NDVhMjZhYmRjYzE4NDQ1YWQ1NWVmZmI1NzhiYjRjNzIyMzM5YjBiZjliZTdlMDU1NDQ2ZmJjMTY3NzVjMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "version": "repo-lines-v1:sha256:4c0c7aa68cb38cb386956315eb91bd656c9eee4bfaa0236becae7b42af87d0da:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhYTRlZGEyNmNlZmQxYWQ4Mzc5MjY3YjQ4YTYyOGNkOGIxMzY0M2IxNDdkYmMwOTZmYTdmZTIyODUxOTAzOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNjZiNmRmM2JmN2UxMWI1MGJmMmU5N2VjZjg1ZWVhMTgxMjA0Y2FmN2YyNTY4NGJiZWYxN2Q2NjE3NjBmZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlNmQ5ODBiOTU5ZDIzZjM1MmI1NDM1MzllNTAxYTQyNmFmMmIwNDhlMjhlNDA0ZDBjZGZiYWU0OTZmNWQ1ODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5M2UwNDVhZmIyOGRkMDZjZmQwYWM3YTAwYTYzMzdkOWM5MzNkODIyOGE2ODlkMjY4NDRhODllNjU4NjM3YjgifQ"
         }
       ]
     },
@@ -145,10 +145,24 @@
           "version": "repo-file-v1:sha256:a0e7299079b966e1bcbdef952ee20f34f809b6d4b1638a91e8fe656d451b9c01"
         }
       ]
+    },
+    {
+      "id": "claim_779a54ae06ad45d18db3d2d65c75a854",
+      "statement": "With DTCC_ENGINE_URL set, runner._remote_services() returns no services, so dtcc-sim is neither asked nor merged into the catalogue regardless of DTCC_REMOTE_SERVICES.",
+      "evidence": [
+        {
+          "resource": "repo://dtcc_agent/runner.py#L78-L95",
+          "version": "repo-lines-v1:sha256:3d8b5eed8712b6b50bf473f4ed1ae872cc453ef8648b72e86bae29241222b840:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MTYyMGYyOTZmOWU0ZjU4MDY4Mzk5Y2MwMmY1MmY0Njg2OTY2YmI1OGZkNjBkMTAwOGI5NGE2MDFiNDQ4YzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5MmExYmQ5NjE5ZGI4M2YxMDhlZWY1M2Q1YmIwMjgyNmQyNTJlMjY5NzBhNmQ3MWE2N2Q1ZDZkNjBjNWZkMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTA1OTY1MTk2M2Y1MWVkMGZkMzUzZWUwNDhkODJmMzZjNzM0NTY0MmNlYzVkYzljNDIyNjg4MzY1ZWE1MmYifQ"
+        },
+        {
+          "resource": "repo://tests/test_engine.py#L163-L168",
+          "version": "repo-lines-v1:sha256:0b5d0589a15e748b26724000410f2da35f9ce33c43502eba2ce13e0c899fe555:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmJlZTEzOTQ3YzA3MGMxMzNlNmFjZDU3MGM0YTdkMGI5ODkwZTFmMmNkMTViYjNmNWE3Y2EyZjlmMTc4NzEzNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDA2M2E2NTNiZTFiYTI2YTVjZDg2MWJjNjVjZGQ2OGI1YTg4MzcwMmRlNDYwNmQwMjY3MDFiYzcyNWNkZmQ3ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjcyNDIwZWU3ZTJiZjQzZmI1MGI4NjY5ZTcyYzcwMWIwZGZjZmFkNDU1NjQxOTVjMWM5Y2IzMzgxMTgyYjIyZiJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-01T20:29:16.810Z"
+    "at": "2026-10-13T19:36:58.526Z"
   }
 }

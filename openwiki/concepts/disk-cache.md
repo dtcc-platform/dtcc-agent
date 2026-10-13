@@ -1,7 +1,7 @@
 ---
 type: concept
 title: Disk cache
-description: The persistent pickle and JSON-index cache for dataset downloads and builder results. It reuses a containing download cropped with Core's own footprint rule, keys builders by metadata fingerprints, evicts by TTL and size, and is shared across Sessions today.
+description: The persistent pickle and JSON-index cache for the two dataset downloads (buildings and point clouds). It serves a smaller area from a containing download, cropped with Core's own containment test on each building's source_bounds so the result matches a fresh download, starts cold after a Core upgrade, evicts by TTL and size, and is shared across Sessions. Builder results are measured, not cached.
 tags: [cache, disk-cache, datasets, performance, isolation]
 sources:
   - id: openwiki-source-011d18639a7a8582693228a4
@@ -14,12 +14,14 @@ sources:
     resource: repo://dtcc_agent/dispatcher.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
     resource: repo://dtcc_agent/server.py
+  - id: openwiki-source-45618922e75f513256096f36
+    resource: repo://tests/test_crop.py
   - id: openwiki-source-116206fc13aadd444daea62c
     resource: repo://tests/test_disk_cache.py
-generated: { by: "claude-code", at: "2026-10-01T20:29:16.810Z" }
+generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-01T20:29:16.810Z
+    at: 2026-10-13T19:36:58.526Z
 ---
 
 # Disk cache
@@ -75,12 +77,12 @@ Two helpers in `dispatcher.py` own every dataset read and write: `load_cached_da
 `dataset_lookup(operation, source, params_hash, bounds)` matches entries on operation, source and that hash. Among entries whose bounds **contain** the request, it returns the one with the smallest area. `load_cached_dataset` loads it and, if the cached bounds differ from the request, calls `crop.crop_to_bounds`:
 
 - **Objects with a 2-D `points` array** (point clouds) keep only the points inside the bounds.
-- **A Core `BuildingCollection`** keeps exactly the buildings a fresh Core download of those bounds would keep. Core's footprint loader keeps a footprint only when it lies wholly inside the bounds shrunk by 2 m, for LM and OSM alike, so the crop applies the same `create_bounds_filter(..., buffer=-2.0, strategy="contains")` test to each building's unsimplified LOD0 outline. Core tests a multi-part footprint whole and then splits it, so parts sharing a source feature id (`objektidentitet` for LM, `osm_id` for OSM; Core's own `Building.id` is random) are kept or dropped together. A building without an outline is dropped, as Core's size filter drops it.
+- **A Core `BuildingCollection`** keeps exactly the buildings a fresh Core download of those bounds would keep. Core's footprint loader keeps a source feature only when it lies wholly inside the bounds shrunk by 2 m, for LM and OSM alike, so the crop applies the same `create_bounds_filter(..., buffer=-2.0, strategy="contains")` test. Since #107 (Core pin `a78df16`, dtcc-core#133), Core records on every building the extent of the source feature it tested, before splitting it into parts, dropping parts under its size limit and repairing invalid outlines, as the `source_bounds` attribute. A shape lies inside an axis-aligned rectangle exactly when its bounding box does, so testing `source_bounds` *is* Core's own test, and each building is judged alone: parts of one feature share the same bounds and fall together anyway. A building cached before #133 has no `source_bounds`; it falls back to the older rule: its unsimplified LOD0 outline, with parts sharing a source feature id (`objektidentitet` for LM, `osm_id` for OSM; Core's own `Building.id` is random) kept or dropped together. A building without an outline is dropped, as Core's size filter drops it.
 - **Any other type**, including a Core `City` (whose buildings cannot be replaced), comes back unchanged. For a larger cached area that is treated as a **miss**: reusing it whole would answer for the wrong area.
 
-One download of a large area therefore serves every neighbourhood inside it. A live check on Lindholmen (500 m cached, 200 m asked) gave the same buildings from the crop as from a fresh download: 13 of 127 on LM, 12 of 138 on OSM.
+One download of a large area therefore serves every neighbourhood inside it. A live check on Lindholmen (500 m cached, 200 m asked, #107) gave the same buildings with identical footprints from the crop as from a fresh download: 13 = 13 on LM (the older rule gave 12 vs 13) and 5 = 5 on OSM; every building carried `source_bounds` (LM 188/188, OSM 97/97).
 
-**Known gaps** (issue #49): the crop sees only what the cache holds, so it can still keep one building at the edge that a fresh download drops when a multi-part feature's tiny sibling part (under Core's 15 m² filter) crossed the bounds, or when Core repaired a malformed outline after its own bounds test.
+**Closed gaps** (issue #49, fixed by #107): with only the cached outlines, the crop used to keep a building at the edge that a fresh download drops when a multi-part feature's tiny sibling part (under Core's 15 m² filter) crossed the bounds, or when Core repaired a malformed outline after its own bounds test. Live data also showed that LM gives several separate features one `objektidentitet`, which Core tests one by one but the old grouping dropped together. `source_bounds` answers all three. Existing caches started cold once, because the Core commit in the version stamp changed.
 
 ### `get_buildings`
 
@@ -99,6 +101,6 @@ A cache miss, a lookup exception or a write failure never fails the operation. `
 ## Tests
 
 - `tests/test_disk_cache.py` covers the version stamp (entries carry it; a restart on a newer Core starts cold and deletes old files; another Core's entries are never served; an unstamped, malformed or non-list index starts cold), store and load, containment preferring the smallest area, TTL expiry, budget eviction, hashing, and `get_buildings` on exact and containing hits, an entry written by the dispatcher without `source`, an uncroppable cached area, and each failure path.
-- `tests/test_crop.py` covers point cloud cropping and the building crop with real Core buildings: the 2 m margin, multi-part features grouped by source id, the unsimplified outline, and buildings without an outline.
+- `tests/test_crop.py` covers point cloud cropping and the building crop with real Core buildings: the 2 m margin, the fallback rule for buildings without `source_bounds` (multi-part features grouped by source id, the unsimplified outline, buildings without an outline), and Core's real loader on a GeoPackage, where a cropped download matches a fresh one at the edge and separate features that share an LM id are judged one by one.
 - The `TestCacheIntegration` cases in `tests/test_dispatcher.py` check that a hit skips the download and that a two-raster operation never touches the cache.
 - `tests/test_builder_calls.py` checks that only the downloads are cached, that a builder call writes a record and nothing to the cache, that the key tells two areas apart and matches the same inputs across Sessions, and that nothing is written without a log directory.
