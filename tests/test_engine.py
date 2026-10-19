@@ -266,3 +266,87 @@ def test_a_rejected_token_reaches_the_model_from_every_simulation_tool(on_engine
                     server.run_simulation(HEAT, BOUNDS),
                     server.compare_scenarios(HEAT, BOUNDS, {}, {})):
         assert "rejected the agent's token" in json.loads(payload)["error"]
+
+
+# -- Core downloads on the Engine, experimental (T41, #110) ------------------
+
+class _UntouchedCache:
+    """A disk cache the Engine arm must never read or write."""
+
+    def __getattr__(self, name):
+        pytest.fail(f"the disk cache was used ({name}) with DTCC_ENGINE_CORE=1")
+
+
+@pytest.fixture
+def core_on_engine(on_engine, monkeypatch):
+    monkeypatch.setenv("DTCC_ENGINE_CORE", "1")
+    return on_engine
+
+
+def test_the_core_switch_without_an_engine_stops_the_server_at_start(monkeypatch):
+    monkeypatch.setenv("DTCC_ENGINE_CORE", "1")
+    monkeypatch.delenv("DTCC_ENGINE_URL", raising=False)
+
+    with pytest.raises(RuntimeError, match="DTCC_ENGINE_CORE"):
+        runtime.start()
+
+
+def test_a_point_cloud_download_is_an_engine_job_and_skips_the_disk_cache(core_on_engine, monkeypatch):
+    from dtcc_core.model import PointCloud
+    from dtcc_agent.dispatcher import run_operation
+    from dtcc_agent.object_store import ObjectStore
+
+    fake = FakeEngine()
+    client = core_on_engine(fake)
+    cloud = PointCloud(points=np.zeros((5, 3)))
+    monkeypatch.setattr(client, "package", lambda job_id: (cloud, 7))
+    store = ObjectStore()
+
+    result = run_operation("datasets.point_cloud", {"bounds": BOUNDS}, store, cache=_UntouchedCache())
+
+    assert fake.posts() == [{"dataset": "point_cloud", "parameters": {"bounds": BOUNDS}}]
+    assert store.get(result["object_ref"]) is cloud
+    assert "cache_hit" not in result
+
+
+def test_get_buildings_downloads_on_the_engine(core_on_engine, monkeypatch):
+    fake = FakeEngine()
+    client = core_on_engine(fake)
+    monkeypatch.setattr(client, "package", lambda job_id: ("collection", 7))
+    monkeypatch.setattr(server, "_disk_cache", _UntouchedCache())
+    monkeypatch.setattr(runner, "summarize_buildings",
+                        lambda buildings, **kw: {"from": buildings, **kw})
+
+    payload = json.loads(server.get_buildings(BOUNDS, source="LM"))
+
+    assert fake.posts() == [{"dataset": "buildings", "parameters": {"bounds": BOUNDS, "source": "LM"}}]
+    assert payload["from"] == "collection"
+
+
+def test_a_failed_core_job_reaches_the_model_as_an_error(core_on_engine, monkeypatch):
+    from dtcc_agent.dispatcher import run_operation
+    from dtcc_agent.object_store import ObjectStore
+
+    core_on_engine(FakeEngine(states=["failed"]))
+    monkeypatch.setattr(server, "_disk_cache", _UntouchedCache())
+
+    result = run_operation("datasets.buildings", {"bounds": BOUNDS}, ObjectStore())
+    payload = json.loads(server.get_buildings(BOUNDS))
+
+    assert "failed: ValueError" in result["error"]
+    assert "failed: ValueError" in payload["error"]
+
+
+def test_without_the_core_switch_downloads_stay_in_process(on_engine, monkeypatch):
+    from dtcc_agent.dispatcher import run_operation
+    from dtcc_agent.object_store import ObjectStore
+
+    monkeypatch.delenv("DTCC_ENGINE_CORE", raising=False)
+    fake = FakeEngine()
+    on_engine(fake)
+    monkeypatch.setattr(runner, "fetch_buildings", lambda bounds, source: "in-process")
+    monkeypatch.setattr(server, "_disk_cache", None)
+    monkeypatch.setattr(runner, "summarize_buildings", lambda buildings, **kw: {"from": buildings})
+
+    assert json.loads(server.get_buildings(BOUNDS))["from"] == "in-process"
+    assert fake.posts() == []

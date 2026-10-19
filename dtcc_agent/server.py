@@ -30,7 +30,7 @@ import anyio
 from mcp.server.mcpserver import Context, MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
-from . import artifacts, provenance, refs, runtime
+from . import artifacts, engine, provenance, refs, runtime
 from .geocode import geocode as _geocode
 from .analysis import summarize_field, compare_fields
 from .object_store import MemoryBudget, ObjectStore
@@ -487,11 +487,17 @@ def get_buildings(
     # smaller area inside it, and max_buildings is applied when summarising.
     # The dispatcher's datasets.buildings shares these entries.
     params = {"bounds": bounds, "source": source}
-    try:
-        buildings = load_cached_dataset("datasets.buildings", params, _disk_cache)
-    except Exception:
-        logger.warning("Disk cache lookup failed for get_buildings", exc_info=True)
-        buildings = None  # fall through to fresh fetch
+    if engine.core_enabled():
+        try:
+            buildings = engine.download("datasets.buildings", params)
+        except engine.EngineError as exc:
+            return _fmt({"error": str(exc)})
+    else:
+        try:
+            buildings = load_cached_dataset("datasets.buildings", params, _disk_cache)
+        except Exception:
+            logger.warning("Disk cache lookup failed for get_buildings", exc_info=True)
+            buildings = None  # fall through to fresh fetch
 
     if buildings is None:
         try:

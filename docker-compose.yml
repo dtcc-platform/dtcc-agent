@@ -57,6 +57,8 @@ services:
       - DTCC_ENGINE_URL=${DTCC_ENGINE_URL:-}
       - DTCC_ENGINE_TOKEN=${DTCC_ENGINE_TOKEN:-}
       - DTCC_ENGINE_TIMEOUT=${DTCC_ENGINE_TIMEOUT:-900}
+      # Experimental (#110): 1 downloads buildings and point clouds on the Engine too.
+      - DTCC_ENGINE_CORE=${DTCC_ENGINE_CORE:-}
       - SHARED_RESULTS_DIR=/shared/results
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
