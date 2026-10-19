@@ -120,6 +120,9 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
     say) is retried once from a fresh conversation, as the same turn; the
     usage of every attempt is counted."""
     turn.runtime, turn.package = NAME, PACKAGE
+    # The model this turn is sent to; a response's own name replaces it. Named
+    # up front so a refusal or an error still says which model it was (#120).
+    turn.saw_model(load_model())
     usage = RunUsage()
     started = time.monotonic()
     models: list[str] = []
