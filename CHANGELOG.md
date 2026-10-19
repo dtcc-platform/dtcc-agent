@@ -14,7 +14,7 @@ Last updated: 2026-10-19.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-19 | What the agent needs to run is a repo doc, `docs/deployment.md`, and a test keeps it in step with `docker-compose.yml`; compose now passes the worker count and the download-area cap through ([#112](https://github.com/dtcc-platform/dtcc-agent/issues/112), T43) | 🔍 |
+| 2026-10-19 | What the agent needs to run is a repo doc, `docs/deployment.md`, and a test keeps it in step with `docker-compose.yml`; the worker count, the download-area cap and the object budget are now settings ([#112](https://github.com/dtcc-platform/dtcc-agent/issues/112), T43) | 🔍 |
 | 2026-10-13 | **First M4 task:** simulations run as DTCC Engine jobs when the Engine is configured, so the agent no longer needs a folder shared with dtcc-sim ([#113](https://github.com/dtcc-platform/dtcc-agent/pull/113), T40, fixes [#109](https://github.com/dtcc-platform/dtcc-agent/issues/109)) | ✅ |
 | 2026-10-12 | A cropped building cache matches a fresh download exactly, using Core's `source_bounds`; also fixes buildings sharing one Lantmäteriet id being dropped together ([#107](https://github.com/dtcc-platform/dtcc-agent/pull/107), fixes [#49](https://github.com/dtcc-platform/dtcc-agent/issues/49)) | ✅ |
 | 2026-10-12 | A rejected Bedrock key says so, in the chat and at startup, and answer records keep the HTTP status ([#106](https://github.com/dtcc-platform/dtcc-agent/pull/106)) | ✅ |
@@ -91,10 +91,11 @@ never passed them in.
 shared folder (needed only without the Engine), memory, sticky routing per chat, health
 checks, outbound network, and open questions. It is linked from the README. Compose passes
 `DTCC_MCP_WORKERS` and `DTCC_AGENT_MAX_AREA_KM2` through, with the code's defaults, so nothing
-changes unless they are set. The doc also says plainly that the 2 GiB object budget is a code
-constant today, which matters when sizing for 20 users.
+changes unless they are set. The 2 GiB object budget, a code constant until now, is a setting too
+(`DTCC_MCP_OBJECT_BUDGET_GIB`), so sizing for 20 users needs no code change.
 
-**How we know:** a new test checks both directions: every variable the doc names is set in
+**How we know:** new tests check that the budget setting reads its default and refuses nonsense
+(zero, negative, not a number), and a test checks both directions: every variable the doc names is set in
 compose, and every variable compose takes from the environment is in the doc. Breaking either
 direction on purpose fails it with the variable's name.
 

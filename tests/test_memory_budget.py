@@ -62,3 +62,15 @@ def test_an_oversized_geojson_is_summarised_not_stored(session, tmp_path, monkey
     assert result["object_ref"] is None
     assert "Too large to keep" in result["not_stored"]
     assert result["feature_count"] == 2_000
+
+
+# The budget is a setting (#112): sizing for more users must not need a code change.
+@pytest.mark.parametrize("raw, value", [(None, 2 * 1024**3), ("8", 8 * 1024**3), ("0.5", 1024**3 // 2)])
+def test_the_object_budget_is_configurable(raw, value):
+    assert server._object_budget_bytes(raw) == value
+
+
+@pytest.mark.parametrize("raw", ["0", "-1", "lots", "nan", "inf"])
+def test_a_nonsense_object_budget_stops_the_server(raw):
+    with pytest.raises(ValueError, match="DTCC_MCP_OBJECT_BUDGET_GIB"):
+        server._object_budget_bytes(raw)

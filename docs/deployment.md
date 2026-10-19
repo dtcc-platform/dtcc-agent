@@ -39,6 +39,7 @@ Compose refuses to start if any of the first three is missing.
 | `DTCC_SIM_SERVICE_URL` | unset | A single dtcc-sim URL that overrides `DTCC_REMOTE_SERVICES`. Used only without the Engine. |
 | `DTCC_MCP_WORKERS` | `4` | Core operations running at once, across all chats. One chat gets at most half. |
 | `DTCC_AGENT_MAX_AREA_KM2` | `10` | The largest area one building or point-cloud download may cover |
+| `DTCC_MCP_OBJECT_BUDGET_GIB` | `2` | Memory all chats may use for objects they keep between steps. One chat gets at most half. Raise it together with `DTCC_MCP_MEM_LIMIT`. |
 | `DTCC_MCP_MEM_LIMIT` | `5g` | The tool server's memory limit |
 | `DTCC_AGENT_DATA` | `./data/agent` | Host folder mounted at `/data` in both containers |
 | `DTCC_SHARED_RESULTS` | `../dtcc-sim/data/shared-results` | Host folder shared with dtcc-sim. Used only without the Engine. |
@@ -63,14 +64,14 @@ Compose refuses to start if any of the first three is missing.
 
 - **Tool server:**
   - a 5 GB memory limit (`DTCC_MCP_MEM_LIMIT`);
-  - a 2 GiB budget for objects kept in memory, shared by all chats, of which one chat may
-    hold at most half. An object is anything a chat keeps between steps, such as downloaded
+  - a 2 GiB budget for objects kept in memory (`DTCC_MCP_OBJECT_BUDGET_GIB`), shared by all
+    chats, of which one chat may hold at most half. An object is anything a chat keeps between steps, such as downloaded
     buildings, meshes or simulation results;
   - each download capped at 10 km² (`DTCC_AGENT_MAX_AREA_KM2`).
 - **Measured** (2026-10-09, local, emulated amd64): 10 chats at once peaked at 4.15 of 5 GiB,
-  with no restarts. **For 20 users, plan about 8 GB and raise the object budget to match.**
-  The object budget is a constant in `dtcc_agent/server.py` today, not a setting, so raising
-  it takes a code change.
+  with no restarts. **For 20 users, plan about 8 GB (`DTCC_MCP_MEM_LIMIT=8g`) and raise the
+  object budget to match.** The right budget for 8 GB isn't measured yet; repeat the load test
+  at 20 chats before settling it.
 - **Chat server:** small, mostly waiting on Bedrock.
 - **CPU:** Core work (meshing, cropping) is CPU-bound, and 4 workers keep 4 cores busy.
   Simulations run in dtcc-sim or the Engine, not in the agent.
@@ -109,5 +110,3 @@ Compose refuses to start if any of the first three is missing.
 2. **Gateway keys.** Either one service key for the agent, with per-user limits kept inside
    the agent, or one key per end user from the platform's backend.
 3. **Bedrock.** An IAM role or a key. If a key: who renews it, and does QA get its own?
-4. **The object budget.** Make it a setting before sizing for 20 users, or change the
-   constant in the image.
