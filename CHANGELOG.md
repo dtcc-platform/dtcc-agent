@@ -14,7 +14,10 @@ Last updated: 2026-10-19.
 
 | When | What | Status |
 |---|---|---|
-| 2026-10-19 | What the agent needs to run is a repo doc, `docs/deployment.md`, and a test keeps it in step with `docker-compose.yml`; the worker count, the download-area cap and the object budget are now settings ([#112](https://github.com/dtcc-platform/dtcc-agent/issues/112), T43) | 🔍 |
+| 2026-10-19 | Refused and failed answers say which model they were sent to in the answer records ([#125](https://github.com/dtcc-platform/dtcc-agent/pull/125), fixes [#120](https://github.com/dtcc-platform/dtcc-agent/issues/120)) | ✅ |
+| 2026-10-19 | After a dropped connection mid-answer, the chat input works again and the question is handed back ([#124](https://github.com/dtcc-platform/dtcc-agent/pull/124), fixes [#119](https://github.com/dtcc-platform/dtcc-agent/issues/119)) | ✅ |
+| 2026-10-19 | A chat left idle for an hour expires even if the page reconnected meanwhile ([#123](https://github.com/dtcc-platform/dtcc-agent/pull/123), fixes [#115](https://github.com/dtcc-platform/dtcc-agent/issues/115)) | ✅ |
+| 2026-10-19 | What the agent needs to run is a repo doc, `docs/deployment.md`, and a test keeps it in step with `docker-compose.yml`; the worker count, the download-area cap and the object budget are now settings ([#122](https://github.com/dtcc-platform/dtcc-agent/pull/122), T43, closes [#112](https://github.com/dtcc-platform/dtcc-agent/issues/112)) | ✅ |
 | 2026-10-13 | **First M4 task:** simulations run as DTCC Engine jobs when the Engine is configured, so the agent no longer needs a folder shared with dtcc-sim ([#113](https://github.com/dtcc-platform/dtcc-agent/pull/113), T40, fixes [#109](https://github.com/dtcc-platform/dtcc-agent/issues/109)) | ✅ |
 | 2026-10-12 | A cropped building cache matches a fresh download exactly, using Core's `source_bounds`; also fixes buildings sharing one Lantmäteriet id being dropped together ([#107](https://github.com/dtcc-platform/dtcc-agent/pull/107), fixes [#49](https://github.com/dtcc-platform/dtcc-agent/issues/49)) | ✅ |
 | 2026-10-12 | A rejected Bedrock key says so, in the chat and at startup, and answer records keep the HTTP status ([#106](https://github.com/dtcc-platform/dtcc-agent/pull/106)) | ✅ |
@@ -78,9 +81,41 @@ Last updated: 2026-10-19.
 
 ---
 
-## 🔍 In review
+## ✅ Merged
 
-### What the agent needs to run is a repo doc · 2026-10-19 · [#112](https://github.com/dtcc-platform/dtcc-agent/issues/112)
+### A chat left idle for an hour expires · 2026-10-19 · [#123](https://github.com/dtcc-platform/dtcc-agent/pull/123)
+
+**Before:** QA (#115) left a chat untouched for over an hour; the next message was answered with the old
+context and no expiry notice. The page reconnects by itself whenever its connection drops (a background
+tab, laptop sleep, Docker Desktop dropping idle connections), and each reconnect counted as activity, so a
+tab left open never expired.
+
+**Now:** only a message or the end of an answer counts as activity. After an idle hour, the next message
+gets the expiry notice and a fresh chat.
+
+**How we know:** a test follows QA's sequence (idle 40 minutes, a reconnect, a message at 61 minutes); it
+fails before the fix and passes after. Chris is asked to re-run the check on his setup.
+
+### The chat input works again after a dropped connection · 2026-10-19 · [#124](https://github.com/dtcc-platform/dtcc-agent/pull/124)
+
+**Before:** if the agent restarted while answering (#119), the page reconnected but the input and Send
+button stayed greyed out for good: they waited for the end of an answer that died with the connection.
+
+**Now:** the page hands the question back, re-enables the input, and says the answer was cut off.
+
+**How we know:** in a real browser against a server that drops mid-answer, the old page stays locked and
+the new one is usable with the question back in the box.
+
+### Refused and failed answers record their model · 2026-10-19 · [#125](https://github.com/dtcc-platform/dtcc-agent/pull/125)
+
+**Before:** answer records for refusals and errors had no model (#120), although they had been sent to,
+and billed by, one.
+
+**Now:** every record names the model; a response's own model name still takes precedence.
+
+**How we know:** a new test covers a refusal and an error; both fail before the fix.
+
+### What the agent needs to run is a repo doc · 2026-10-19 · [#122](https://github.com/dtcc-platform/dtcc-agent/pull/122)
 
 **Before:** the deployment requirements were a one-off note sent to the deployment design on
 2026-10-12. Nothing kept it in step with `docker-compose.yml`, and two settings the code reads
@@ -98,8 +133,6 @@ changes unless they are set. The 2 GiB object budget, a code constant until now,
 (zero, negative, not a number), and a test checks both directions: every variable the doc names is set in
 compose, and every variable compose takes from the environment is in the doc. Breaking either
 direction on purpose fails it with the variable's name.
-
-## ✅ Merged
 
 ### Simulations run on the DTCC Engine · 2026-10-13 · [#113](https://github.com/dtcc-platform/dtcc-agent/pull/113)
 
