@@ -45,6 +45,12 @@ services:
       - DTCC_MCP_SECRET=${DTCC_MCP_SECRET:?set DTCC_MCP_SECRET}
       - DTCC_AGENT_LOG_DIR=/data/logs
       - DTCC_AGENT_CACHE_DIR=/data/cache
+      # Core operations at once, and the largest area one download may cover;
+      # the defaults are the code's (#19, #79). See docs/deployment.md.
+      - DTCC_MCP_WORKERS=${DTCC_MCP_WORKERS:-4}
+      - DTCC_AGENT_MAX_AREA_KM2=${DTCC_AGENT_MAX_AREA_KM2:-10}
+      # Objects all chats may keep in memory, in GiB (#112); raise mem_limit with it.
+      - DTCC_MCP_OBJECT_BUDGET_GIB=${DTCC_MCP_OBJECT_BUDGET_GIB:-2}
       - DTCC_REMOTE_SERVICES=${DTCC_REMOTE_SERVICES:-http://host.docker.internal:8001}
       - DTCC_SIM_SERVICE_URL=${DTCC_SIM_SERVICE_URL:-}
       # Set, simulations run as DTCC Engine jobs and dtcc-sim isn't used (#109).

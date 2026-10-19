@@ -26,7 +26,7 @@ import httpx
 
 # A package larger than this is refused before Core reads it: the Engine is a
 # separate service, and Core asks callers of untrusted packages for a budget.
-# No Session could keep a bigger result anyway (OBJECT_BUDGET_BYTES, 2 GiB).
+# The default object budget (server.OBJECT_BUDGET_BYTES) is 2 GiB too.
 MAX_PACKAGE_BYTES = 2 * 1024**3
 POLL_FIRST_SECONDS = 1.0
 POLL_MAX_SECONDS = 5.0

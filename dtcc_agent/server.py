@@ -15,6 +15,7 @@ import inspect
 import ipaddress
 import json
 import logging
+import math
 import os
 import threading
 import time
@@ -62,7 +63,22 @@ TURN_HEADER = "X-DTCC-Turn"
 # the Sessions in use. Over HTTP one Session may hold at most half of it; a
 # single result larger than that is returned unstored (U4, #13). The budget
 # covers stored results only: the worker count bounds memory while running.
-OBJECT_BUDGET_BYTES = 2 * 1024**3
+# DTCC_MCP_OBJECT_BUDGET_GIB sets it (#112): more users need a larger one,
+# with mem_limit raised to match. See docs/deployment.md.
+def _object_budget_bytes(raw: str | None) -> int:
+    """DTCC_MCP_OBJECT_BUDGET_GIB in bytes; 2 GiB when unset."""
+    if raw is None:
+        return 2 * 1024**3
+    try:
+        value = float(raw)
+    except ValueError:
+        value = math.nan
+    if not (math.isfinite(value) and value > 0):
+        raise ValueError(f"DTCC_MCP_OBJECT_BUDGET_GIB must be a positive number of GiB, got {raw!r}")
+    return int(value * 1024**3)
+
+
+OBJECT_BUDGET_BYTES = _object_budget_bytes(os.getenv("DTCC_MCP_OBJECT_BUDGET_GIB"))
 SESSION_OBJECT_BYTES = OBJECT_BUDGET_BYTES // 2
 _object_budget = MemoryBudget(OBJECT_BUDGET_BYTES)
 MAX_SESSIONS = 8

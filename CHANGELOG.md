@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-10-13.
+Last updated: 2026-10-19.
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-10-13.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-19 | What the agent needs to run is a repo doc, `docs/deployment.md`, and a test keeps it in step with `docker-compose.yml`; the worker count, the download-area cap and the object budget are now settings ([#112](https://github.com/dtcc-platform/dtcc-agent/issues/112), T43) | 🔍 |
 | 2026-10-13 | **First M4 task:** simulations run as DTCC Engine jobs when the Engine is configured, so the agent no longer needs a folder shared with dtcc-sim ([#113](https://github.com/dtcc-platform/dtcc-agent/pull/113), T40, fixes [#109](https://github.com/dtcc-platform/dtcc-agent/issues/109)) | ✅ |
 | 2026-10-12 | A cropped building cache matches a fresh download exactly, using Core's `source_bounds`; also fixes buildings sharing one Lantmäteriet id being dropped together ([#107](https://github.com/dtcc-platform/dtcc-agent/pull/107), fixes [#49](https://github.com/dtcc-platform/dtcc-agent/issues/49)) | ✅ |
 | 2026-10-12 | A rejected Bedrock key says so, in the chat and at startup, and answer records keep the HTTP status ([#106](https://github.com/dtcc-platform/dtcc-agent/pull/106)) | ✅ |
@@ -76,6 +77,27 @@ Last updated: 2026-10-13.
 **Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93 → (#95–#99 not recorded) → 582 with #102 → 583 with #104 → 571 with #105, which removed the SDK tests → 581 with #106 → 584 with #107 → 600 with #113.
 
 ---
+
+## 🔍 In review
+
+### What the agent needs to run is a repo doc · 2026-10-19 · [#112](https://github.com/dtcc-platform/dtcc-agent/issues/112)
+
+**Before:** the deployment requirements were a one-off note sent to the deployment design on
+2026-10-12. Nothing kept it in step with `docker-compose.yml`, and two settings the code reads
+(the worker count and the download-area cap) couldn't be changed at deploy time because compose
+never passed them in.
+
+**Now:** `docs/deployment.md` covers shape and ports, secrets and settings, storage and the
+shared folder (needed only without the Engine), memory, sticky routing per chat, health
+checks, outbound network, and open questions. It is linked from the README. Compose passes
+`DTCC_MCP_WORKERS` and `DTCC_AGENT_MAX_AREA_KM2` through, with the code's defaults, so nothing
+changes unless they are set. The 2 GiB object budget, a code constant until now, is a setting too
+(`DTCC_MCP_OBJECT_BUDGET_GIB`), so sizing for 20 users needs no code change.
+
+**How we know:** new tests check that the budget setting reads its default and refuses nonsense
+(zero, negative, not a number), and a test checks both directions: every variable the doc names is set in
+compose, and every variable compose takes from the environment is in the doc. Breaking either
+direction on purpose fails it with the variable's name.
 
 ## ✅ Merged
 
