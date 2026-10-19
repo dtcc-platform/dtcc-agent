@@ -469,6 +469,16 @@
                     connect();
                     return;
                 }
+                if (inputEl.disabled) {
+                    // Cut off mid-answer (#119): its "done" died with this socket,
+                    // so hand the question back rather than wait for it forever.
+                    currentAssistantEl = null;
+                    currentAssistantText = "";
+                    inputEl.value = lastSent;
+                    sendBtn.disabled = false;
+                    inputEl.disabled = false;
+                    notice = "The connection dropped before the answer finished. Press Enter to ask again.";
+                }
                 statusEl.textContent = "Disconnected. Reconnecting...";
                 setTimeout(connect, reconnectDelay);
                 reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
