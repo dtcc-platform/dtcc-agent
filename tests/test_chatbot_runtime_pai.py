@@ -226,6 +226,21 @@ def test_a_turn_that_fails_before_any_model_request_records_no_usage(run, monkey
     assert record["usage"] is None and record["num_turns"] is None and record["cost_source"] is None
 
 
+@pytest.mark.parametrize("outcome", ["refused", "failed"])
+def test_a_refused_or_failed_turn_still_records_its_model(run, monkeypatch, outcome):
+    """#120: the model was named only by a finished run, so refusals and errors
+    logged model null although they had been sent to, and billed by, a model."""
+    monkeypatch.setenv("DTCC_AGENT_MODEL", "eu.anthropic.claude-sonnet-5-5")
+    model = _filtered([]) if outcome == "refused" else _model([], fail=5)
+
+    _, _, turn, _ = run(model, Session(id="s1"))
+
+    record = turn.record()
+    assert record["refused"] is (outcome == "refused")
+    assert record["is_error"] is (outcome == "failed")
+    assert record["model"] == "eu.anthropic.claude-sonnet-5-5"
+
+
 def test_two_turns_on_one_session_run_one_after_the_other(run, monkeypatch):
     session = Session(id="s1")
     active, peak = [0], [0]
