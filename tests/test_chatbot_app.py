@@ -368,6 +368,33 @@ def test_a_message_to_an_expired_session_closes_the_socket_with_4408(monkeypatch
     assert app_module.sessions.get(sid) is None  # and it was not revived
 
 
+def test_a_reconnect_is_not_activity(monkeypatch):
+    """#115: an idle tab whose socket drops reconnects by itself; that must not
+    restart the idle hour, or a tab left open never expires."""
+    from starlette.websockets import WebSocketDisconnect
+
+    async def answer(ws, session, text, turn):
+        return "hi"
+
+    runtime = _fake_runtime(answer)
+    monkeypatch.setattr(app_module, "memory", _StubMemory())
+    monkeypatch.setattr(app_module, "runtime", runtime)
+    sid = app_module.sessions.create()
+    client = TestClient(app)
+
+    app_module.sessions._sessions[sid].last_active -= 40 * 60  # idle 40 minutes
+    with client.websocket_connect("/chat") as ws:  # the page reconnects
+        ws.send_json({"session_id": sid})
+        assert ws.receive_json() == {"type": "session", "session_id": sid}
+        app_module.sessions._sessions[sid].last_active -= 21 * 60  # 61 minutes in all
+        ws.send_json({"content": "How many buildings did we find earlier?"})
+        with pytest.raises(WebSocketDisconnect) as closed:
+            ws.receive_json()
+
+    assert closed.value.code == 4408
+    assert runtime.calls == []
+
+
 # -- Admission (T14, #72) ----------------------------------------------------
 
 CODE = "an-access-code-16+"
