@@ -145,6 +145,9 @@ auth lands (U11, #15): a client that invents ids gets a share per id.
 
 ### Docker Mini-Service
 
+For what a deployment needs (ports, secrets, settings, storage, memory, sticky routing,
+health checks, outbound network), see [docs/deployment.md](docs/deployment.md).
+
 Start `dtcc-sim` and the agent service, in either order. After redeploying `dtcc-sim`
 on its own, restart the agent so it picks up the new list of simulations:
 
