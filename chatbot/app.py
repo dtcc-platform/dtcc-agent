@@ -175,8 +175,10 @@ async def chat(ws: WebSocket):
         return
 
     # A live session resumes on its id alone; opening a new one needs the code.
+    # Resuming is not activity (#115): the page reconnects by itself whenever
+    # its socket drops, so counting that would keep an idle tab alive forever.
     session_id = init.get("session_id")
-    if not session_id or not sessions.touch(session_id):
+    if not session_id or sessions.get(session_id) is None:
         if not _admitted(init.get("access_code")):
             logger.warning("Refused a new chat from %s: access code missing or wrong",
                            ws.client.host if ws.client else "?")
