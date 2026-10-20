@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-10-19.
+Last updated: 2026-10-20.
 
 ---
 
@@ -14,6 +14,8 @@ Last updated: 2026-10-19.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-20 | **Decided (ADR-0011):** simulations run on the DTCC Engine; building and point-cloud downloads stay in the agent, behind its cache. Supersedes ADR-0007 (T42, closes [#111](https://github.com/dtcc-platform/dtcc-agent/issues/111)) | ✅ |
+| 2026-10-20 | **Measured:** point-cloud downloads through the Engine make answers 30–38% slower than in the agent, above the 15% limit; buildings can't go through the Engine yet (dtcc-core#160) ([#127](https://github.com/dtcc-platform/dtcc-agent/pull/127), T41, closes [#110](https://github.com/dtcc-platform/dtcc-agent/issues/110)) | ✅ |
 | 2026-10-19 | Refused and failed answers say which model they were sent to in the answer records ([#125](https://github.com/dtcc-platform/dtcc-agent/pull/125), fixes [#120](https://github.com/dtcc-platform/dtcc-agent/issues/120)) | ✅ |
 | 2026-10-19 | After a dropped connection mid-answer, the chat input works again and the question is handed back ([#124](https://github.com/dtcc-platform/dtcc-agent/pull/124), fixes [#119](https://github.com/dtcc-platform/dtcc-agent/issues/119)) | ✅ |
 | 2026-10-19 | A chat left idle for an hour expires even if the page reconnected meanwhile ([#123](https://github.com/dtcc-platform/dtcc-agent/pull/123), fixes [#115](https://github.com/dtcc-platform/dtcc-agent/issues/115)) | ✅ |
@@ -82,6 +84,22 @@ Last updated: 2026-10-19.
 ---
 
 ## ✅ Merged
+
+### Downloads stay in the agent; simulations run on the Engine · 2026-10-20 · [#127](https://github.com/dtcc-platform/dtcc-agent/pull/127)
+
+**Question:** on 2026-10-09 the team agreed to route all queued work through the DTCC Engine, and to move
+building and terrain downloads too if a same-day measurement allowed it (no more than 15% slower).
+
+**Measured:** for point clouds, answers were 38% slower through the Engine with one Engine worker, and 30%
+slower with four. The agent answers most pieces of a split request from its own cache in about a second;
+each Engine job took a median of 34 seconds. Both paths return identical data at the same cost. Buildings
+couldn't be measured: the Engine can't return them yet (dtcc-core#160).
+
+**Decided (ADR-0011):** simulations on the Engine, downloads in the agent. An experimental switch stays so
+buildings can be measured once Core is fixed. Revisit if the Engine gains a result cache or a deployed
+Engine measures faster.
+
+**How we know:** the report in `eval/runs/m4-engine-vs-inprocess/` with every raw run; 616 tests pass.
 
 ### A chat left idle for an hour expires · 2026-10-19 · [#123](https://github.com/dtcc-platform/dtcc-agent/pull/123)
 

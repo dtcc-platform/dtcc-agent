@@ -1,7 +1,10 @@
 ---
-status: accepted
+status: superseded
+superseded_by: ADR-0011 (2026-10-20)
 decided: 2026-09-19 by Spiros, after measuring the DTCC Engine
 ---
+
+> **Superseded by [ADR-0011](0011-simulations-on-the-engine-downloads-stay-in-process.md).** Simulations now run on the Engine; the agent's own dispatch and the in-process downloads this ADR argued for stay.
 
 # The agent keeps its own generic dispatch over Core and Sim
 
