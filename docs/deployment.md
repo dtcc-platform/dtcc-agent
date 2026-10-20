@@ -35,6 +35,7 @@ Compose refuses to start if any of the first three is missing.
 | `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The model. Changing the model is this one setting. |
 | `DTCC_ENGINE_URL` | unset | **Engine mode:** the Engine's base URL. When set, simulations run as Engine jobs over HTTP, and dtcc-sim and the shared folder aren't used. |
 | `DTCC_ENGINE_TIMEOUT` | `900` | Seconds one simulation may take before it times out |
+| `DTCC_ENGINE_CORE` | unset | **Experimental, for a measurement (#110).** `1` downloads buildings and point clouds as Engine jobs too, without the agent's disk cache. Needs `DTCC_ENGINE_URL`. Leave unset in a deployment. |
 | `DTCC_REMOTE_SERVICES` | `http://host.docker.internal:8001` | dtcc-sim's URL. Used only without the Engine. |
 | `DTCC_SIM_SERVICE_URL` | unset | A single dtcc-sim URL that overrides `DTCC_REMOTE_SERVICES`. Used only without the Engine. |
 | `DTCC_MCP_WORKERS` | `4` | Core operations running at once, across all chats. One chat gets at most half. |

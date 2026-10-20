@@ -27,3 +27,5 @@ eval/runs/*
 !eval/runs/baseline-m3-sdk/
 !eval/runs/m3-runtime.md
 !eval/runs/m3-runtime/
+# T41's in-process vs Engine measurement and the raw runs it reports (#110)
+!eval/runs/m4-engine-vs-inprocess/

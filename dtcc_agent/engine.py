@@ -44,11 +44,33 @@ def url() -> str | None:
     return value or None
 
 
+# Experimental (T41, #110): with DTCC_ENGINE_CORE=1 these downloads run as
+# Engine jobs too, without the disk cache, so the two can be measured against
+# each other. T42 (#111) keeps or removes the switch.
+CORE_DATASETS = frozenset({"datasets.buildings", "datasets.point_cloud"})
+
+
+def core_enabled() -> bool:
+    """Whether CORE_DATASETS download on the Engine (DTCC_ENGINE_CORE=1)."""
+    return os.getenv("DTCC_ENGINE_CORE", "").strip() == "1"
+
+
 def check_config() -> None:
-    """Refuse to start with an Engine URL and no token: every job would fail."""
+    """Refuse to start with an Engine URL and no token, or with the Core switch
+    and no Engine: every job would fail."""
     if url() and not os.getenv("DTCC_ENGINE_TOKEN", "").strip():
         raise RuntimeError("DTCC_ENGINE_URL is set but DTCC_ENGINE_TOKEN is not; "
                            "set the Engine's API token, or unset DTCC_ENGINE_URL")
+    if core_enabled() and not url():
+        raise RuntimeError("DTCC_ENGINE_CORE=1 needs DTCC_ENGINE_URL; "
+                           "set the Engine, or unset DTCC_ENGINE_CORE")
+
+
+def download(name: str, params: dict[str, Any]) -> Any:
+    """Run one of CORE_DATASETS as an Engine job and return its model.
+    Raises EngineError, which callers return to the model as an error."""
+    model, _job_id, _size = client().run(name.removeprefix("datasets."), params)
+    return model
 
 
 class Engine:

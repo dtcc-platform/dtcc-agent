@@ -20,7 +20,7 @@ import time
 from copy import deepcopy
 from typing import Any
 
-from . import builder_calls, refs
+from . import builder_calls, engine, refs
 from .object_store import ObjectStore
 from .registry import get_operation, OperationInfo
 from .serializers import serialize
@@ -198,6 +198,13 @@ def run_operation(
                 "read or write files directly. Use export_object to give the "
                 "user a file, or load_geojson for dtcc-sim results."
             )}
+
+    if name in engine.CORE_DATASETS and engine.core_enabled():
+        try:
+            model = engine.download(name, params)
+        except engine.EngineError as exc:
+            return {"error": str(exc)}
+        return _store_and_summarize(model, name, store, label)
 
     # --- Disk cache check ---
     if cache and name in CACHE_ALLOWLIST:
