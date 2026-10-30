@@ -107,7 +107,7 @@ def test_a_turn_streams_text_tool_and_image_frames(run):
     kinds = [f["type"] for f in frames]
     assert kinds == ["tool_call", "image", "text"]
     assert frames[0] == {"type": "tool_call", "name": "render_object", "status": "running"}
-    assert frames[1] == {"type": "image", "url": f"/artifacts/s1/{IMAGE}"}
+    assert frames[1] == {"type": "image", "url": f"artifacts/s1/{IMAGE}"}
     assert run.calls == ["obj_1"]
     assert turn.tools_called == ["render_object"]
     assert turn.model == "test-model"

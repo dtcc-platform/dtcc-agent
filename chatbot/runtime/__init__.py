@@ -55,7 +55,8 @@ def artifact_frame(session_id: str, content: object) -> dict | None:
         return None
     if artifacts.find(session_id, found["name"]) is None:
         return None
-    url = f"/artifacts/{session_id}/{found['name']}"
+    # Relative to the page, so downloads work under a gateway prefix (#134).
+    url = f"artifacts/{session_id}/{found['name']}"
     if found.get("kind") == "image":
         return {"type": "image", "url": url}
     return {"type": "file", "url": url, "name": artifacts.download_name(found["name"])}
