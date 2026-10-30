@@ -21,8 +21,9 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from chatbot.config import (
-    load_access_code, DEFAULT_HOST, DEFAULT_PORT, load_model, require_bedrock_credentials,
+    load_access_code, DEFAULT_HOST, DEFAULT_PORT, load_model, log_dir, require_bedrock_credentials,
 )
+from chatbot import limits
 from chatbot.memory import ConversationMemory
 from chatbot.provenance import TurnRecord
 from chatbot.runtime import artifact_frame, load_runtime
@@ -30,7 +31,7 @@ from chatbot.sessions import SessionManager
 from dtcc_agent import artifacts, provenance, refs
 
 # --- Logging setup: file + console ---
-_log_dir = Path(os.getenv("DTCC_AGENT_LOG_DIR", "/tmp/dtcc_lurkie_logs"))
+_log_dir = log_dir()
 _log_dir.mkdir(exist_ok=True)
 _log_file = _log_dir / f"lurkie-{datetime.now():%Y%m%d-%H%M%S}.log"
 
@@ -52,6 +53,11 @@ async def _lifespan(app: FastAPI):
     # Checked at server start, not import: every chat turn needs Bedrock (#85).
     require_bedrock_credentials()
     logger.info("Model: %s on Bedrock, runtime %s", load_model(), runtime.NAME)
+    # Reads the limit settings and builds the model, so a bad setting or an
+    # unreadable spend ledger stops the server here, not in a chat (#132).
+    logger.info("Limits: %s", limits.describe())
+    if hasattr(runtime, "model"):
+        runtime.model()
     # A present but wrong key passes the check above; one tiny request in the
     # background says so in the log without delaying startup.
     probe = None
