@@ -18,3 +18,6 @@ dtcc-tetgen-wrapper
 dtcc-website-full.png
 lurkie-preview.png
 lurkie-with-welcome.png
+# Local secrets: the Dockerfile copies the whole context (#133)
+.env
+.env.*
