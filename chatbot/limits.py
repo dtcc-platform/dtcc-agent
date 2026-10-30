@@ -30,8 +30,10 @@ import asyncio
 import contextlib
 import json
 import logging
+import math
 import os
 import secrets
+import tempfile
 import threading
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
@@ -41,13 +43,13 @@ from typing import Any
 
 import pydantic_core
 from genai_prices import Usage, calc_price
+from pydantic_ai.exceptions import ModelHTTPError
 from pydantic_ai.messages import ModelMessage, ModelResponse
 from pydantic_ai.models import ModelRequestParameters, StreamedResponse
 from pydantic_ai.models.wrapper import WrapperModel
 from pydantic_ai.settings import ModelSettings
 
 from chatbot.prices import price
-from chatbot.provenance import http_status
 
 logger = logging.getLogger("lurkie")
 
@@ -121,9 +123,8 @@ class SpendLedger:
         self._lock = threading.Lock()
         state = self._read()
         if state.get("month") == self._month_of():
-            spent = float(state.get("spent_usd", 0.0))
-            # Set aside when the server stopped: the request may have run.
-            spent += sum(float(v) for v in state.get("held_usd", {}).values())
+            # What was set aside when the server stopped counts: it may have run.
+            spent = state["spent_usd"] + sum(state["held_usd"].values())
         else:
             spent = 0.0
         self.month = self._month_of()
@@ -132,23 +133,42 @@ class SpendLedger:
         self._write()
 
     def _read(self) -> dict[str, Any]:
+        """The saved state, every amount a finite, non-negative number. An
+        unreadable or implausible ledger refuses to start: starting at zero
+        could overspend."""
         try:
-            return json.loads(self.path.read_text(encoding="utf-8"))
+            state = json.loads(self.path.read_text(encoding="utf-8"))
         except FileNotFoundError:
             return {}
         except (OSError, ValueError) as exc:
-            # Unreadable: starting at zero could overspend, so refuse.
             raise SystemExit(f"The spend ledger {self.path} can't be read ({exc}); "
                              "fix or remove it to start.") from exc
+        try:
+            amounts = [state["spent_usd"], *state["held_usd"].values()]
+            valid = isinstance(state["month"], str) and all(
+                isinstance(a, (int, float)) and not isinstance(a, bool)
+                and math.isfinite(a) and a >= 0 for a in amounts)
+        except (KeyError, TypeError, AttributeError):
+            valid = False
+        if not valid:
+            raise SystemExit(f"The spend ledger {self.path} holds unexpected values; "
+                             "fix or remove it to start.")
+        return state
 
     def _write(self) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(".tmp")
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump({"month": self.month, "spent_usd": self.spent, "held_usd": self.held}, f)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp, self.path)
+        self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        # A fresh, exclusively created file: a name nobody can plant a link at.
+        fd, tmp = tempfile.mkstemp(dir=self.path.parent, prefix=".spend-", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump({"month": self.month, "spent_usd": self.spent, "held_usd": self.held}, f)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, self.path)
+        except BaseException:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp)
+            raise
 
     def reserve(self, amount: float) -> str:
         """Set amount aside, or raise LimitReached if it doesn't fit."""
@@ -177,6 +197,20 @@ class SpendLedger:
 
     def total(self) -> float:
         return self.spent + sum(self.held.values())
+
+
+class _Request:
+    """One admitted model request: whether Bedrock answered, and its cost.
+    A cost of None keeps the worst case set aside for it."""
+
+    def __init__(self, price_id: str):
+        self.price_id = price_id
+        self.answered = False
+        self.cost: float | None = None
+
+    def used(self, usage: Any) -> None:
+        self.answered = True
+        self.cost = price(usage, self.price_id)[0]
 
 
 class LimitedModel(WrapperModel):
@@ -224,31 +258,28 @@ class LimitedModel(WrapperModel):
         async with self._slots or contextlib.nullcontext():
             key = (self.ledger.reserve(self.worst_case(messages, settings, parameters))
                    if self.ledger is not None else None)
-            cost: list[float | None] = []
-
-            def charge(usage: Any) -> None:
-                cost.append(price(usage, self.price_id)[0])
-
+            request = _Request(self.price_id)
             try:
-                yield charge
+                yield request
             except BaseException as exc:
-                # Refused before Bedrock ran it (a 4xx, throttling included):
-                # nothing was spent. Anything else, a cancelled or broken
-                # stream too, may have been billed, so it keeps its worst case.
-                status = http_status(exc)
-                if not cost and status is not None and 400 <= status < 500:
-                    cost.append(0.0)
+                # Bedrock refused the request itself with a 4xx (throttling
+                # included) before answering: nothing was spent. Anything else,
+                # a cancelled or broken stream too, may have been billed, so it
+                # keeps its worst case.
+                if (not request.answered and isinstance(exc, ModelHTTPError)
+                        and 400 <= exc.status_code < 500):
+                    request.cost = 0.0
                 raise
             finally:
                 if key is not None:
-                    self.ledger.settle(key, cost[0] if cost else None)
+                    self.ledger.settle(key, request.cost)
 
     async def request(self, messages: list[ModelMessage], model_settings: ModelSettings | None,
                       model_request_parameters: ModelRequestParameters) -> ModelResponse:
         settings = self._bounded(model_settings)
-        async with self._admitted(messages, settings, model_request_parameters) as charge:
+        async with self._admitted(messages, settings, model_request_parameters) as request:
             response = await self.wrapped.request(messages, settings, model_request_parameters)
-            charge(response.usage)
+            request.used(response.usage)
             return response
 
     @asynccontextmanager
@@ -256,16 +287,23 @@ class LimitedModel(WrapperModel):
                              model_request_parameters: ModelRequestParameters,
                              run_context: Any = None) -> AsyncIterator[StreamedResponse]:
         settings = self._bounded(model_settings)
-        async with self._admitted(messages, settings, model_request_parameters) as charge:
+        async with self._admitted(messages, settings, model_request_parameters) as request:
             async with self.wrapped.request_stream(messages, settings, model_request_parameters,
                                                    run_context) as stream:
+                request.answered = True  # Bedrock accepted it; billing may have begun
                 yield stream
-            charge(stream.usage)
+            request.used(stream.usage)
 
 
 def ledger(log_dir: Path) -> SpendLedger | None:
     limit = monthly_spend_usd()
-    return SpendLedger(log_dir / "spend.json", limit) if limit is not None else None
+    if limit is None:
+        return None
+    if not os.getenv("DTCC_AGENT_LOG_DIR"):
+        # The default is under /tmp: shared, and gone after a reboot.
+        raise SystemExit("DTCC_AGENT_MONTHLY_SPEND_USD needs DTCC_AGENT_LOG_DIR, a persistent "
+                         "directory for the spend ledger.")
+    return SpendLedger(log_dir / "spend.json", limit)
 
 
 def describe() -> str:

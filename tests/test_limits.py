@@ -224,6 +224,79 @@ def test_a_request_stopped_midway_keeps_its_worst_case(tmp_path):
     assert ledger.total() == pytest.approx(worst)
 
 
+def test_a_4xx_after_bedrock_answered_keeps_the_worst_case(tmp_path):
+    # Once the stream is open, billing may have begun: only a refusal before
+    # Bedrock answered is free.
+    from pydantic_ai.exceptions import ModelHTTPError
+
+    async def midway(messages, info):
+        yield "Part of an answer"
+        raise ModelHTTPError(status_code=400, model_name=MODEL, body="ValidationException")
+
+    ledger = SpendLedger(tmp_path / "spend.json", 10.0)
+    model = LimitedModel(FunctionModel(stream_function=midway, model_name="m"), MODEL, ledger)
+
+    async def go():
+        async with model.request_stream([ModelRequest.user_text_prompt("hi")], None, _parameters()) as s:
+            async for _ in s:
+                pass
+
+    with pytest.raises(ModelHTTPError):
+        asyncio.run(go())
+    assert ledger.total() > 0
+
+
+def test_an_error_that_merely_follows_a_4xx_keeps_the_worst_case(tmp_path):
+    # A 4xx in an exception's context is not the request being refused.
+    from pydantic_ai.exceptions import ModelHTTPError
+
+    async def failing(messages, info):
+        try:
+            raise ModelHTTPError(status_code=429, model_name=MODEL, body="earlier")
+        except ModelHTTPError:
+            raise RuntimeError("something else broke")
+        yield ""  # pragma: no cover
+
+    ledger = SpendLedger(tmp_path / "spend.json", 10.0)
+    model = LimitedModel(FunctionModel(stream_function=failing, model_name="m"), MODEL, ledger)
+
+    async def go():
+        async with model.request_stream([ModelRequest.user_text_prompt("hi")], None, _parameters()):
+            pass
+
+    with pytest.raises(RuntimeError):
+        asyncio.run(go())
+    assert ledger.total() > 0
+
+
+@pytest.mark.parametrize("state", [
+    {"month": "2026-10", "spent_usd": -50.0, "held_usd": {}},
+    {"month": "2026-10", "spent_usd": float("nan"), "held_usd": {}},
+    {"month": "2026-10", "spent_usd": 1.0, "held_usd": {"k": "lots"}},
+    {"month": "2026-10"},
+])
+def test_a_ledger_with_implausible_values_stops_the_server(tmp_path, state):
+    path = tmp_path / "spend.json"
+    path.write_text(json.dumps(state))
+    with pytest.raises(SystemExit, match="unexpected values"):
+        SpendLedger(path, 10.0, month=lambda: "2026-10")
+
+
+def test_the_ledger_leaves_no_temporary_files(tmp_path):
+    ledger = SpendLedger(tmp_path / "spend.json", 10.0)
+    ledger.settle(ledger.reserve(1.0), 0.5)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["spend.json"]
+
+
+def test_a_spend_limit_needs_an_explicit_log_directory(monkeypatch, tmp_path):
+    monkeypatch.setenv("DTCC_AGENT_MONTHLY_SPEND_USD", "90")
+    monkeypatch.delenv("DTCC_AGENT_LOG_DIR", raising=False)
+    with pytest.raises(SystemExit, match="DTCC_AGENT_LOG_DIR"):
+        limits.ledger(tmp_path)
+    monkeypatch.setenv("DTCC_AGENT_LOG_DIR", str(tmp_path))
+    assert limits.ledger(tmp_path).limit == 90.0
+
+
 def test_a_spend_limit_on_a_model_without_a_price_stops_the_server(tmp_path):
     with pytest.raises(SystemExit, match="no known price"):
         LimitedModel(_answering(), "no-such-model", SpendLedger(tmp_path / "s.json", 10.0))
