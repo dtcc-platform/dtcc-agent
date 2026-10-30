@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -105,13 +106,21 @@ def test_the_turn_travels_to_the_mcp_server(monkeypatch):
 
 # -- Bedrock (T35, #85) --------------------------------------------------------
 
-_AWS_VARS = ("AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE",
-             "AWS_REGION", "DTCC_AGENT_MODEL")
+_AWS_VARS = ("AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
+             "AWS_SESSION_TOKEN", "AWS_PROFILE", "AWS_DEFAULT_PROFILE", "AWS_REGION",
+             "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", "AWS_CONTAINER_CREDENTIALS_FULL_URI",
+             "AWS_WEB_IDENTITY_TOKEN_FILE", "AWS_ROLE_ARN", "DTCC_AGENT_MODEL")
 
 
-def _no_aws(monkeypatch):
+def _no_aws(monkeypatch, tmp_path=None):
+    """No AWS credential anywhere botocore looks: environment, files, or the
+    instance metadata service, which a laptop or CI runner may not have."""
     for name in _AWS_VARS:
         monkeypatch.delenv(name, raising=False)
+    missing = (tmp_path or Path("/nonexistent")) / "aws"
+    monkeypatch.setenv("AWS_CONFIG_FILE", str(missing / "config"))
+    monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", str(missing / "credentials"))
+    monkeypatch.setenv("AWS_EC2_METADATA_DISABLED", "true")
 
 
 def test_the_model_defaults_to_sonnet_5_5_on_bedrock(monkeypatch):
@@ -137,13 +146,61 @@ def test_no_bedrock_credentials_stops_the_chatbot(monkeypatch):
         require_bedrock_credentials()
 
 
-@pytest.mark.parametrize("name", ["AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"])
-def test_any_aws_credential_is_enough_to_start(monkeypatch, name):
+def test_a_bedrock_api_key_is_enough_to_start(monkeypatch):
     from chatbot.config import require_bedrock_credentials
 
     _no_aws(monkeypatch)
-    monkeypatch.setenv(name, "x")
+    monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "x")
     require_bedrock_credentials()  # no exit
+
+
+def test_standard_aws_credentials_are_enough_to_start(monkeypatch):
+    from chatbot.config import require_bedrock_credentials
+
+    _no_aws(monkeypatch)
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "AKIAEXAMPLE")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "secret")
+    require_bedrock_credentials()  # no exit
+
+
+def test_a_named_profile_is_enough_to_start(monkeypatch, tmp_path):
+    from chatbot.config import require_bedrock_credentials
+
+    _no_aws(monkeypatch, tmp_path)
+    (tmp_path / "aws").mkdir()
+    (tmp_path / "aws" / "credentials").write_text(
+        "[dtcc]\naws_access_key_id = AKIAEXAMPLE\naws_secret_access_key = secret\n")
+    monkeypatch.setenv("AWS_PROFILE", "dtcc")
+    require_bedrock_credentials()  # no exit
+
+
+def test_an_instance_role_is_enough_to_start(monkeypatch):
+    # In AWS the chat server gets Bedrock through the host's instance role and
+    # sets no AWS variable at all (#130).
+    from botocore.credentials import Credentials, InstanceMetadataProvider
+    from chatbot.config import require_bedrock_credentials
+
+    _no_aws(monkeypatch)
+    monkeypatch.delenv("AWS_EC2_METADATA_DISABLED")
+    monkeypatch.setattr(InstanceMetadataProvider, "load",
+                        lambda self: Credentials("ASIAEXAMPLE", "secret", "token"))
+    require_bedrock_credentials()  # no exit
+
+
+@pytest.mark.parametrize("env", [
+    {"AWS_PROFILE": "missing"},              # names a profile that doesn't exist
+    {"AWS_ACCESS_KEY_ID": "AKIAEXAMPLE"},    # a key id without its secret
+])
+def test_an_unusable_aws_setting_stops_the_chatbot(monkeypatch, env):
+    # Before #130 a set variable was enough, so these started and every chat failed.
+    import pytest
+    from chatbot.config import require_bedrock_credentials
+
+    _no_aws(monkeypatch)
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+    with pytest.raises(SystemExit, match="AWS_BEARER_TOKEN_BEDROCK"):
+        require_bedrock_credentials()
 
 
 def test_system_prompt_keeps_simulation_answers_to_the_statistics():

@@ -25,8 +25,10 @@ def _compose_set() -> set[str]:
     """Every variable compose substitutes or sets in a container."""
     substituted = re.findall(r"\$\{([A-Z][A-Z0-9_]*)", COMPOSE)
     set_in_env = re.findall(r"^\s*-\s*([A-Z][A-Z0-9_]*)=", COMPOSE, re.M)
+    # `- NAME` with no value passes NAME through only when it is set (#130).
+    passed_through = re.findall(r"^\s*-\s*([A-Z][A-Z0-9_]*)\s*$", COMPOSE, re.M)
     build_args = re.findall(r"^\s*([A-Z][A-Z0-9_]*):\s*\$\{", COMPOSE, re.M)
-    return set(substituted) | set(set_in_env) | set(build_args)
+    return set(substituted) | set(set_in_env) | set(passed_through) | set(build_args)
 
 
 def test_doc_names_variables():

@@ -22,10 +22,10 @@ Input for the deployment design. This lists what the agent needs, not how to dep
 |---|---|---|
 | `DTCC_AGENT_ACCESS_CODE` | chat | The code a user types to open a chat |
 | `DTCC_MCP_SECRET` | both | Shared secret sent on every chat-to-tool call |
-| `AWS_BEARER_TOKEN_BEDROCK` | chat | Bedrock API key. **The current key expires 2026-11-01.** In AWS, an IAM role with `bedrock:InvokeModel*` is better. |
+| `AWS_BEARER_TOKEN_BEDROCK` | chat | Bedrock API key. Optional: leave it unset in AWS and the chat uses the host's instance role, which needs `bedrock:InvokeModel*` (#130). **The current key expires 2026-11-01.** |
 | `DTCC_ENGINE_TOKEN` | tool server | The Engine's API token. Required when `DTCC_ENGINE_URL` is set, or the tool server won't start. |
 
-Compose refuses to start if any of the first three is missing.
+Compose refuses to start without the first two. The chat server refuses to start when it finds no Bedrock credential at all: no key, no standard AWS credentials or profile, and no container or instance role.
 
 ## Settings
 
@@ -33,6 +33,7 @@ Compose refuses to start if any of the first three is missing.
 |---|---|---|
 | `AWS_REGION` | `eu-north-1` | Bedrock region |
 | `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The model. Changing the model is this one setting. |
+| `DTCC_AGENT_BEDROCK_PROBE` | `1` | At each chat-server start, one paid 1-token Bedrock request that logs whether the credential works. `0` turns it off, for liveness checks. |
 | `DTCC_ENGINE_URL` | unset | **Engine mode:** the Engine's base URL. When set, simulations run as Engine jobs over HTTP, and dtcc-sim and the shared folder aren't used. |
 | `DTCC_ENGINE_TIMEOUT` | `900` | Seconds one simulation may take before it times out |
 | `DTCC_ENGINE_CORE` | unset | **Experimental, for a measurement (#110).** `1` downloads buildings and point clouds as Engine jobs too, without the agent's disk cache. Needs `DTCC_ENGINE_URL`. Leave unset in a deployment. |

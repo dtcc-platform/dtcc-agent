@@ -74,11 +74,26 @@ def load_model() -> str:
 def require_bedrock_credentials() -> None:
     """Exit unless some AWS credential is configured. Without one every chat
     turn would fail; better to refuse to start, and never fall back to
-    another provider."""
-    if not any(os.getenv(name) for name in
-               ("AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE")):
-        raise SystemExit("No Bedrock credentials: set AWS_BEARER_TOKEN_BEDROCK "
-                         "(or standard AWS credentials) to start the chatbot.")
+    another provider.
+
+    Besides a Bedrock API key, asks botocore's own credential chain, the one
+    the Bedrock client uses: environment keys, a profile, or a container or
+    instance role (#130), which sets no variable at all. It resolves
+    credentials but sends nothing to Bedrock; a rejected one passes, and the
+    startup probe reports it."""
+    if os.getenv("AWS_BEARER_TOKEN_BEDROCK"):
+        return
+    import botocore.exceptions
+    import botocore.session
+
+    try:
+        credentials = botocore.session.get_session().get_credentials()
+    except botocore.exceptions.BotoCoreError as exc:
+        raise SystemExit(f"Unusable AWS credentials ({exc}): set AWS_BEARER_TOKEN_BEDROCK "
+                         "or fix the AWS configuration to start the chatbot.") from exc
+    if credentials is None:
+        raise SystemExit("No Bedrock credentials: set AWS_BEARER_TOKEN_BEDROCK, standard AWS "
+                         "credentials, or run with an instance role to start the chatbot.")
 
 
 # The shortest access code accepted: anything shorter is guessable.
