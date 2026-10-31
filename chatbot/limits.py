@@ -17,7 +17,8 @@ turns concurrently and one turn makes several requests, so the spend limit
 counts the worst case of every request still running. The worst case is
 bounded by the request's size: a token covers at least one byte of text, so
 the serialized request bounds its input tokens, and output is capped at
-MAX_OUTPUT_TOKENS. Input is priced at the cache-write rate, the dearest.
+MAX_OUTPUT_TOKENS. The SDK's own retries are off, so one reservation covers
+one attempt; the runtime's fresh retry goes through the gate again. Input is priced at the cache-write rate, the dearest.
 
 The ledger is a file next to the answer records, so a restart doesn't reset
 the month: an amount still set aside when the server stopped counts as spent.
@@ -53,7 +54,8 @@ from chatbot.prices import price
 
 logger = logging.getLogger("lurkie")
 
-# Every model request is capped at this many output tokens. The longest
+# With a spend limit, every model request is capped at this many output
+# tokens, which bounds its worst case. The longest
 # recorded turn (369 pydantic-ai turns, 2026-10) used 4,038 across all its
 # requests, so the cap bounds cost without cutting answers short.
 MAX_OUTPUT_TOKENS = 8192
@@ -85,6 +87,9 @@ def _setting(name: str, kind: type, minimum: float) -> Any:
         value = kind(raw)
     except ValueError:
         raise SystemExit(f"{name} must be a number, not {raw!r}.") from None
+    if not math.isfinite(value):
+        # nan compares false with everything, so it would switch the limit off.
+        raise SystemExit(f"{name} must be a finite number, not {raw!r}.")
     if value < minimum:
         raise SystemExit(f"{name} must be at least {minimum}.")
     return value
@@ -122,13 +127,11 @@ class SpendLedger:
         self._month_of = month
         self._lock = threading.Lock()
         state = self._read()
-        if state.get("month") == self._month_of():
-            # What was set aside when the server stopped counts: it may have run.
-            spent = state["spent_usd"] + sum(state["held_usd"].values())
-        else:
-            spent = 0.0
         self.month = self._month_of()
-        self.spent = spent
+        # What was set aside when the server stopped counts, whatever month it
+        # was set aside in: the request may have run, and nothing settled it.
+        self.spent = (state["spent_usd"] if state.get("month") == self.month else 0.0)
+        self.spent += sum(state.get("held_usd", {}).values())
         self.held: dict[str, float] = {}
         self._write()
 
@@ -170,14 +173,17 @@ class SpendLedger:
                 os.unlink(tmp)
             raise
 
+    def _roll(self) -> None:
+        """Start a new month when the clock has passed into one. What was
+        spent is behind us; what is still set aside is not, and still counts."""
+        month = self._month_of()
+        if month != self.month:
+            self.month, self.spent = month, 0.0
+
     def reserve(self, amount: float) -> str:
         """Set amount aside, or raise LimitReached if it doesn't fit."""
         with self._lock:
-            month = self._month_of()
-            if month != self.month:
-                # A new month: what was spent is behind us; what is still set
-                # aside is not, and still counts.
-                self.month, self.spent = month, 0.0
+            self._roll()
             if self.spent + sum(self.held.values()) + amount > self.limit:
                 raise LimitReached(SPEND_REACHED)
             key = secrets.token_hex(8)
@@ -188,6 +194,8 @@ class SpendLedger:
     def settle(self, key: str, cost: float | None) -> None:
         """Replace what key set aside with what was spent: None keeps all of it."""
         with self._lock:
+            # A request that ends after midnight counts in the new month.
+            self._roll()
             held = self.held.pop(key)
             if cost is not None and cost > held:
                 logger.warning("A model request cost $%.4f, more than the $%.4f set aside for it.",
@@ -232,6 +240,9 @@ class LimitedModel(WrapperModel):
             self._context_window = found.model.context_window
 
     def _bounded(self, settings: ModelSettings | None) -> ModelSettings:
+        """Cap output when there is a spend limit to bound; otherwise unchanged."""
+        if self.ledger is None:
+            return settings or {}
         asked = (settings or {}).get("max_tokens") or MAX_OUTPUT_TOKENS
         return {**(settings or {}), "max_tokens": min(asked, MAX_OUTPUT_TOKENS)}
 

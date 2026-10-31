@@ -111,6 +111,30 @@ def test_a_new_month_starts_from_zero_but_still_counts_what_is_running(tmp_path)
     ledger.settle(running, 1.0)
 
 
+def test_a_restart_in_a_new_month_still_counts_what_was_set_aside(tmp_path):
+    path = tmp_path / "spend.json"
+    october = SpendLedger(path, 10.0, month=lambda: "2026-10")
+    october.settle(october.reserve(5.0), 5.0)
+    october.reserve(4.0)  # still running when the server stops at midnight
+
+    november = SpendLedger(path, 10.0, month=lambda: "2026-11")
+    assert november.total() == 4.0  # October's 5 is behind us; the unsettled 4 is not
+    with pytest.raises(LimitReached):
+        november.reserve(6.5)
+
+
+def test_a_request_settled_after_midnight_counts_in_the_new_month(tmp_path):
+    # Before, it was added to the old month and then dropped at the next reserve.
+    month = ["2026-10"]
+    ledger = SpendLedger(tmp_path / "spend.json", 100.0, month=lambda: month[0])
+    key = ledger.reserve(3.0)
+    month[0] = "2026-11"
+    ledger.settle(key, 2.0)
+    with pytest.raises(LimitReached):
+        ledger.reserve(99.0)
+    assert ledger.total() == 2.0
+
+
 def test_an_unreadable_ledger_stops_the_server(tmp_path):
     path = tmp_path / "spend.json"
     path.write_text("{not json")
@@ -120,14 +144,38 @@ def test_an_unreadable_ledger_stops_the_server(tmp_path):
 
 # --- The model gate -----------------------------------------------------------
 
-def test_every_request_is_capped_at_the_output_limit():
+def test_with_a_spend_limit_every_request_is_capped_at_the_output_limit(tmp_path):
     seen = []
-    model = LimitedModel(_answering(seen=seen), MODEL)
+    model = LimitedModel(_answering(seen=seen), MODEL, SpendLedger(tmp_path / "spend.json", 10.0))
     asyncio.run(model_request(model, [ModelRequest.user_text_prompt("hi")],
                               model_settings={"max_tokens": 100_000}))
     asyncio.run(model_request(model, [ModelRequest.user_text_prompt("hi")],
                               model_settings={"max_tokens": 1}))
     assert seen == [{"max_tokens": limits.MAX_OUTPUT_TOKENS}, {"max_tokens": 1}]
+
+
+def test_without_a_spend_limit_output_is_not_capped():
+    # Unset limits change nothing: the cap exists to bound the spend limit's worst case.
+    seen = []
+    model = LimitedModel(_answering(seen=seen), MODEL)
+    asyncio.run(model_request(model, [ModelRequest.user_text_prompt("hi")]))
+    asyncio.run(model_request(model, [ModelRequest.user_text_prompt("hi")],
+                              model_settings={"max_tokens": 100_000}))
+    assert [(s or {}).get("max_tokens") for s in seen] == [None, 100_000]
+
+
+def test_with_a_spend_limit_the_bedrock_client_does_not_retry(monkeypatch, tmp_path):
+    # botocore's retries happen inside one reserved request, so they'd go uncounted.
+    monkeypatch.setenv("DTCC_AGENT_MONTHLY_SPEND_USD", "90")
+    monkeypatch.setenv("DTCC_AGENT_LOG_DIR", str(tmp_path))
+    monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "x")
+    monkeypatch.setenv("AWS_MAX_ATTEMPTS", "5")
+    pai.model.cache_clear()
+    try:
+        model = pai.model()
+        assert model.wrapped.client.meta.config.retries["total_max_attempts"] == 1
+    finally:
+        pai.model.cache_clear()
 
 
 def test_a_request_is_charged_what_it_cost_and_its_worst_case_bounds_that(tmp_path):
@@ -345,6 +393,9 @@ def test_another_timeout_inside_a_turn_is_an_error_not_the_deadline(turn):
 
 @pytest.mark.parametrize("name, value", [
     ("DTCC_AGENT_MONTHLY_SPEND_USD", "lots"),
+    ("DTCC_AGENT_MONTHLY_SPEND_USD", "nan"),  # nan compares false: the limit would be off
+    ("DTCC_AGENT_MONTHLY_SPEND_USD", "inf"),
+    ("DTCC_AGENT_TURN_SECONDS", "nan"),
     ("DTCC_AGENT_TURNS_PER_CHAT", "0"),
     ("DTCC_AGENT_MODEL_CONCURRENCY", "1.5"),
 ])

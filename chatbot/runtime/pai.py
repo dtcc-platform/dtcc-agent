@@ -62,12 +62,17 @@ def model() -> limits.LimitedModel:
     Built on first use: creating the Bedrock client resolves AWS credentials.
     Thinking is left at the model's default, as the SDK left it, so the M3
     gate compares runtimes and not thinking budgets."""
-    bedrock = BedrockConverseModel(
-        load_model(),
-        provider=BedrockProvider(region_name=os.getenv("AWS_REGION") or DEFAULT_REGION),
-    )
-    return limits.LimitedModel(bedrock, load_model(), limits.ledger(log_dir()),
-                               limits.model_concurrency())
+    ledger = limits.ledger(log_dir())
+    if ledger is not None:
+        # botocore retries inside one request, which the spend gate sees as one
+        # attempt; a retry after Bedrock accepted the request could be billed
+        # twice. botocore reads this when the client is built (#132).
+        os.environ["AWS_MAX_ATTEMPTS"] = "1"
+    provider = BedrockProvider(region_name=os.getenv("AWS_REGION") or DEFAULT_REGION)
+    if ledger is not None and provider.client.meta.config.retries.get("total_max_attempts") != 1:
+        raise SystemExit("A spend limit needs the Bedrock client's own retries off, and they aren't.")
+    bedrock = BedrockConverseModel(load_model(), provider=provider)
+    return limits.LimitedModel(bedrock, load_model(), ledger, limits.model_concurrency())
 
 
 
@@ -135,9 +140,9 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
         scope = asyncio.timeout(deadline)
         try:
             allowed = limits.turns_per_chat()
-            if allowed is not None and session.answered >= allowed:
+            if allowed is not None and session.turns_started >= allowed:
                 raise LimitReached(limits.TURNS_REACHED.format(limit=allowed))
-            session.answered += 1
+            session.turns_started += 1
             async with scope:
                 try:
                     return await _run(ws, session, user_text, turn, memory, usage, models)

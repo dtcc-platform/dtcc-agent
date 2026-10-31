@@ -121,3 +121,9 @@ budgets come first, as written.
 referenced directly from fifteen tool bodies. There is no seam to thread an identifier through;
 `dispatcher.py` is the only module already written to take `store` and `cache` as parameters, and
 it is therefore where the rebuild starts.
+
+**Exception: deployment-wide ceilings (#132).** The monthly model spend limit and the cap on model
+requests at once belong to the deployment, not to a Session: they bound what the operator pays and
+what Bedrock is asked for, across everyone. A Session's own budgets, such as its share of the object
+budget and its turn limit, stay per-Session as written above. A ceiling holds only amounts and
+counts, never another Session's objects, runs or memory, so it doesn't cross the isolation boundary.
