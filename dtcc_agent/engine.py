@@ -10,7 +10,7 @@ health behind one bearer token:
 
 - ``GET  /api/v1/datasets``: ``{"datasets": {name: describe()}, ...}``
 - ``POST /api/v1/jobs`` ``{"dataset", "parameters"}``: 202 ``{"job_id", "status_url"}``
-- ``GET  /api/v1/jobs/{id}``: ``{"state": queued|unconfirmed|running|completed|failed, ...}``
+- ``GET  /api/v1/jobs/{id}``: ``{"state": queued|unconfirmed|running|completed|failed|cancelled, ...}``
 - ``GET  /api/v1/jobs/{id}/package``: the result package
 """
 
@@ -165,6 +165,11 @@ class Engine:
                 if job["state"] == "failed":
                     kind = (job.get("error") or {}).get("type") or "unknown error"
                     raise EngineError(f"Engine job {job_id} failed: {kind}")
+                if job["state"] == "cancelled":
+                    # Callers share one workspace, so another can cancel a job
+                    # before a worker claims it (#131).
+                    raise EngineError(f"Engine job {job_id} was cancelled before it ran; "
+                                      "run it again if it is still wanted.")
             # 503 (job state briefly unknown) or still queued/running: wait.
             if self._clock() + delay > deadline:
                 raise EngineError(f"Engine job {job_id} did not finish within "

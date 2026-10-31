@@ -119,6 +119,16 @@ def test_a_failed_job_reports_its_error_type():
         client.wait("j1")
 
 
+def test_a_cancelled_job_ends_the_wait_at_once():
+    # Callers share one workspace, so another can cancel a job before a worker
+    # claims it (#131). Before, the client polled it until the timeout.
+    client, sleeps = _client(FakeEngine(states=["cancelled"]))
+
+    with pytest.raises(engine.EngineError, match="j1 was cancelled"):
+        client.wait("j1")
+    assert sleeps == []
+
+
 def test_an_expired_job_says_to_run_it_again():
     client, _ = _client(FakeEngine(states=[httpx.Response(404, json={"detail": "unknown"})]))
 
