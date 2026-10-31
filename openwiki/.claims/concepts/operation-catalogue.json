@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:db8039372e3553da28992dda9790c9058f17af8033b09f54490c827683e24a2b",
+  "pageVersion": "sha256:2db04e718ab12642cb4d8806ac7f0e7b2d67c95461b37c0393850ffad3227e62",
   "claims": [
     {
       "id": "claim_548542bb861e4fc5ace823d8124d1385",
@@ -60,11 +60,15 @@
     },
     {
       "id": "claim_42a07d24e719479493c8a88d754dfff5",
-      "statement": "ADR-0007 keeps the agent's own generic dispatch (registry, dispatcher, runner, serializers) instead of becoming a DTCC Engine client, accepting the duplication because the Engine has no code.",
+      "statement": "The agent keeps its own generic discovery and dispatch over Core (registry, dispatcher, serializers): ADR-0007 decided this when the Engine had no code, and ADR-0011, which supersedes it, keeps that half while moving simulations onto the Engine.",
       "evidence": [
         {
-          "resource": "repo://docs/adr/0007-agent-keeps-its-own-generic-dispatch.md#L1-L30",
-          "version": "repo-lines-v1:sha256:2e544458dfb4f0b2e8037e03ae3909c0328f13abb325444c974cd702fcb2eeb6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0ZTcxOTU2MDQ2MTI3OTA0Njc5ZjllZDgxMmIwZTUxZjY3YTgzZjU3N2ExNjgzZmRkZGVjN2ZhZjQ4NjFiOGYifQ"
+          "resource": "repo://docs/adr/0007-agent-keeps-its-own-generic-dispatch.md#L1-L8",
+          "version": "repo-lines-v1:sha256:5d076b1f05e4fe0626c9690cb572e5a5b6a73d5b92022a12ac39e485c3b88457:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyZDcxMTEwM2Q1MGE0Mzc4MzBjNmZiY2QwNGZiNGJhYjQ5YTBmODJmNmQyNmQxYzc5MWM2ZTg0ODhkZDA5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTllYmFhOTc1NzgzZDEzYTAxNDdiYzBhNWRkOGQ2NmVhNWZjY2FjYzk2NmMxZGQxYjQ2YzQ2ZmNiMDkxYTA5ZSJ9"
+        },
+        {
+          "resource": "repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md#L1-L27",
+          "version": "repo-lines-v1:sha256:8accfd3e452b0cc161dec4c217df3968eb4f235d9a756770aa2fec4cb5188912:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MDIyMzA2MDk1MTU5ZDM4ZGUyZDNiODI3NmVmOTgwMDRmNDVhOWU2Y2Y3YTQyMGJhZDljNDVlNjJjYjFiNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlZDcxM2ZkNjkxOWE3ZWE0MDRiM2MwOTdkMDlkNGVhMTA4ZjMxOGVhZDY3ZDI3YjFmMWY0NjJkZmM3MjRmNjEifQ"
         }
       ]
     },
@@ -163,6 +167,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

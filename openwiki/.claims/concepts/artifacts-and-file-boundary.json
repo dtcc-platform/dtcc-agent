@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:25bfc6e95e0125fa65cb72e9fc01458483af946e3512f744bb9f27524ec5a46a",
+  "pageVersion": "sha256:66ad2d4926834f4ddffc1f8ea3d7d9265ea4b46d48dc4ebfc7ca189c0849e833",
   "claims": [
     {
       "id": "claim_776ce99ee18a4db2ae49cdc5a367869e",
@@ -38,19 +38,19 @@
     },
     {
       "id": "claim_256c3f52efe94cf7b913fbddcfc005a9",
-      "statement": "After each tool result the runtime's artifact_frame unwraps an MCP server's {\"result\": ...} structured form and sends an image or file frame only for an artifact that exists in the current session's folder.",
+      "statement": "After each tool result the runtime's artifact_frame unwraps an MCP server's {\"result\": ...} structured form and sends an image or file frame, with a URL relative to the page, only for an artifact that exists in the current session's folder.",
       "evidence": [
         {
-          "resource": "repo://chatbot/runtime/__init__.py#L38-L61",
-          "version": "repo-lines-v1:sha256:58be364de657ca2ae6007c7780e05534e80b46916488315cc3f554d566d77aa7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNDlhNGE3Y2Y1ODhlNmQzYzA1MzNiMWIyZTk3MTMzYTNhOWUxZTUyYjA2ZjBhYjgyYTg4YjA5N2U1N2Y0ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViOTAxYjNkNmEwMTJjMzkyNTU2ZTUwNTllMzFiMmI4MmRmMjYwNThiODM1NjRhZDkwM2EyYjRmMzU5NmEwOGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5NTI3OWFjMmI1MjI4MTZlOWMzMDdlYjJlMGY3YjcwZmU5YTU0YWQzMTY0ODE1OGMxMjU3MjE2MDlhZTQ2ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://chatbot/runtime/__init__.py#L38-L62",
+          "version": "repo-lines-v1:sha256:c8c3fbce1cc95b98c64b82619d0c16f4eecbcfe8a2d4075fbec8c3ba82667740:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNDlhNGE3Y2Y1ODhlNmQzYzA1MzNiMWIyZTk3MTMzYTNhOWUxZTUyYjA2ZjBhYjgyYTg4YjA5N2U1N2Y0ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViOTAxYjNkNmEwMTJjMzkyNTU2ZTUwNTllMzFiMmI4MmRmMjYwNThiODM1NjRhZDkwM2EyYjRmMzU5NmEwOGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5NTI3OWFjMmI1MjI4MTZlOWMzMDdlYjJlMGY3YjcwZmU5YTU0YWQzMTY0ODE1OGMxMjU3MjE2MDlhZTQ2ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://chatbot/runtime/pai.py#L196-L199",
-          "version": "repo-lines-v1:sha256:48c588814c5538808b9147b190fa01d6809f5160e009e877891f7d778671ebc6:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTgyMzdjZjFiNTQwMzllMjQyNmExNjhlNDJkYTQ3ZDhjODg4MTJkNjVmYTIxYzJmNTdiZmMzZjAxYmE4M2Q1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjM0ZmUwODQwZTEyNDAyOWJiZjExNDljM2RlN2YxYzhjMThlMTg4ZDU0NmQ1MzhhMzQ5ODJmNDUzODFhZjU0MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWM4ZWU3ZmY3MGU4ZjFlMjBhNjhiODA2MTYxZDI1ZWZiOTUwYTE0ZTc3OGQxZDVmYmQzMjljMjNjMGZlOWYzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBhNGIyOWU1MTY3YTM5NzE2N2RjZDFjZjM4YjFiYTZmOWZkODc2ZDFmNzYzMmU3YTk1NzYzMjI3NDgxNjY4ZiJ9"
+          "resource": "repo://chatbot/runtime/pai.py#L235-L240",
+          "version": "repo-lines-v1:sha256:81a2daed54e791e8b088a20176a7c5a8c84016af0d66d37192fd4bbc6b938014:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTgyMzdjZjFiNTQwMzllMjQyNmExNjhlNDJkYTQ3ZDhjODg4MTJkNjVmYTIxYzJmNTdiZmMzZjAxYmE4M2Q1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGU4YWMyYzViZjg3MmFhNTM2ZGQxNmI1NjM3ZDFkYjU0NGU0M2VhNTMyODdjOTM2ODIxNWI4YjczM2E4NTY1NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWM4ZWU3ZmY3MGU4ZjFlMjBhNjhiODA2MTYxZDI1ZWZiOTUwYTE0ZTc3OGQxZDVmYmQzMjljMjNjMGZlOWYzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE4NDM5MzBhZDEwMDAwN2RhNGMwZjM0NzRmYThiNmMwNjMwZTMzMTQzMTk1MDE3MWZhMjVmZDI3YTQzYzYyZiJ9"
         },
         {
-          "resource": "repo://tests/test_chatbot_app.py#L130-L170",
-          "version": "repo-lines-v1:sha256:c22e55c7600c3d65be820b7f89972f44ab16c28ac1c8cc856b854c4d820e45e8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NzQ0ODE4NjI2ZmE5NDgwOGE4MDliNzk1ZWY4YzJhZjY1YzE5NmUzM2U1NzQ4MzRhNzMyNjAyZjNhYmNlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYWQ4YTEwZGZhZWE2M2Y1ZGQ2MTA0Yzg0OTMzMzcxMmFmY2QwOTQ5NWRiY2ZmY2I4YjY5MWE4ZWQ5ODkwNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWY2N2RlMzMwYWM3NzBlZThiZDI2ZmJmZjY2ODZkOTAxNTY4NjM4NDMwYWM3OWEyNzkyMDY0MTZlNjUyYTAifQ"
+          "resource": "repo://tests/test_chatbot_app.py#L130-L161",
+          "version": "repo-lines-v1:sha256:72efd563b93a005fe86d270de446a709a8abc213bb57cfdc9a275c176a87acb5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NzQ0ODE4NjI2ZmE5NDgwOGE4MDliNzk1ZWY4YzJhZjY1YzE5NmUzM2U1NzQ4MzRhNzMyNjAyZjNhYmNlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2M2FhZTM5YWQ1OWZhZjMyZDNhMDQ1OGI4OTM0NmU4ZTg4ZTkxZmRkNDA0NTQwM2E4OGEwNjdlYjU2Mjk5NjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYWQ4YTEwZGZhZWE2M2Y1ZGQ2MTA0Yzg0OTMzMzcxMmFmY2QwOTQ5NWRiY2ZmY2I4YjY5MWE4ZWQ5ODkwNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1OGJlZmQ3YmUyZjdhNGNmNGM4ODJjNjc0ZTlkYzg3Yjc4YTQwODA2YTgxYjJmZWQzOWQ5ZjgwMWYwNDA2NTYifQ"
         }
       ]
     },
@@ -127,6 +127,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

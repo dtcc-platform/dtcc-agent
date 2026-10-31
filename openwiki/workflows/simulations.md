@@ -20,10 +20,10 @@ sources:
     resource: repo://tests/test_server.py
   - id: openwiki-source-78cb3829d99282044a473bc8
     resource: repo://tests/test_simulation_results.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Simulations, runs and geocoding
@@ -67,7 +67,7 @@ The MCP tool checks the disk cache first and shares both its cache entry and its
 
 Only `urban_heat_simulation` and `air_quality_field` are treated as simulations (`_SIMULATION_NAMES`). Exactly one path runs, chosen by configuration, with no fallback between them:
 
-- **The DTCC Engine** (#113), when `DTCC_ENGINE_URL` is set. Each simulation is an Engine job: submitted, polled, and its result downloaded over HTTP as a `.dtccpkg` that Core reads into a `VolumeMesh`. Listing and schemas come from the Engine. Details in [DTCC Engine integration](../integrations/dtcc-engine.md).
+- **The DTCC Engine** (#113), when `DTCC_ENGINE_URL` is set. Each simulation is an Engine job: submitted, polled, and its result downloaded over HTTP as a `.dtccpkg` that Core reads into a `VolumeMesh`. Listing and schemas come from the Engine. A job another caller cancels before it runs ends the wait at once with an error the model relays (#131). Details in [DTCC Engine integration](../integrations/dtcc-engine.md).
 - **The dtcc-sim mini-service**, when `DTCC_SIM_SERVICE_URL` or `DTCC_REMOTE_SERVICES` is set:
   - The configured URLs are registered with dtcc-core's `register_remote_service`, each once it answers. `list_simulations`, `get_simulation_schema` and `run` register any service not yet registered on the spot, and a background thread keeps asking a service that is down (see [Operation catalogue](../concepts/operation-catalogue.md)). Registration is all or nothing, and a remote dataset never replaces a non-remote one of the same name.
   - Datasets are resolved from Core's registry and must carry a `base_url`.

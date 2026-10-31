@@ -22,10 +22,10 @@ sources:
     resource: repo://tests/test_catalogue_startup.py
   - id: openwiki-source-9b5246b31b1e97d9e4442ac9
     resource: repo://tests/test_chatbot_app.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Chatbot (Lurkie)
@@ -42,15 +42,17 @@ verified:
 | `GET /artifacts/{session_id}/{name}` | A file a tool produced, served only while that session is live, as `image/png` for images and as a download otherwise, with `Cache-Control: private, no-store` and `nosniff`. See [Artifacts and the file boundary](../concepts/artifacts-and-file-boundary.md). |
 | `WS /chat` | The conversation (below). |
 
+**Paths in the page are relative** (#134): the page opens its websocket at `new URL("chat", location.href)` with `ws:` or `wss:`, fetches `admission`, loads `static/...` icons, and gets `artifacts/...` URLs from the frames. So the same app works at the root and behind a gateway that serves it under a prefix such as `/agent/` and strips the prefix before forwarding. A small script at the top of the page adds a missing trailing slash (`location.replace`), because at `/agent` a relative URL would resolve to the gateway's root. The routes themselves are unchanged; the gateway must route bare `/agent` as well as `/agent/*`.
+
 ## Startup
 
-The app's lifespan exits unless an AWS credential is set, logs the model and runtime, and starts the background Bedrock key probe. At import, `load_runtime()` exits if `DTCC_AGENT_RUNTIME` still asks for the removed Agent SDK, and `load_access_code()` exits on an access code shorter than 16 characters.
+The app's lifespan exits unless a Bedrock key is set or botocore's credential chain finds a credential (environment keys, a profile, or an instance role, #130). It logs the model, the runtime and the limits in force, builds the model (so a bad limit setting or an unreadable spend ledger stops the server), and starts the background Bedrock probe. At import, `load_runtime()` exits if `DTCC_AGENT_RUNTIME` still asks for the removed Agent SDK, and `load_access_code()` exits on an access code shorter than 16 characters.
 
 ## The `/chat` protocol
 
 1. **Open.** The page sends one JSON message: `{"session_id": ...}` to resume, plus `access_code` when opening a new chat. A live session resumes on its id alone. Otherwise the code is checked with `hmac.compare_digest`; a missing or wrong one gets `{"type": "error", "code": "admission_required"}` and a close with **4401**, and no session is created. The server then sends `{"type": "session", "session_id": ...}`.
 2. **Each message.** If the session has been idle for the hour (U7), the socket closes with **4408** and the page starts a new session. `{"type": "new_chat"}` clears the conversation history but keeps the session and its files. An empty message is ignored; one over 10,000 characters gets a short text reply and `done`.
-3. **A turn.** Inside `sessions.turn(...)`, so the session cannot expire mid-turn, the server sends `{"type": "status", "content": "thinking"}`, calls `runtime.answer(...)`, which streams `text`, `tool_call`, `image` and `file` frames, stores the exchange in conversation memory off the event loop (#94), and finishes with a `provenance` frame and `done`.
+3. **A turn.** Inside `sessions.turn(...)`, so the session cannot expire mid-turn, the server sends `{"type": "status", "content": "thinking"}`, calls `runtime.answer(...)`, which streams `text`, `tool_call`, `image` and `file` frames (when a limit stops the turn, a single `text` frame with the limit's message, see [Turn and spend limits](../operations/turn-and-spend-limits.md)), stores the exchange in conversation memory off the event loop (#94), and finishes with a `provenance` frame and `done`.
 
 Exactly one `answers.jsonl` line is written per turn, whatever happens: a fresh retry adds to it, and a turn cut short by a closed socket or a cancelled task still writes its record. See [Provenance and evaluation](../operations/provenance-and-evaluation.md).
 

@@ -8,6 +8,8 @@ sources:
     resource: repo://.github/workflows/dtcc-core-contract.yml
   - id: openwiki-source-69befafd44aed5a2ceb6450c
     resource: repo://docs/adr/0007-agent-keeps-its-own-generic-dispatch.md
+  - id: openwiki-source-5362e3b27c4a029e63907699
+    resource: repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md
   - id: openwiki-source-4163f0ea9e6726ccca521458
     resource: repo://dtcc_agent/registry.py
   - id: openwiki-source-32c33c58f635fb0708a0e8c6
@@ -22,10 +24,10 @@ sources:
     resource: repo://tests/test_engine.py
   - id: openwiki-source-f7a9ed42f310602857a88be4
     resource: repo://tests/test_path_refusal.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Operation catalogue
@@ -95,7 +97,7 @@ Registration itself is Core's `register_remote_service`, which since the pin mov
 
 ## Why the agent keeps its own catalogue
 
-The DTCC Twin design names a *Capability Catalog* of authoritative Dataset Definitions, and the planned DTCC Engine specifies the same generic discovery. ADR-0007 (accepted 2026-09-19) keeps `registry.py`, `dispatcher.py`, `runner.py` and `serializers.py` in this repo anyway. The Engine has no code yet, so the duplication is accepted deliberately. ADR-0002 records the direction of convergence on Twin contracts. The descriptors reflected here carry three fields where the Twin definition calls for nine.
+The DTCC Twin design names a *Capability Catalog* of authoritative Dataset Definitions, and the planned DTCC Engine specifies the same generic discovery. ADR-0007 (2026-09-19) kept `registry.py`, `dispatcher.py`, `runner.py` and `serializers.py` in this repo anyway, when the Engine had no code. ADR-0011 (2026-10-20) supersedes it now that the Engine exists: simulations run as Engine jobs, but this discovery and dispatch over Core stays in the agent, as do the downloads behind the disk cache, so the duplication is still accepted deliberately. ADR-0002 records the direction of convergence on Twin contracts. The descriptors reflected here carry three fields where the Twin definition calls for nine.
 
 ## Tests
 

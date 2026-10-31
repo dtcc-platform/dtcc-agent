@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d14449ed4bf240438ecc7192844ff3f11c7095cb7a25d5e505f0f20f8aa09002",
+  "pageVersion": "sha256:a05990ec64bb2ee92ae3e63846a40944d74670659e0c4b15cb56bbe7941fc3fe",
   "claims": [
     {
       "id": "claim_9da995f22fc3412c950955bd53d0117c",
@@ -11,8 +11,8 @@
           "version": "repo-lines-v1:sha256:15ebb7fc55c17e35632e48ac200980775d59a82faec89aaf4cfb8020ecc53763:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYjRmMDU2MzIxNjFmNzk2MmJkOTgyYjM3MDFlMDgxMTkyNGM4ZTc3YmQwMTU1ODM5YzI0ZGU0MWVmNTQwMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ODQzZDQxYTFhMjM0Yjk1ZDgzMWRiZjE0MzU4OWFiMzFiODFmMTY1YzVmMDc1MDIzM2E0ZThkNGJkYzQ2MDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0MmI4YTkxNTkyZTBlMDVmY2NiZjZhZjA1YzQ1MTQyZDUzZDY1Y2M0NGYxZWI4ZjYxOTkzNTQ4YjJiZjYxMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmNDdkYmZhNmMyYzRmYzIxZjVkMGE0ZWVkYWVmNjFlMGE4MThlYTkxZDYzOWZjNGE5MjQyNDAwYjFiY2RkOWEifQ"
         },
         {
-          "resource": "repo://chatbot/runtime/pai.py#L57-L67",
-          "version": "repo-lines-v1:sha256:683adf22fb1186f1d3d22a63ec6615081199e86045231bcc25f9ddd72c8255f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZWRmYTI3ZTAxNGE2M2UwNTk2ODFhOWY0MWJjMTg1MTBhMTIzZGM0MWE1ZTQ4YWQwZTJlNmQxN2FiYjNlYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyMjdhNmI4ZGRlZjU3YzI3NWMzOTYzZDE3NTVmZjJiMDNkODdhM2M3MWEwNmMwZmY4NTZiNWE1Y2U2Y2RkMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyMDVhYWY0YzgyYWY0MGM3ZWNjMzNmYWYzYTZmM2I3NTdmOTk3YTM5OTg3YzAwNGY2ZWJlMzg5NzhhOWI0MDMifQ"
+          "resource": "repo://chatbot/runtime/pai.py#L59-L75",
+          "version": "repo-lines-v1:sha256:16d2c95a9ce910f79611bb5fa2832855ecd4e4750eab7ea2bb173a7f7395a28f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZWRmYTI3ZTAxNGE2M2UwNTk2ODFhOWY0MWJjMTg1MTBhMTIzZGM0MWE1ZTQ4YWQwZTJlNmQxN2FiYjNlYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNTY5MWJhNDc0Yjg0YjIxNDU4MjQ5NjFkMmUwM2I2NWZiN2Q0MzE5ODM2NWYxMDhlZTRiZWI4NGRiMmQ3MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyMjdhNmI4ZGRlZjU3YzI3NWMzOTYzZDE3NTVmZjJiMDNkODdhM2M3MWEwNmMwZmY4NTZiNWE1Y2U2Y2RkMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhM2NmNTE5MjM1NGY3MTYxNWFjNTEwMzRiM2U5N2MyMGVkYTk5NjQzZmNhZjViYmU2ZDQxYWQ1OWJkMTIxNjcifQ"
         },
         {
           "resource": "repo://docs/adr/0003-replace-agent-sdk-with-pydantic-ai.md#L59-L78",
@@ -112,11 +112,11 @@
     },
     {
       "id": "claim_204dce3651a14aceb47fb49b498030f9",
-      "statement": "As of 2026-10-13 milestones M0 to M3 are delivered and M4 has merged the heatwave statistics, SDK removal, Bedrock key errors, the source_bounds crop and simulations on the DTCC Engine; U-decisions U1, U2, U4, U6, U7, U9, U10 and U11 are settled.",
+      "statement": "As of 2026-10-31 milestones M0 to M4 are delivered, including simulations on the DTCC Engine and ADR-0011, and dtcc-infra's five deployment requests (A2) are merged as #135 to #139.",
       "evidence": [
         {
           "resource": "repo://CHANGELOG.md",
-          "version": "repo-file-v1:sha256:9a0bade86dfce0c11c40ca815dd89d19064e96cec1b174b69512b6a560036053"
+          "version": "repo-file-v1:sha256:a587d12b9df38ba2d73b8f02f029963d12a7cf41ba27de902dcdf4275251bc7c"
         }
       ]
     },
@@ -133,10 +133,24 @@
           "version": "repo-lines-v1:sha256:6162180f4948ef70637042bbbca79b1fae9ca3712bb2fa62669af3b715cb0491:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NTNmNDQ5NmIzMzM3YzI2YmYwZjVhNDZmY2Y4Y2E3N2MwZjBjOTZhYjVhMDE0NWEzYzEzNDlkOWJmYjQzYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhYjQ5YTIzODkzNTUzYmQ5ZmM4N2NjNDYwYTMzYjU0YWI0ZDBkNjFmMzJlNDZlOTUyMTg3ZjFiZDgwZTI1MGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0ZWYzMmE3NTNhYjA2OGI0ODQwMWQ2ZGIxZGVkZDMwM2VkZDJhOTMyNzhhYTQzNmMyM2E4NmExMGZmZTQ0ZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmZTBlZjQ3YTIxZGI0OWVkODU5NDlmODFhMzllNDIwMDZkYzRkZTBmODFmYWM0NTc4ZWJmZGExYTI4M2ViNDQifQ"
         }
       ]
+    },
+    {
+      "id": "claim_8fc573275bf6497593d4096f06e4fea6",
+      "statement": "ADR-0007 is marked superseded by ADR-0011, which keeps the agent's own dispatch over Core and its in-process downloads while moving simulations onto the DTCC Engine.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0007-agent-keeps-its-own-generic-dispatch.md#L1-L8",
+          "version": "repo-lines-v1:sha256:5d076b1f05e4fe0626c9690cb572e5a5b6a73d5b92022a12ac39e485c3b88457:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyZDcxMTEwM2Q1MGE0Mzc4MzBjNmZiY2QwNGZiNGJhYjQ5YTBmODJmNmQyNmQxYzc5MWM2ZTg0ODhkZDA5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTllYmFhOTc1NzgzZDEzYTAxNDdiYzBhNWRkOGQ2NmVhNWZjY2FjYzk2NmMxZGQxYjQ2YzQ2ZmNiMDkxYTA5ZSJ9"
+        },
+        {
+          "resource": "repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md#L1-L12",
+          "version": "repo-lines-v1:sha256:3703f908f70dafaf0156a9945e9cb8bf25494fb60dae10a8f8f56398f56c61a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwZDQ1MGFhNjAwZTYxMzlkM2FmYjU5YjYxYzZiNzc0NzRhZWY4MWNhZmFkOGViYjk4ZmI5ODY5Zjk2MGVlMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwNGZiNjIwY2VjNzZkYWRjOTZlMmIzMTlmZDEyMzQ4Y2E0YWFjY2VlYTZiZGRjMGIxOGRhYjhjZTlkN2YxYjcifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

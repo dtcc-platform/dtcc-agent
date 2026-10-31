@@ -12,6 +12,8 @@ sources:
     resource: repo://chatbot/memory.py
   - id: openwiki-source-f4e2e41b78ef4f0591d5eac2
     resource: repo://chatbot/sessions.py
+  - id: openwiki-source-2d18eac28ce6bc775094dd62
+    resource: repo://docs/adr/0004-session-is-the-isolation-unit.md
   - id: openwiki-source-052f7c9f16ee5a8169a3fb7d
     resource: repo://dtcc_agent/disk_cache.py
   - id: openwiki-source-10801051a0be31ef9b711d8f
@@ -22,10 +24,10 @@ sources:
     resource: repo://tests/test_chatbot_sessions.py
   - id: openwiki-source-7da8cb11cdc15fb1e5a1f088
     resource: repo://tests/test_http_sessions.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Sessions and isolation
@@ -74,8 +76,14 @@ Sessions are keyed by the header value rather than by MCP transport session, bec
 
 Two checks keep a deployment from running open by accident; Compose refuses to start without either.
 
+- **Resuming is not activity** (#115). The page reconnects by itself whenever its socket drops, so a reconnect on a live session id does not count toward the idle hour; only a message or the end of a turn does. A tab left open still expires.
+- **Each chat counts its turns.** `Session.turns_started` counts every turn the chat has started, refused and failed ones included, against `DTCC_AGENT_TURNS_PER_CHAT` (#132). "New chat" in the page keeps the session, so it keeps the count.
 - **Opening a chat needs an access code.** `DTCC_AGENT_ACCESS_CODE` (at least 16 characters, or the chatbot does not start) is compared with `hmac.compare_digest`. A missing or wrong code closes the websocket with 4401 and creates no session; a live session resumes on its id alone. Unset, admission is off and the chatbot logs a warning, repeated every 100 chats opened.
 - **Every MCP call needs the secret.** With `DTCC_MCP_SECRET` set, the MCP server answers any HTTP request without `Authorization: Bearer <secret>` with a bare 401; without it, the server refuses to bind a non-loopback host. See [MCP server and tool execution](mcp-server-and-tool-execution.md).
+
+## Deployment-wide ceilings are not Session budgets
+
+ADR-0004 has a recorded exception (#132): the monthly model-spend limit and the cap on model requests at once belong to the deployment, not to a Session. They bound what the operator pays and what Bedrock is asked for, across everyone, so one chat can use up the month for all. They hold only amounts and counts, never another Session's objects, runs or memory. Per-Session budgets (the object-budget share, the turn limit) stay per-Session. See [Turn and spend limits](../operations/turn-and-spend-limits.md).
 
 ## The hybrid boundary for cached data
 

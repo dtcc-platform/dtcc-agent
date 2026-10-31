@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ab2029ae40652b4c0ccbeb59c17e1d2cb01bf37ab19c3c2f07763542586bc24e",
+  "pageVersion": "sha256:73bd81c73be1589023996fc8c05ea620e22e1f54eb7c8db72e2d3cd9cd09e7dc",
   "claims": [
     {
       "id": "claim_32fc11b4023c4c5aa008420425548a03",
@@ -68,21 +68,21 @@
     },
     {
       "id": "claim_4754368e786b4be8b8d13f3db78680db",
-      "statement": "The chatbot needs a Bedrock credential to start, and Compose additionally requires the MCP secret and the access code.",
+      "statement": "The chatbot needs a Bedrock credential to start, either AWS_BEARER_TOKEN_BEDROCK or one botocore's credential chain finds, and Compose additionally requires the MCP secret and the access code while passing the Bedrock key only when it is set.",
       "evidence": [
         {
-          "resource": "repo://chatbot/config.py#L74-L85",
-          "version": "repo-lines-v1:sha256:490f49f41b8ba06cca32662b20f17953dce693854c0febf600c2c4deebf7aa22:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzN2NiNzZhMjA5OGE3OWQzZDkxZjA3MzM4MDMzZTVhMjFlMDU3Zjg3NWM5NTU2OTUzYTc3NzRkNmI3NDRjMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzY2VkMzUxNGRkYTY4NzRkMjAyMDM0ZTc2ZWIxZmJiZmE5YzcxYjAyMDA1Y2RkZTUyZjUyY2JkZjQ1NDVkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YmE0NjhkYTAyZDkyZWJhNmFlNjc4ZGI4YmYyZDkyMDkzYjQ0YWI2Y2E3YTMyZDMwMmFjNTRkNDY3ZjBkZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwNjFlNDFkZmUxZDBhYTNiYTM5YjBhNWE5YzBmYTI1MDE1ZmEzMzMwYzc1NWQyYmIwZDBiNjllNGNlZDA4ZmUifQ"
+          "resource": "repo://chatbot/config.py#L80-L102",
+          "version": "repo-lines-v1:sha256:5e63753c007411ed1c6429afb4bd2441fd668a3123b4c7c7d5cb35c94579608e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzN2NiNzZhMjA5OGE3OWQzZDkxZjA3MzM4MDMzZTVhMjFlMDU3Zjg3NWM5NTU2OTUzYTc3NzRkNmI3NDRjMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYjVhYzRlYTM0NDIyOTIzN2U2ZjJhNTgyZDk4Yzk2YmUxN2RlNDU0MjM3MzgzNTdjYmFhYjFhZjgzZmI1OTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YmE0NjhkYTAyZDkyZWJhNmFlNjc4ZGI4YmYyZDkyMDkzYjQ0YWI2Y2E3YTMyZDMwMmFjNTRkNDY3ZjBkZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3MmZkZTc1ZDkyZjMzOWI5OGJmNmMwZDYzYmMyNjc2YThjMjY0OGU4MzA4NzA2NTg1NjU4NmZjYTQ5YjE2ZGUifQ"
         },
         {
-          "resource": "repo://docker-compose.yml",
-          "version": "repo-file-v1:sha256:5bb21d87f3c5715dd2d6c41b161682874e2c01e8fbc5170010ea9f0d3c156670"
+          "resource": "repo://docker-compose.yml#L81-L111",
+          "version": "repo-lines-v1:sha256:b090b632952183e8d735c588c16437f3cbbdccfc7bf1c558d6b6432bb18cefe6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwYTJhMWMzNmRkNDM1NDAzOWMzZGI2ODUzNzU0NzFmODg5ZGM2MTNjNTFiZDE5OTI3MjUyNDgwYjQ4NjU3MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNzljMTdiOTA4NGFmMDljODNkNTU0MzJlY2UyNzY0OWRjOWUwODIwOWY1ZDQ5YjcyMTA3NjhhMGQyMDE4NzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwNzk2MmQwN2VhYjAyNjI3NDRmOTlhYTg5ODEyNTk0YWZmZTk4ZWZhY2ZlOWVlOTI0NmQzYzYzNWVkZTEwMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkN2IyM2MwMjE2YmU0YTVhOWFmNThjOTk0ZmE5N2NlODVhMTBiOTljODA2OGFmNDM4ZmUyZWY0OTUwZTA0NjcifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

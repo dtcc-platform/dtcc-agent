@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f1bf50a4e944b12f31d5ef9774d429506aba81e8028ce0e8c2e9ad6ea5492c25",
+  "pageVersion": "sha256:826db352520470aaff72a26874295b2050dbd3c6beeddc4638609f9b07533ac8",
   "claims": [
     {
       "id": "claim_c31659df10d142d8a63ea6a505dd28d1",
@@ -110,13 +110,37 @@
       "evidence": [
         {
           "resource": "repo://tests/test_engine.py",
-          "version": "repo-file-v1:sha256:cfff8304f41d3f951048144cfbc061a3d472342caf3b4a70fa25d4d565d04c3d"
+          "version": "repo-file-v1:sha256:1b9d6f1568079bac2bfdf73c0764cbc8d1ed69f2a15fc3a7072900218f0b09d6"
+        }
+      ]
+    },
+    {
+      "id": "claim_4dd252ae6a674f66beddb9052e858d3f",
+      "statement": "tests/test_limits.py exercises the spend ledger, the model gate, the turn limit, the deadline and the limit settings against pydantic-ai's FunctionModel, so no test calls Bedrock.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_limits.py#L1-L66",
+          "version": "repo-lines-v1:sha256:ac9ceb6e38155aaa2e8bc7e1fa53c800b12390d055b4ffbf30be84db6fdd2666:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4MjI2NjZlNGYyZTAzYjE4MzY3Mjk3Y2IwNzA3OTc4NGM1NzQ1M2Q4ZmRiMzE2ZWNlMmM5NTFiMjJmMmU1MjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlYzYwMmYxOTk1NTU3N2MyNTNmZTU0ZjlhNjZmYjhhY2Q5NDZkMzYyZGQyYTliYmIyNjliNWE4MTk0YzI5YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_75c9169aca9446b399c20d67c4fd8006",
+      "statement": "tests/test_deployment_doc.py checks in both directions that docs/deployment.md and docker-compose.yml name the same variables, counting pass-through variables, and tests/test_dockerignore.py keeps .env files out of the build context.",
+      "evidence": [
+        {
+          "resource": "repo://tests/test_deployment_doc.py",
+          "version": "repo-file-v1:sha256:e2895bf3b7c1bd4a8419109f6d5660c93e3336684390760cf2be1604462d47a9"
+        },
+        {
+          "resource": "repo://tests/test_dockerignore.py",
+          "version": "repo-file-v1:sha256:2186b2819ef22528037fd7ebe7e0249a4503b170cd0307037dfbb246161ce9c8"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

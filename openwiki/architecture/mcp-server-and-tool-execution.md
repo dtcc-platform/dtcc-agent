@@ -5,7 +5,7 @@ description: How dtcc-agent registers its MCP tools on mcp 2.x's MCPServer, runs
 tags: [mcp, server, concurrency, transport, startup]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 sources:
   - id: openwiki-source-00348018efcad3e081121b7b
     resource: repo://dtcc_agent/provenance.py

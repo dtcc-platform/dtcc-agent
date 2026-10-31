@@ -5,7 +5,7 @@ description: How every answer can be traced and measured. The chatbot writes one
 tags: [provenance, evaluation, measurement, cost, logging]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 sources:
   - id: openwiki-source-d82fbc21a9f74516f7bfd0f8
     resource: repo://chatbot/app.py
@@ -13,17 +13,25 @@ sources:
     resource: repo://chatbot/prices.py
   - id: openwiki-source-06f9816c33b0f5c6fdb9d8ed
     resource: repo://chatbot/provenance.py
+  - id: openwiki-source-6ed7b95a502f0a6d7126df1d
+    resource: repo://chatbot/runtime/pai.py
   - id: openwiki-source-6150372e327ba33b9fdace5c
     resource: repo://docs/adr/0008-evaluation-is-one-harness-with-two-layers.md
+  - id: openwiki-source-5362e3b27c4a029e63907699
+    resource: repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md
   - id: openwiki-source-00348018efcad3e081121b7b
     resource: repo://dtcc_agent/provenance.py
   - id: openwiki-source-4a2ecebedee07cd459d47e0a
     resource: repo://eval/measure.py
   - id: openwiki-source-015270975ffd802e33601bcf
     resource: repo://eval/questions.json
+  - id: openwiki-source-3263a9523d9bc511ec36d404
+    resource: repo://eval/runs/m4-engine-vs-inprocess/README.md
   - id: openwiki-source-b57c6287b311fd4ffadcbf36
     resource: repo://tests/test_eval_measure.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+  - id: openwiki-source-34f19409acce27bb03b9d119
+    resource: repo://tests/test_limits.py
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 ---
 
 # Provenance and evaluation
@@ -34,7 +42,7 @@ Two pieces answer "what produced this answer, and how fast and costly was it": f
 
 Each service writes only what it knows itself, as JSON lines under `DTCC_AGENT_LOG_DIR` (Docker: `/data/logs`). The chatbot mints a turn id (`turn_…`) per user message and sends it to the MCP server as `X-DTCC-Turn` (stdio: `DTCC_AGENT_TURN`), which is how the two files join.
 
-**`answers.jsonl`** (`chatbot/provenance.py`, one line per turn): the time, turn, session and subject; the model and every model used; the prompt version (first 12 hex characters of the system prompt's SHA-256); whether memory was added; the runtime, its package (in the field still named `sdk`, so older records compare) and the provider (`bedrock`); the tools called; summed totals and token usage; cost and its source; and the outcome: `is_error`, `retried_fresh`, `refused`, the error class and, since #106, `http_status`. Every field is present; unknowns are null. The chat app writes exactly one line per turn, including turns cut short, and also sends it to the page as a `provenance` frame before `done`. See [Chatbot (Lurkie)](../integrations/chatbot-lurkie.md).
+**`answers.jsonl`** (`chatbot/provenance.py`, one line per turn): the time, turn, session and subject; the model and every model used; the prompt version (first 12 hex characters of the system prompt's SHA-256); whether memory was added; the runtime, its package (in the field still named `sdk`, so older records compare) and the provider (`bedrock`); the tools called; summed totals and token usage; cost and its source; and the outcome: `is_error`, `retried_fresh`, `refused`, the error class and, since #106, `http_status`. Every field is present; unknowns are null. A turn a limit stopped (#132) is recorded like a failed one: `error` is `LimitReached` (turns per chat, or the monthly spend) or `TimeoutError` (the turn deadline). With a monthly spend limit set, the chat server also keeps `spend.json` next to these records: this month's spend and what running requests have set aside, not a record per turn; see [Turn and spend limits](turn-and-spend-limits.md). The chat app writes exactly one line per turn, including turns cut short, and also sends it to the page as a `provenance` frame before `done`. See [Chatbot (Lurkie)](../integrations/chatbot-lurkie.md).
 
 **`operations.jsonl`** (`dtcc_agent/provenance.py`, one line per tool call, written by the `@tool` wrapper): the turn, Session, tool and operation, a hash of the arguments, duration, success, cache hit, the Object references returned and the catalogue it ran against. A `catalogue` line records each catalogue build with the Core commit and operation count.
 
@@ -54,7 +62,7 @@ Neither file holds parameter values, error texts or file contents: arguments are
 - **Guards.** `--max-cost` (default $2) stops the run cleanly once spent; `--timeout` bounds each question; `--only` picks questions.
 - **Output.** `eval/runs/<UTC time>-<git sha>.jsonl` (one line per question and run) and a Markdown report with median and max per question over successful runs only, failures counted apart. `--pool` combines several runs' JSONL into one report.
 
-Baselines live in `eval/runs/`: `baseline-m2.md` (30/30 runs, $1.93), `baseline-m3-sdk.md` (M3's gate reference) and the M3 experiments (`m3-runtime`, `m3-catalogue-a/b/c`, `m3-control`, `m3-sonnet-5`, `m3-sonnet-5-5-same-day`).
+Baselines live in `eval/runs/`: `baseline-m2.md` (30/30 runs, $1.93), `baseline-m3-sdk.md` (M3's gate reference) and the M3 experiments (`m3-runtime`, `m3-catalogue-a/b/c`, `m3-control`, `m3-sonnet-5`, `m3-sonnet-5-5-same-day`). M4's `m4-engine-vs-inprocess/` holds T41's measurement (#110): point-cloud questions in-process against Engine jobs, arms alternating on one day, at one and at four Engine workers, with pooled reports per arm. It is the evidence behind ADR-0011.
 
 ## The same-day control rule
 
