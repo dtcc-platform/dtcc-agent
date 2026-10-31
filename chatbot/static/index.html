@@ -4,10 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DTCC Lurkie</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script>
+        // Every URL below is relative, so the page works at the root and under
+        // a gateway prefix such as /agent/ (#134). Relative URLs need the
+        // trailing slash: at /agent they would resolve to the gateway's root.
+        if (!location.pathname.endsWith("/")) {
+            location.replace(location.pathname + "/" + location.search + location.hash);
+        }
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/favicon-16x16.png">
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
@@ -428,8 +436,9 @@
         let notice = "";
 
         function connect() {
-            const proto = location.protocol === "https:" ? "wss:" : "ws:";
-            ws = new WebSocket(`${proto}//${location.host}/chat`);
+            const url = new URL("chat", location.href);
+            url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
+            ws = new WebSocket(url);
 
             ws.onopen = () => {
                 reconnectDelay = 2000;
@@ -618,7 +627,7 @@
             inputEl.style.height = Math.min(inputEl.scrollHeight, 150) + "px";
         });
 
-        fetch("/admission")
+        fetch("admission")
             .then((r) => r.json())
             .then(({ required }) => (required && !accessCode ? askForCode() : connect()))
             .catch(() => connect()); // the server still refuses with 4401 if a code is needed

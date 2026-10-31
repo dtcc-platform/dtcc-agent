@@ -132,7 +132,7 @@ def test_a_tool_result_with_an_image_artifact_becomes_an_image_frame(artifact_ro
     content = [{"type": "text", "text": json.dumps({"artifact": artifacts.describe(path)})}]
 
     assert artifact_frame("s1", content) == {
-        "type": "image", "url": f"/artifacts/s1/{path.name}",
+        "type": "image", "url": f"artifacts/s1/{path.name}",
     }
 
 
@@ -141,7 +141,7 @@ def test_a_tool_result_with_a_file_artifact_becomes_a_download_frame(artifact_ro
     content = json.dumps({"artifact": artifacts.describe(path)})
 
     assert artifact_frame("s1", content) == {
-        "type": "file", "url": f"/artifacts/s1/{path.name}", "name": "obj_1.csv",
+        "type": "file", "url": f"artifacts/s1/{path.name}", "name": "obj_1.csv",
     }
 
 
@@ -152,7 +152,7 @@ def test_an_artifact_inside_fastmcps_structured_result_is_found(artifact_root):
 
     frame = artifact_frame("s1", json.dumps({"result": tool_text}))
 
-    assert frame == {"type": "image", "url": f"/artifacts/s1/{path.name}"}
+    assert frame == {"type": "image", "url": f"artifacts/s1/{path.name}"}
 
 
 @pytest.mark.parametrize("content", [

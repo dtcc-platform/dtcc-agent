@@ -45,4 +45,4 @@ def test_an_artifact_in_a_structured_result_dict_is_found(tmp_path, monkeypatch)
     monkeypatch.setattr(artifacts, "find", lambda sid, name: session_dir / name if sid == "s1" else None)
 
     content = {"result": json.dumps({"artifact": {"name": "abc_obj_1.png", "kind": "image"}})}
-    assert runtime.artifact_frame("s1", content) == {"type": "image", "url": "/artifacts/s1/abc_obj_1.png"}
+    assert runtime.artifact_frame("s1", content) == {"type": "image", "url": "artifacts/s1/abc_obj_1.png"}
