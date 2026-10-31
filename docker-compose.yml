@@ -94,9 +94,14 @@ services:
       - DTCC_AGENT_LOG_DIR=/data/logs
       - DTCC_AGENT_MEMORY_DIR=/data/memory
       # The model runs on Amazon Bedrock (#29); see README, "The model".
-      - AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK:?set AWS_BEARER_TOKEN_BEDROCK}
+      # Set only when given: left unset, the container has no such variable
+      # and the chat uses the host's instance role (#130). The chat server
+      # refuses to start when it finds no credential of any kind.
+      - AWS_BEARER_TOKEN_BEDROCK
       - AWS_REGION=${AWS_REGION:-eu-north-1}
       - DTCC_AGENT_MODEL=${DTCC_AGENT_MODEL:-eu.anthropic.claude-sonnet-5-5}
+      # 0 skips the paid one-token Bedrock check at each start (#130).
+      - DTCC_AGENT_BEDROCK_PROBE=${DTCC_AGENT_BEDROCK_PROBE:-1}
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
     healthcheck:

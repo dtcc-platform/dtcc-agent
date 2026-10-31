@@ -164,8 +164,9 @@ export DTCC_AGENT_ACCESS_CODE="$(openssl rand -base64 18)"   # give this to test
 docker compose up --build
 ```
 
-Compose refuses to start without `DTCC_MCP_SECRET`, `DTCC_AGENT_ACCESS_CODE` and `AWS_BEARER_TOKEN_BEDROCK`, naming
-the one that is missing.
+Compose refuses to start without `DTCC_MCP_SECRET` and `DTCC_AGENT_ACCESS_CODE`, naming the one that is
+missing. Without `AWS_BEARER_TOKEN_BEDROCK` the chat server uses whatever AWS credential it can find, such as an
+instance role in AWS (#130), and refuses to start when it finds none.
 
 #### Simulations on the DTCC Engine (#109)
 
@@ -197,10 +198,10 @@ The agent answers through Amazon Bedrock only (#29). Claude has no on-demand mod
 
 | Variable | Default | Effect |
 |---|---|---|
-| `AWS_BEARER_TOKEN_BEDROCK` | none | A Bedrock API key. Standard AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_PROFILE`) also work outside Compose. With none set, the chatbot does not start. |
+| `AWS_BEARER_TOKEN_BEDROCK` | none | A Bedrock API key. Without it, the chatbot uses the standard AWS credential chain: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, `AWS_PROFILE`, or a container or instance role. In Compose, only the key and an instance role reach the chat container. With no credential at all, the chatbot does not start. |
 | `AWS_REGION` | `eu-north-1` | The Bedrock Region. |
 | `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The Bedrock model ID the agent answers with. Changing models is this variable alone. |
-| `DTCC_AGENT_BEDROCK_PROBE` | `1` | At startup the chatbot sends Bedrock one 1-token request in the background, and logs an error if the key is rejected (401/403), which the presence check above can't see. `0` turns it off. Either way the server starts. |
+| `DTCC_AGENT_BEDROCK_PROBE` | `1` | At startup the chatbot sends Bedrock one 1-token request in the background, and logs an error if the credential is rejected (401/403), which the startup check above can't see. `0` turns it off. Either way the server starts. |
 
 The agent loop runs in the chatbot process on pydantic-ai (#86). The Claude Agent SDK, M3's
 rollback, was removed in M4; a leftover `DTCC_AGENT_RUNTIME` set to anything but `pydantic-ai`
