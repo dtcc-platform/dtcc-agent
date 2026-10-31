@@ -6,7 +6,7 @@ team meeting without opening the code.
 
 **Status:** ✅ merged to `develop` · 🔍 open pull request, in review · ⏳ decision or task still open
 
-Last updated: 2026-10-20.
+Last updated: 2026-10-31.
 
 ---
 
@@ -14,6 +14,11 @@ Last updated: 2026-10-20.
 
 | When | What | Status |
 |---|---|---|
+| 2026-10-31 | **Deployment limits:** a monthly model-spend limit that is never exceeded, questions per chat, a time limit per answer, and model requests at once; all off unless set ([#139](https://github.com/dtcc-platform/dtcc-agent/pull/139), fixes [#132](https://github.com/dtcc-platform/dtcc-agent/issues/132)) | ✅ |
+| 2026-10-31 | The chat works behind the gateway at `/agent/`, and still at the root ([#138](https://github.com/dtcc-platform/dtcc-agent/pull/138), fixes [#134](https://github.com/dtcc-platform/dtcc-agent/issues/134)) | ✅ |
+| 2026-10-31 | The chat server can use the server's own AWS role for Bedrock, so no key is needed on the server ([#137](https://github.com/dtcc-platform/dtcc-agent/pull/137), fixes [#130](https://github.com/dtcc-platform/dtcc-agent/issues/130)) | ✅ |
+| 2026-10-31 | A cancelled Engine job ends the wait at once instead of after 15 minutes ([#136](https://github.com/dtcc-platform/dtcc-agent/pull/136), fixes [#131](https://github.com/dtcc-platform/dtcc-agent/issues/131)) | ✅ |
+| 2026-10-31 | A local `.env` file with keys in it can no longer end up inside the Docker image ([#135](https://github.com/dtcc-platform/dtcc-agent/pull/135), fixes [#133](https://github.com/dtcc-platform/dtcc-agent/issues/133)) | ✅ |
 | 2026-10-20 | **Decided (ADR-0011):** simulations run on the DTCC Engine; building and point-cloud downloads stay in the agent, behind its cache. Supersedes ADR-0007 (T42, closes [#111](https://github.com/dtcc-platform/dtcc-agent/issues/111)) | ✅ |
 | 2026-10-20 | **Measured:** point-cloud downloads through the Engine make answers 30–38% slower than in the agent, above the 15% limit; buildings can't go through the Engine yet (dtcc-core#160) ([#127](https://github.com/dtcc-platform/dtcc-agent/pull/127), T41, closes [#110](https://github.com/dtcc-platform/dtcc-agent/issues/110)) | ✅ |
 | 2026-10-19 | Refused and failed answers say which model they were sent to in the answer records ([#125](https://github.com/dtcc-platform/dtcc-agent/pull/125), fixes [#120](https://github.com/dtcc-platform/dtcc-agent/issues/120)) | ✅ |
@@ -79,11 +84,79 @@ Last updated: 2026-10-20.
 | 2026-09-18 | Four Core and Sim defects reported upstream; all four fixed by the Core team, and now in our build | ✅ |
 | 2026-09-14 | Assessment of what works today ([#1](https://github.com/dtcc-platform/dtcc-agent/issues/1)) | ✅ |
 
-**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93 → (#95–#99 not recorded) → 582 with #102 → 583 with #104 → 571 with #105, which removed the SDK tests → 581 with #106 → 584 with #107 → 600 with #113.
+**Tests:** 112 before the rebuild → 189 after M0 → 194 with #32 → 212 with #33, all passing on the new Core pin → 229 with #36 → 280 with #43 → 296 with #50 → 327 with #51 → 328 with #53 → 329 with #55 → 335 with #56 → 342 with #57 → 344 with #58 → 343 with #59 → 344 with #62 → 401 with #63 → 418 with #66 → 427 with #68 → 429 with #70 → 440 with #75 → 459 with #76 → 482 with #77 → 497 with #78 → 499 with #81 → 532 with #82 → 533 with #83 → 544 with #90 → 544 with #92 → 570 with #93 → (#95–#99 not recorded) → 582 with #102 → 583 with #104 → 571 with #105, which removed the SDK tests → 581 with #106 → 584 with #107 → 600 with #113 → 611 with #122 → 612 with #123 → 612 with #124 → 614 with #125 → 619 with #127 → 619 with #128 → 620 with #135 → 621 with #136 → 624 with #137 → 624 with #138 → 658 with #139.
 
 ---
 
 ## ✅ Merged
+
+### The agent is ready for the deployment's five requests (dtcc-infra A2) · 2026-10-31
+
+On 2026-10-25 dtcc-infra's [agent design](https://github.com/dtcc-platform/dtcc-infra/blob/develop/docs/design/agent.md)
+asked the agent for five changes before the invited beta. All five are merged; develop `11f20bb` is the commit
+for the deployment to pin. They were reviewed by Codex against the coding standards and against each issue.
+
+### Spending and usage limits · 2026-10-31 · [#139](https://github.com/dtcc-platform/dtcc-agent/pull/139)
+
+**Before:** the beta has a $100 a month model budget, but nothing limited what an admitted chat could spend.
+Cost was worked out only after an answer, and several chats answer at once (#132).
+
+**Now:** four settings, each off unless set: a monthly spend that is never exceeded, questions per chat, a
+time limit per answer, and model requests at once. Before each model request the agent sets aside the most it
+could cost, and refuses it if that doesn't fit, so two answers near the limit can't both get through. The
+month's total is kept in a file, so a restart doesn't reset it. While a spend limit is set, each model reply is
+capped at 8,192 tokens (the longest answer on record used 4,038) and the AWS library doesn't retry on its own,
+so the amount set aside really is the most a request can cost. Suggested for the beta: $90, 30 questions,
+180 seconds, 4 at once.
+
+**How we know:** 34 tests, one for each "done when" in the issue. Two reviews found real gaps, now fixed and
+each covered by a test: a refused request counted as free too easily, a setting of `nan` switched the limit
+off, the library's retries went uncounted, and a request running across midnight at a month's end could drop
+out of the total. Not yet tried with a paid request; that's in the deployment's approved steps.
+
+### The chat works behind the gateway at `/agent/` · 2026-10-31 · [#138](https://github.com/dtcc-platform/dtcc-agent/pull/138)
+
+**Before:** the page called the server at fixed root paths (`/chat`, `/admission`, `/static/...`,
+`/artifacts/...`). Behind a gateway that serves the agent at `/agent/` and strips the prefix, the browser would
+have sent them to the gateway's root instead (#134).
+
+**Now:** every path is relative to the page, so it works under any prefix and at the root. A page opened
+without its trailing slash adds one.
+
+**How we know:** in a real browser, behind a proxy that strips `/agent`: the page, admission, icons and the
+chat connection all went through `/agent/`, and nothing reached the root. The same page still works at the
+root. For the gateway: route bare `/agent` as well as `/agent/*`.
+
+### The server can use its own AWS role for Bedrock · 2026-10-31 · [#137](https://github.com/dtcc-platform/dtcc-agent/pull/137)
+
+**Before:** the chat server refused to start without a Bedrock key or an AWS key variable, and Compose required
+the key, so a server with an AWS role, which sets no variable, couldn't use it (#130).
+
+**Now:** the check asks the same AWS credential lookup the Bedrock client uses (a key, a profile, or the
+server's role), and still refuses to start when it finds nothing. Compose passes the key only when it's set,
+and passes on the switch that turns off the paid check at startup. A profile that doesn't exist, or a key ID
+without its secret, now refuses to start instead of failing every chat.
+
+**How we know:** tests for each kind of credential, with the machine's own AWS setup kept out; a real start
+with no credential refuses. Not yet tried on an actual AWS server.
+
+### A cancelled Engine job ends the wait at once · 2026-10-31 · [#136](https://github.com/dtcc-platform/dtcc-agent/pull/136)
+
+**Before:** the Engine is shared, so someone else can cancel a job before it runs. The agent didn't recognise
+`cancelled` and kept checking for 15 minutes before giving up (#131).
+
+**Now:** it stops at once and tells the model the job was cancelled.
+
+**How we know:** a test with a cancelled job ends at the first check, with no waiting.
+
+### A local `.env` stays out of the image · 2026-10-31 · [#135](https://github.com/dtcc-platform/dtcc-agent/pull/135)
+
+**Before:** the image is built from the whole folder, so a local `.env` holding keys was copied in (#133).
+
+**Now:** `.env` and `.env.*` are excluded from the build.
+
+**How we know:** a test build with a planted `.env` contained it before the fix and not after; a test keeps
+the exclusion in place.
 
 ### Downloads stay in the agent; simulations run on the Engine · 2026-10-20 · [#127](https://github.com/dtcc-platform/dtcc-agent/pull/127)
 
