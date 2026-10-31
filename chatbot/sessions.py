@@ -31,6 +31,10 @@ class Session:
     last_active: float = field(default_factory=time.monotonic)
     # Turns running now; the session never expires while nonzero.
     turns: int = 0
+    # Turns this chat has started, refused and failed ones included, against
+    # DTCC_AGENT_TURNS_PER_CHAT (#132). A new chat in the page keeps the
+    # session, so it keeps this count too.
+    turns_started: int = 0
     # The conversation so far: the pydantic-ai runtime's messages (#86).
     history: list[Any] = field(default_factory=list)
     # Held for a whole turn, so two tabs on one session take turns (#86).

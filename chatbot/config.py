@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from pathlib import Path
 
 SYSTEM_PROMPT = """\
 You are DTCC Lurkie, an urban digital twin chatbot for Sweden, built by the \
@@ -54,6 +55,11 @@ builder.build_city_surface_mesh — 3D mesh from city buildings.
 builder.pc_filter.classification_filter — Filter point cloud by classification.
   params: pc (object_ref, required), classes (int|list[int], required), keep (bool) = false\
 """
+
+def log_dir() -> Path:
+    """Where the answer records, the server log and the spend ledger (#132) go."""
+    return Path(os.getenv("DTCC_AGENT_LOG_DIR", "/tmp/dtcc_lurkie_logs"))
+
 
 # Default port for the chatbot web server
 DEFAULT_PORT = int(os.getenv("DTCC_AGENT_PORT", "8050"))

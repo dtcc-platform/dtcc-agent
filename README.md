@@ -202,6 +202,7 @@ The agent answers through Amazon Bedrock only (#29). Claude has no on-demand mod
 | `AWS_REGION` | `eu-north-1` | The Bedrock Region. |
 | `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The Bedrock model ID the agent answers with. Changing models is this variable alone. |
 | `DTCC_AGENT_BEDROCK_PROBE` | `1` | At startup the chatbot sends Bedrock one 1-token request in the background, and logs an error if the credential is rejected (401/403), which the startup check above can't see. `0` turns it off. Either way the server starts. |
+| `DTCC_AGENT_MONTHLY_SPEND_USD`, `DTCC_AGENT_TURNS_PER_CHAT`, `DTCC_AGENT_TURN_SECONDS`, `DTCC_AGENT_MODEL_CONCURRENCY` | unset (off) | Turn and spend limits for a deployment (#132): monthly model spend, questions per chat, seconds per answer, and model requests at once. See `docs/deployment.md` for what each does and the beta's values. |
 
 The agent loop runs in the chatbot process on pydantic-ai (#86). The Claude Agent SDK, M3's
 rollback, was removed in M4; a leftover `DTCC_AGENT_RUNTIME` set to anything but `pydantic-ai`

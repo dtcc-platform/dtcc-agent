@@ -102,6 +102,11 @@ services:
       - DTCC_AGENT_MODEL=${DTCC_AGENT_MODEL:-eu.anthropic.claude-sonnet-5-5}
       # 0 skips the paid one-token Bedrock check at each start (#130).
       - DTCC_AGENT_BEDROCK_PROBE=${DTCC_AGENT_BEDROCK_PROBE:-1}
+      # Turn and spend limits (#132); each is off when empty. See docs/deployment.md.
+      - DTCC_AGENT_MONTHLY_SPEND_USD=${DTCC_AGENT_MONTHLY_SPEND_USD:-}
+      - DTCC_AGENT_TURNS_PER_CHAT=${DTCC_AGENT_TURNS_PER_CHAT:-}
+      - DTCC_AGENT_TURN_SECONDS=${DTCC_AGENT_TURN_SECONDS:-}
+      - DTCC_AGENT_MODEL_CONCURRENCY=${DTCC_AGENT_MODEL_CONCURRENCY:-}
     volumes:
       - ${DTCC_AGENT_DATA:-./data/agent}:/data
     healthcheck:

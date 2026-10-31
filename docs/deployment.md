@@ -34,6 +34,10 @@ Compose refuses to start without the first two. The chat server refuses to start
 | `AWS_REGION` | `eu-north-1` | Bedrock region |
 | `DTCC_AGENT_MODEL` | `eu.anthropic.claude-sonnet-5-5` | The model. Changing the model is this one setting. |
 | `DTCC_AGENT_BEDROCK_PROBE` | `1` | At each chat-server start, one paid 1-token Bedrock request that logs whether the credential works. `0` turns it off, for liveness checks. |
+| `DTCC_AGENT_MONTHLY_SPEND_USD` | unset (off) | Model spend per calendar month (UTC), never exceeded: each model request sets aside the most it can cost before it starts, and a request that doesn't fit is refused with a message. While it is set, each model reply is capped at 8,192 output tokens and the Bedrock client doesn't retry by itself, so that worst case holds. Kept in `/data/logs/spend.json`, so a restart doesn't reset it. **Beta: `90`**, which leaves $10 of the $100 budget for QA and startup probes. |
+| `DTCC_AGENT_TURNS_PER_CHAT` | unset (off) | Questions one chat may ask. "New chat" in the page keeps the count. **Beta: `30`.** |
+| `DTCC_AGENT_TURN_SECONDS` | unset (off) | How long one answer may take before it is stopped. An Engine job it started keeps running. **Beta: `180`.** |
+| `DTCC_AGENT_MODEL_CONCURRENCY` | unset (off) | Model requests running at once, across all chats; more wait their turn. **Beta: `4`.** |
 | `DTCC_ENGINE_URL` | unset | **Engine mode:** the Engine's base URL. When set, simulations run as Engine jobs over HTTP, and dtcc-sim and the shared folder aren't used. |
 | `DTCC_ENGINE_TIMEOUT` | `900` | Seconds one simulation may take before it times out |
 | `DTCC_ENGINE_CORE` | unset | **Experimental, for a measurement (#110).** `1` downloads buildings and point clouds as Engine jobs too, without the agent's disk cache. Needs `DTCC_ENGINE_URL`. Leave unset in a deployment. |
@@ -54,7 +58,7 @@ Compose refuses to start without the first two. The chat server refuses to start
 - **`/data`**, mounted in both containers, and persistent:
   - `cache/`: downloaded buildings and terrain. It can be deleted; it refills.
   - `artifacts/`: renders and exports a user downloads, kept per chat.
-  - `logs/`: answer records (model, cost, tools).
+  - `logs/`: answer records (model, cost, tools), and `spend.json`, this month's model spend when `DTCC_AGENT_MONTHLY_SPEND_USD` is set. Deleting it resets the month's count.
   - `memory/`: conversation memory.
 - **`/shared/results`**, tool server only, **not needed in Engine mode.** Without the Engine,
   the agent reads every simulation result from a folder dtcc-sim also mounts; only the job

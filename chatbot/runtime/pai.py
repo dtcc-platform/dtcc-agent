@@ -34,7 +34,9 @@ from pydantic_ai.providers.bedrock import BedrockProvider
 from pydantic_ai.toolsets import AbstractToolset
 from pydantic_ai.usage import RunUsage
 
-from chatbot.config import DEFAULT_REGION, SYSTEM_PROMPT, get_mcp_server_config, load_model
+from chatbot import limits
+from chatbot.config import DEFAULT_REGION, SYSTEM_PROMPT, get_mcp_server_config, load_model, log_dir
+from chatbot.limits import LimitReached
 from chatbot.prices import price
 from chatbot.provenance import TurnRecord, http_status
 from chatbot.sessions import Session
@@ -55,15 +57,22 @@ logger = logging.getLogger("lurkie")
 
 
 @cache
-def model() -> BedrockConverseModel:
-    """The configured model on Bedrock. Built on first use: creating the
-    Bedrock client resolves AWS credentials. Thinking is left at the model's
-    default, as the SDK left it, so the M3 gate compares runtimes and not
-    thinking budgets."""
-    return BedrockConverseModel(
-        load_model(),
-        provider=BedrockProvider(region_name=os.getenv("AWS_REGION") or DEFAULT_REGION),
-    )
+def model() -> limits.LimitedModel:
+    """The configured model on Bedrock, behind the deployment's limits (#132).
+    Built on first use: creating the Bedrock client resolves AWS credentials.
+    Thinking is left at the model's default, as the SDK left it, so the M3
+    gate compares runtimes and not thinking budgets."""
+    ledger = limits.ledger(log_dir())
+    if ledger is not None:
+        # botocore retries inside one request, which the spend gate sees as one
+        # attempt; a retry after Bedrock accepted the request could be billed
+        # twice. botocore reads this when the client is built (#132).
+        os.environ["AWS_MAX_ATTEMPTS"] = "1"
+    provider = BedrockProvider(region_name=os.getenv("AWS_REGION") or DEFAULT_REGION)
+    if ledger is not None and provider.client.meta.config.retries.get("total_max_attempts") != 1:
+        raise SystemExit("A spend limit needs the Bedrock client's own retries off, and they aren't.")
+    bedrock = BedrockConverseModel(load_model(), provider=provider)
+    return limits.LimitedModel(bedrock, load_model(), ledger, limits.model_concurrency())
 
 
 
@@ -127,19 +136,41 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
     started = time.monotonic()
     models: list[str] = []
     async with session.lock:
+        deadline = limits.turn_seconds()
+        scope = asyncio.timeout(deadline)
         try:
-            try:
-                return await _run(ws, session, user_text, turn, memory, usage, models)
-            except ContentFilterError:
-                raise  # a refusal, which a fresh retry would only repeat
-            except Exception as exc:
-                if not session.history or http_status(exc) in AUTH_REJECTED:
-                    raise
-                logger.warning("[%s] Turn failed with history (%s); retrying fresh",
-                               session.id, type(exc).__name__)
-                session.history = []
-                turn.retry()
-                return await _run(ws, session, user_text, turn, memory, usage, models)
+            allowed = limits.turns_per_chat()
+            if allowed is not None and session.turns_started >= allowed:
+                raise LimitReached(limits.TURNS_REACHED.format(limit=allowed))
+            session.turns_started += 1
+            async with scope:
+                try:
+                    return await _run(ws, session, user_text, turn, memory, usage, models)
+                except (ContentFilterError, LimitReached):
+                    raise  # a refusal or a limit, which a fresh retry would only repeat
+                except Exception as exc:
+                    if not session.history or http_status(exc) in AUTH_REJECTED:
+                        raise
+                    logger.warning("[%s] Turn failed with history (%s); retrying fresh",
+                                   session.id, type(exc).__name__)
+                    session.history = []
+                    turn.retry()
+                    return await _run(ws, session, user_text, turn, memory, usage, models)
+        except LimitReached as exc:
+            logger.warning("[%s] A limit stopped the turn: %s", session.id, exc.message)
+            turn.failed(exc)
+            await ws.send_json({"type": "text", "content": exc.message})
+            return ""
+        except TimeoutError as exc:
+            if not scope.expired():
+                # Some other timeout inside the turn, not the deadline.
+                return await _failed(ws, session, turn, exc)
+            # The turn deadline (#132). Its partial history is dropped with it.
+            logger.warning("[%s] The turn passed its %s s deadline", session.id, deadline)
+            turn.failed(exc)
+            await ws.send_json({"type": "text",
+                                "content": limits.TURN_TIMED_OUT.format(seconds=deadline)})
+            return ""
         except ContentFilterError:
             # Bedrock ended the reply with its content filter: the model
             # declined. Say so plainly; it isn't a server fault (#96).
@@ -148,13 +179,7 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
             await ws.send_json({"type": "text", "content": REFUSAL})
             return ""
         except Exception as exc:
-            status = http_status(exc)
-            logger.exception("[%s] The agent failed (HTTP %s)", session.id, status or "none")
-            turn.failed(exc)
-            content = (AUTH_FAILURE if status in AUTH_REJECTED else
-                       "Sorry, an error occurred. Check the server logs for details.")
-            await ws.send_json({"type": "text", "content": content})
-            return ""
+            return await _failed(ws, session, turn, exc)
         finally:
             # A turn that failed before any model request used nothing: its
             # record keeps usage null, as the SDK runtime's does.
@@ -162,6 +187,17 @@ async def answer(ws, session: Session, user_text: str, turn: TurnRecord, memory)
                 cost, source = price(usage, load_model())
                 turn.saw_run(usage, elapsed_ms=round((time.monotonic() - started) * 1000),
                              cost=cost, cost_source=source, models=models)
+
+
+async def _failed(ws, session: Session, turn: TurnRecord, exc: Exception) -> str:
+    """A turn that ended in an error: logged, recorded, and said plainly."""
+    status = http_status(exc)
+    logger.exception("[%s] The agent failed (HTTP %s)", session.id, status or "none", exc_info=exc)
+    turn.failed(exc)
+    content = (AUTH_FAILURE if status in AUTH_REJECTED else
+               "Sorry, an error occurred. Check the server logs for details.")
+    await ws.send_json({"type": "text", "content": content})
+    return ""
 
 
 async def _run(ws, session: Session, user_text: str, turn: TurnRecord, memory,
