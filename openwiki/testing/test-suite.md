@@ -18,20 +18,26 @@ sources:
     resource: repo://tests/test_catalogue_startup.py
   - id: openwiki-source-45618922e75f513256096f36
     resource: repo://tests/test_crop.py
+  - id: openwiki-source-4a767438bf3ca3ff31fd9e91
+    resource: repo://tests/test_deployment_doc.py
+  - id: openwiki-source-7f232b69435f45b7dd45b6bd
+    resource: repo://tests/test_dockerignore.py
   - id: openwiki-source-0e41257659137c7a2c27de1c
     resource: repo://tests/test_engine.py
   - id: openwiki-source-a4f55aeddd9f309fcd59982a
     resource: repo://tests/test_geocode.py
+  - id: openwiki-source-34f19409acce27bb03b9d119
+    resource: repo://tests/test_limits.py
   - id: openwiki-source-f7a9ed42f310602857a88be4
     resource: repo://tests/test_path_refusal.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
   - id: openwiki-source-fa7af1493a897412d61af4b0
     resource: repo://tests/test_worker_pool.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Test suite
@@ -61,11 +67,13 @@ All tests live in `tests/` as plain pytest modules. One small `tests/conftest.py
 | Cache | `test_disk_cache.py`, `test_crop.py`, `test_builder_calls.py` | Containment, TTL, budget, hashing; `get_buildings` answering a sub-area from a cached download and every cache failure path; the building crop matching Core's containment test with real Core buildings, on `source_bounds` and on the older outline rule, and Core's real loader on a GeoPackage matching a fresh download at the edge (#107); the cache trust check (private creation under umask 002, refusals for other owners, writable dirs, parents and files, symlinks); two caches sharing one directory; builder calls recorded instead of cached |
 | Building summaries | `test_buildings_summary.py` | Heights from Core's estimate then measurement, empty stats as `None`, area over every building, bad bounds refused at every entry point, `BuildingCollection` serialisation |
 | Model runtime | `test_chatbot_runtime_pai.py`, `test_bedrock_auth.py` | The pydantic-ai turn: streamed frames, history and memory, the fresh retry with summed usage, refusals, usage mapping, the model seeing only dtcc-agent tools; a rejected Bedrock key's message, `http_status` through exception chains, the startup probe's logs |
-| Simulations and the Engine | `test_simulation_results.py`, `test_engine.py` | Field statistics from a decoded `VolumeMesh` on every path (#102); the DTCC Engine client against `httpx.MockTransport`: backoff, every error answer, polling instead of resubmitting, the startup token check, path selection, a real canonical package through `run_simulation`, errors returned from all four simulation tools (#113) |
+| Simulations and the Engine | `test_simulation_results.py`, `test_engine.py` | Field statistics from a decoded `VolumeMesh` on every path (#102); the DTCC Engine client against `httpx.MockTransport`: backoff, every error answer, polling instead of resubmitting, a cancelled job ending the wait at once (#131), the startup token check, path selection, a real canonical package through `run_simulation`, errors returned from all four simulation tools (#113) |
+| Limits (#132) | `test_limits.py` | The spend ledger (reservation, settling, restarts and month boundaries, implausible ledgers), the model gate (output cap and no SDK retries only with a spend limit, concurrent turns near the limit, the concurrency slot, what a failed request costs), the turn limit, the deadline, and the settings; 34 tests on FunctionModel, no Bedrock. See [Turn and spend limits](../operations/turn-and-spend-limits.md) |
+| Deployment files | `test_deployment_doc.py`, `test_dockerignore.py` | `docs/deployment.md` and `docker-compose.yml` name the same variables, both ways, including pass-through ones; `.env` files excluded from the build context |
 | Provenance and measurement | `test_provenance.py`, `test_eval_measure.py` | Answer and operation records, the join, hashing instead of values; the question set, cold/warm order, the simulation probe, the cost cap and the report |
 | Download size | `test_download_area.py` | Heavy downloads over the area cap refused before they start; light ones exempt; the cap configurable |
 | Domain helpers | `test_analysis.py`, `test_geocode.py`, `test_geojson_store.py` | Field statistics and comparison; hardcoded and Nominatim geocoding; GeoJSON load and query |
-| Chatbot | `test_chatbot_app.py`, `test_chatbot_config.py`, `test_chatbot_memory.py`, `test_chatbot_sessions.py`, `test_chatbot_prices.py`, `test_chatbot_runtime.py` | The app with mocked memory and runtime; admission (4401) and session expiry (4408); one answer record per turn; the `/artifacts` route and image/file frames, including MCP-wrapped results; MCP config with session, subject, turn and secret; model and access-code configuration; pricing; the runtime loader refusing the removed SDK |
+| Chatbot | `test_chatbot_app.py`, `test_chatbot_config.py`, `test_chatbot_memory.py`, `test_chatbot_sessions.py`, `test_chatbot_prices.py`, `test_chatbot_runtime.py` | The app with mocked memory and runtime; admission (4401) and session expiry (4408); one answer record per turn; the `/artifacts` route and image/file frames, including MCP-wrapped results; MCP config with session, subject, turn and secret; model and access-code configuration; the Bedrock credential check with botocore isolated (key, access keys, profile and instance role start; nothing, a missing profile or a key id without its secret refuse); a reconnect not counted as activity (#115); pricing; the runtime loader refusing the removed SDK |
 
 Test names are sentences describing the behaviour (for example `test_a_session_with_a_tool_in_flight_is_never_evicted`). The repo's review guidance asks that tests prove the behaviour they name without sleep-based timing. `test_worker_pool.py` uses gates and gauges rather than sleeps.
 
@@ -78,4 +86,4 @@ uv run --no-sync pytest -q tests/test_worker_pool.py
 uv run --no-sync pytest -q -k session
 ```
 
-At #113 (2026-10-13) the suite collected 600 tests (427 at #68). `CHANGELOG.md` tracks the count per merged PR. Live checks against Bedrock, dtcc-sim or an Engine are not part of the suite: they run through the measurement harness (see [Provenance and evaluation](../operations/provenance-and-evaluation.md)).
+At #139 (develop `11f20bb`, 2026-10-31) the suite collected 658 tests (600 at #113, 427 at #68). `CHANGELOG.md` tracks the count per merged PR. Live checks against Bedrock, dtcc-sim or an Engine are not part of the suite: they run through the measurement harness (see [Provenance and evaluation](../operations/provenance-and-evaluation.md)).

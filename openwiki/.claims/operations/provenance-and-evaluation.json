@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:3f291f0bf78e6a4c057154550323a63fa64eabf74baf8c1dafa54f7aa4a9c0f5",
+  "pageVersion": "sha256:463741ee145b43b034161eeba113f611cd60334f237c8b33b19124fcf5bbd928",
   "claims": [
     {
       "id": "claim_2eae144d637a4e14942e0bb2994e7e94",
@@ -85,10 +85,42 @@
           "version": "repo-lines-v1:sha256:9df0bdef11cbcc516c4c40762f38361533dda48c363b146b2292e45bb4a6dfc7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWUzZTg4NzBiNTg4ZWU2NDk2NTE1MjEzNGJlNGRiYjU3NGNiZWFiMTI4YjgwMDE1Y2IyOTEyYTYxMGNiMmZkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI3OGE4MTQ4NmUxZjI0ZDEzODRmNjcyYjNiYWEwNmRkODA4N2M4NTdkOTdkMDYxZmU5OGFjM2JiMDUxMDIyYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmM4OGIzODg3YmU0YmI3NmVmMWQ0NDVhOTI4MzVlNGEyZGZiYmIzNGZkNjczNzVjOGY2M2FlZjIxYzdiMzg4MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
+    },
+    {
+      "id": "claim_87d27a2ef6ef402fbb98d0da8db03f23",
+      "statement": "A turn stopped by a limit is written to answers.jsonl like a failed turn, with error LimitReached for the turn or spend limit and TimeoutError for the turn deadline.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/provenance.py#L114-L118",
+          "version": "repo-lines-v1:sha256:46731839dfcb1757b0163f7c45b69f4b2c132ac45e2d137ca9f058194a1a9671:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODU0Y2YwNTYxZmI1MTNmMjM2MDgwYTIzODlmNWVjNTRlZmI5ZjQ4NjY5NzNjMjYyZTg2NTM2NDQyYzgwMDZmZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRjNmEzYjFjMmIwNzY4YTlhN2NhNDg2NjdmMjkyNzgyMGVhMTg5OGY0ODlkN2FlNmY1YzU2MDBkNzZmMmE4MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWViNTA1ZTVlYzZmNTcwNThmMmUwM2ZmMDExZjlmNzcwZDY4NjlmYTAzN2EwOWVlMTU0OThlOWQzM2RhY2RkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmMxNmM1YTE1YmNhNjNjNmVmNjQwNmZhMmVkZWQ3ZmQ0OGYzYjZlMDU3ZDMxMGJhMTNiNDk4MDljN2I1NjQwYyJ9"
+        },
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L159-L173",
+          "version": "repo-lines-v1:sha256:5ee4ccfcf4b163f61af1fc8cb7fad1c38aea5a087e8059f114c496f9b1455e93:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1NjJmZTE0Yzg2OTI1NmMxNjgyYmY1ODQyNTU2NTAwYzVjYjdlOWM4Y2Q0OTEwNWFmMzEyZTk2OGRlMWNmYzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyYTljZDYwNDU5YTNlMWRiNzk3YzM1Mjg5ZTkzYzMzODlmNzg3YjdjNTU0OGZmYzQzNDQ2MDIyMDM1NjRkZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwYTRhNDNjM2Q3MGFlYzM2NDNjMDdiMGQ0YTcyZGI2YWY2ZGI2YmFhYjVkN2FiYzVhZmNmY2NmMjgzZGRlZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwNGY1NDBiZmVmM2M5Mzg4MTk5ODY1ZWZkYjRlYjY0MTg5YTJhOWRhYmEwY2U2Yzc4MmUyZDQxY2RkZGFmNDcifQ"
+        },
+        {
+          "resource": "repo://tests/test_limits.py#L355-L380",
+          "version": "repo-lines-v1:sha256:b0e7fabef838fcb7cf23ee6c40bb85bbdcb68b3f005b97eb460493382931f37e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1Yjg1MmYwOWE1ZTljY2M5MjExYTRjNTBkYWJiYjQwYjhhNjQxNDAxY2E4M2RkYWJkOThhNzAwOWYxMzQ1NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5MWU3MDlmZTJlZTI1ZDUxMTdjNzliNzdkZDVkOGE4MGY1OTM5N2U2NWQ4YTU5OWIyMGQ2NTE3YmI3YTZlMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhMTA0ZWY4NWIzNzBkNWY2NTAwMTVhNDM5MTgyZTJkYmJkYzJiNWU3OWExYTY2OWRhMWMxMzRiYzI2NzNjMTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_436f98ea2968443ba6d0fc6f3783ec40",
+      "statement": "eval/runs/m4-engine-vs-inprocess/ records T41's same-day, alternating measurement of point-cloud questions in-process against Engine jobs, at one and four Engine workers, which ADR-0011 rests on.",
+      "evidence": [
+        {
+          "resource": "repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md#L29-L40",
+          "version": "repo-lines-v1:sha256:7112f0c6a6d69cd92bd108993dba8cbd2aa31b72379aa1da75a366f62d0d44ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiYjJkM2QzMDBmMTBiODliZmZiOTgzNThiZDM1NDZiMGEzMGNkOTJmNzA0M2JiN2EwZTI4ZWMxNGRlODhhMjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzNjM5ZDM4NWVlZGVkMDZkYmY4NTFlOGZmOTA5YTY1MTM5MTM0MTE4YjBlYjQwNjE1MWQ0ZDdlNjg5YmY5YmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZThkZmM1Mjg0YTcxZTJiODJkNTRmZmJiZmNkZGRjNDY4NWNlOGQyOTE0MWUwYjQ1MDdhMmRhZGJmMzgxYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ODQxNTMwOTk5OTg1MmIzYWZjMWFlYTU5OTgxOWMwMTFkMzQzYjI3Mjk5ODM3NjYwNzUyMmVhYWQzZjhkN2YifQ"
+        },
+        {
+          "resource": "repo://eval/runs/m4-engine-vs-inprocess/README.md#L1-L20",
+          "version": "repo-lines-v1:sha256:88a4f6585a10c36f7d82dd49e2ee8d18e640e993b0bc5597746b6e172af3c09d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNWIxNjRhNTdhZGM5MmYzNmQxNWJkNmJhOTgwNjliNmY3NDQ5YjVjNGM0Njk3ZDBiNDJjZmNmMGU5MjExYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4MDYwOTNiN2FkNDgwM2QyZGY2ZWVhZjI0MjcyN2E4NmY4NjQ4Mjk0NmNjZjIxMWE3ZDdhOWIwMWM2OWZlNzQifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

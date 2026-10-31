@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:3513efd3a274d1d063c1af67369ff30ab8a1868407031a53bfc77604f343120c",
+  "pageVersion": "sha256:9d9a01dbcaa5283bda02b625a48eb0167da39ac3ef60d8839b606c83a98978cb",
   "claims": [
     {
       "id": "claim_bc142491149c4bb18c3b2537a5dc5211",
@@ -14,41 +14,45 @@
     },
     {
       "id": "claim_85ed39cefacb49fea1b29a77e3be3aaa",
-      "statement": "The model runs on Amazon Bedrock only: model() builds one BedrockConverseModel per process on first use, with the model ID from DTCC_AGENT_MODEL (default eu.anthropic.claude-sonnet-5-5) and the region from AWS_REGION (default eu-north-1).",
+      "statement": "The model runs on Amazon Bedrock only: model() builds one BedrockConverseModel per process on first use, with the model ID from DTCC_AGENT_MODEL (default eu.anthropic.claude-sonnet-5-5) and the region from AWS_REGION (default eu-north-1), and returns it wrapped in LimitedModel so every model request passes the deployment's limits.",
       "evidence": [
         {
-          "resource": "repo://chatbot/config.py#L62-L71",
-          "version": "repo-lines-v1:sha256:73a914ca57be1fd3168de4a018ecdf166f4262b7bd51644fd7f9fed8d10df453:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2YWIyODY1YmM4NjA2ODdlNzVmNTJhODk2ZWQ1MWRjNWIyMjAxMDVjNzE2ODgzNmM5ZWFhMTQzYmVjNjJjMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNGVkYTAzYzg5NzQ1YzBhM2QwNmFmZTc1MDY0ZWMzMzgxYWM4NGE1NDVjYzk5YjUyNzEzY2E5OWQwMjUxZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzZjAzZDMyZjE5NTc0M2ZlYTkyY2M4NDU0Yzg4MDFkMzYzMzZiMWEwMjRjZWQ4OTgzMDRhMWVlNjY0YzkyMWMifQ"
+          "resource": "repo://chatbot/config.py#L69-L77",
+          "version": "repo-lines-v1:sha256:bd9d859c03e6f5f3841f4549a43151badfdba92f05c20b7b9973ccc729436f99:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmE1NmM2YTQ4OTU4YmY1NzNjNDU0Y2JhZDZkMzNiYTdlMmIwZDg2NzRhODU1MDUzNTFkZjZjOWRjNjBkY2QwOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTZhYjI4NjViYzg2MDY4N2U3NWY1MmE4OTZlZDUxZGM1YjIyMDEwNWM3MTY4ODM2YzllYWExNDNiZWM2MmMyMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTlkMTBlYjIyODE2ZDU3MTVkNTU4MmU4ZDg5YzQ5ZmVjMmNlMDlkYjc1YTllMTE5MTFiN2Y2OGQzZjA4MTczZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjNmMDNkMzJmMTk1NzQzZmVhOTJjYzg0NTRjODgwMWQzNjMzNmIxYTAyNGNlZDg5ODMwNGExZWU2NjRjOTIxYyJ9"
         },
         {
-          "resource": "repo://chatbot/runtime/pai.py#L57-L67",
-          "version": "repo-lines-v1:sha256:683adf22fb1186f1d3d22a63ec6615081199e86045231bcc25f9ddd72c8255f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZWRmYTI3ZTAxNGE2M2UwNTk2ODFhOWY0MWJjMTg1MTBhMTIzZGM0MWE1ZTQ4YWQwZTJlNmQxN2FiYjNlYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyMjdhNmI4ZGRlZjU3YzI3NWMzOTYzZDE3NTVmZjJiMDNkODdhM2M3MWEwNmMwZmY4NTZiNWE1Y2U2Y2RkMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyMDVhYWY0YzgyYWY0MGM3ZWNjMzNmYWYzYTZmM2I3NTdmOTk3YTM5OTg3YzAwNGY2ZWJlMzg5NzhhOWI0MDMifQ"
+          "resource": "repo://chatbot/runtime/pai.py#L59-L75",
+          "version": "repo-lines-v1:sha256:16d2c95a9ce910f79611bb5fa2832855ecd4e4750eab7ea2bb173a7f7395a28f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZWRmYTI3ZTAxNGE2M2UwNTk2ODFhOWY0MWJjMTg1MTBhMTIzZGM0MWE1ZTQ4YWQwZTJlNmQxN2FiYjNlYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNTY5MWJhNDc0Yjg0YjIxNDU4MjQ5NjFkMmUwM2I2NWZiN2Q0MzE5ODM2NWYxMDhlZTRiZWI4NGRiMmQ3MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyMjdhNmI4ZGRlZjU3YzI3NWMzOTYzZDE3NTVmZjJiMDNkODdhM2M3MWEwNmMwZmY4NTZiNWE1Y2U2Y2RkMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhM2NmNTE5MjM1NGY3MTYxNWFjNTEwMzRiM2U5N2MyMGVkYTk5NjQzZmNhZjViYmU2ZDQxYWQ1OWJkMTIxNjcifQ"
         },
         {
-          "resource": "repo://tests/test_chatbot_config.py#L117-L130",
-          "version": "repo-lines-v1:sha256:b6d52c634bac082467bac3c0da9bb191d093861c16dc7e0970c5e946a8ae68ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2NzdiYTU4NmE3OGIzNThkNGVjMGM3OGI0MjMyM2JjMTVlMjRjNzk1MDliMDVlODAxMDRmYTIxMDk1YjVlNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxYWNjZjkwNGZhNmM3MGY4ZmZiYjQ3NTVhMzc1MGE0MTFiNzZjZTJiOTE4M2M4MmQ4NjQxZDU1MjA2NzYxZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZjJmODc3MTFkMGQyYzE0ZTU4NDMxYjMzYzkwMTFiY2RmZjNhMzlkMzhmYmJhNzE3Zjk4NjU2YjBkZTk0ZWMifQ"
+          "resource": "repo://tests/test_chatbot_config.py#L126-L138",
+          "version": "repo-lines-v1:sha256:8bb09fa698b0344dd6cdf328d46aaaa5fa66700c9c5540eb6f3d9c2db7f0978a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2NzdiYTU4NmE3OGIzNThkNGVjMGM3OGI0MjMyM2JjMTVlMjRjNzk1MDliMDVlODAxMDRmYTIxMDk1YjVlNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhYjdmMWI2YWFmOTRhZmE0MzI1MGY5ZDUzZmY0ZmI2OTQyZGI5ZTcxMGQ1MWUxZjY5MWNmOGJiOGJlNjliZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1ZTg4N2Y3MWNiOGFlNjBkZTYyMDk4M2Q3ZDI3MmQ2M2IyNGZjMTYzYTVkOWFkYTQyN2U4NDQxNTg4ZDlkMjEifQ"
         }
       ]
     },
     {
       "id": "claim_28f7ee36cb894e2693a7b9aa82291057",
-      "statement": "The chatbot refuses to start without some AWS credential, and its lifespan starts a background 1-token Bedrock probe that logs a rejected key (HTTP 401/403) as an error without blocking startup; DTCC_AGENT_BEDROCK_PROBE=0 disables it and the test conftest sets that.",
+      "statement": "The chatbot refuses to start when neither AWS_BEARER_TOKEN_BEDROCK nor botocore's credential chain (environment keys, a profile, or a container or instance role) yields a credential, or when the AWS configuration is unusable; its lifespan then starts a background 1-token Bedrock probe that logs a rejected credential (HTTP 401/403) as an error without blocking startup, and DTCC_AGENT_BEDROCK_PROBE=0 disables it.",
       "evidence": [
         {
-          "resource": "repo://chatbot/app.py#L52-L66",
-          "version": "repo-lines-v1:sha256:342b35e20bade0daa65c45ed017330b12320044baea2ef6f29771f867c9901e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NTg0NjZlMjg0NWRhMzMzNzAxMjliNThkMTE0NWU3MTQ2ZmVmYjcxMzYzZTFmMTMzMWMyZjk3ZjUyZDhlNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkMTQ0ZDIyNTI2YzkzNGNhY2M4NDdkYzNkYTNiMTAzYWZhZGI1N2VmNjMwMTIyYTQ3ODQyMmFiNDA2MzI3YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZThkYmQ4MWE5NGYyNzRiOTQ3M2ZkOTZjM2JjNmFiM2EwZjk3MWRiYmQ0NWE0YWU4MDdmMzJmMTgyNDVkOWYifQ"
+          "resource": "repo://chatbot/app.py#L52-L70",
+          "version": "repo-lines-v1:sha256:4e33a91617912617509b65b3a515db6f1b05439b45b2177ee1bca7d917cc7d48:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3Y2VjNGIzZWJmZTAyZWFkNjdhMzIwNjhiZWZjNDg5ZDllNTZjZjA3ZTc0NDRhMzIyNGZkZjdiOTU4ZWUyNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMGFlY2Q0NGM2MDQyYmU0OGY3NmJkNDIxMzRhOWRkYjQyMTlmYmM4MzM2MDZiZDcxYzdjNTZiYTkyNjg4MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1NDZiZmFjZjhiYjY2NWRhNmI2MDFkNDA2YzhlNWI5YjI4Yzk5M2I0OGFlNzk3OTAzYTZlZDQ1YWRjMzJhMjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlNmRkY2Y4MDQ0MGQyZTk1NTdkMmQ3NGM3OTU5ZjJkNDlhZGMzYjQ1YzZmMmVkNDJhNTJkMjgwNjY5YTFjY2EifQ"
         },
         {
-          "resource": "repo://chatbot/config.py#L74-L85",
-          "version": "repo-lines-v1:sha256:490f49f41b8ba06cca32662b20f17953dce693854c0febf600c2c4deebf7aa22:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzN2NiNzZhMjA5OGE3OWQzZDkxZjA3MzM4MDMzZTVhMjFlMDU3Zjg3NWM5NTU2OTUzYTc3NzRkNmI3NDRjMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzY2VkMzUxNGRkYTY4NzRkMjAyMDM0ZTc2ZWIxZmJiZmE5YzcxYjAyMDA1Y2RkZTUyZjUyY2JkZjQ1NDVkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YmE0NjhkYTAyZDkyZWJhNmFlNjc4ZGI4YmYyZDkyMDkzYjQ0YWI2Y2E3YTMyZDMwMmFjNTRkNDY3ZjBkZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwNjFlNDFkZmUxZDBhYTNiYTM5YjBhNWE5YzBmYTI1MDE1ZmEzMzMwYzc1NWQyYmIwZDBiNjllNGNlZDA4ZmUifQ"
+          "resource": "repo://chatbot/config.py#L80-L102",
+          "version": "repo-lines-v1:sha256:5e63753c007411ed1c6429afb4bd2441fd668a3123b4c7c7d5cb35c94579608e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzN2NiNzZhMjA5OGE3OWQzZDkxZjA3MzM4MDMzZTVhMjFlMDU3Zjg3NWM5NTU2OTUzYTc3NzRkNmI3NDRjMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYjVhYzRlYTM0NDIyOTIzN2U2ZjJhNTgyZDk4Yzk2YmUxN2RlNDU0MjM3MzgzNTdjYmFhYjFhZjgzZmI1OTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YmE0NjhkYTAyZDkyZWJhNmFlNjc4ZGI4YmYyZDkyMDkzYjQ0YWI2Y2E3YTMyZDMwMmFjNTRkNDY3ZjBkZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3MmZkZTc1ZDkyZjMzOWI5OGJmNmMwZDYzYmMyNjc2YThjMjY0OGU4MzA4NzA2NTg1NjU4NmZjYTQ5YjE2ZGUifQ"
         },
         {
-          "resource": "repo://chatbot/runtime/pai.py#L70-L89",
+          "resource": "repo://chatbot/runtime/pai.py#L79-L98",
           "version": "repo-lines-v1:sha256:9d6150933537d9630d97ed817cd0bde32026f51aff6ec05a93cd2e3bd6d857f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3YjUxNTkyYTFlMWFiZjQyYzU4ZDg1MWQ2NGQ2NjljOWRiYTQ1YzFjMjAyNTUyYjYxNDJkMzQ3ZWQ5MTEzN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExZjU3MGYzOTNhN2UxZmFhZjNmNDVlYjJiZTcwMTFjOTY2MjkyZTU1OTVkMTMxMzhjMGYwNTVhYzNiMjlkNDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhM2NmNTE5MjM1NGY3MTYxNWFjNTEwMzRiM2U5N2MyMGVkYTk5NjQzZmNhZjViYmU2ZDQxYWQ1OWJkMTIxNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkNTNlYTliMWQ3ZWI1NmZmMzUzZjc5NTA2OGFhMTZhOTRhNDdiNDZiNjJjZTFiZTZjNjRiYjZmNDI2M2YyOTEifQ"
         },
         {
           "resource": "repo://tests/test_bedrock_auth.py#L69-L89",
           "version": "repo-lines-v1:sha256:ecc18d6c5f0ffd15c85fdcf2c4225013dd6c3a322c4976ba2a2a9984631df533:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwMzEzYTE3MGY5N2QxNWQzNzhlMzgxM2E5ZmNmMjI0ZGI2MjU3N2I2ZmE5ZmIyMGEwYzg4ZDYxOTZlNGYxYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg0MTZjNzAwNDlmZWYwNTZjZjM0ODU0MWFhMDQ2OTU0MTM5ZjBmOTc5YjhjYTRkODEwYWIxZjRkNDUxM2UzM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0NTY2MGM4MTkxZDlmMGExZDJkMGQwZGZmNmVmMmM3MGE2MDAxYzZmN2I3MjgyOWZhMGY0YWQ3YmJiYzA2NWMifQ"
+        },
+        {
+          "resource": "repo://tests/test_chatbot_config.py#L140-L204",
+          "version": "repo-lines-v1:sha256:b07209c56d224e6d413811655c76ba5bd73c15179fdd33c215e494a706886871:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkMzczOTU1MTQ0N2IzYjg3ZWEyZGI1ZTcxYmMxZDUwZDIxYzY3NmVkYTlkZTQyZjVmMjMxN2M0MzE5ZGQxYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyY2JlMWY0OGFmZGEwNTA4MGJmOTc5MzRiMTk3YjAzMDkwNTViNzQ0MzBjMTE0MGJjNzE3MDBlNjI5NmE5MjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4NjNlMzU2ZjQ5ZTA1NzFmYWI5ZDA3M2E4ZGE2MTZhMWEzY2U3ZTc3MDI4Nzg0YTk4YzgwYjU0ZjMwMDFhM2QifQ"
         }
       ]
     },
@@ -104,11 +108,11 @@
     },
     {
       "id": "claim_b71ac38237a146dc88dce0d7b6e6599c",
-      "statement": "A failed follow-up is retried once from a fresh conversation as the same turn with usage summed, but a content-filter refusal or a Bedrock 401/403 is not retried; refusals show a fixed refusal message and rejected keys tell the user to ask the administrator.",
+      "statement": "A failed follow-up is retried once from a fresh conversation as the same turn with usage summed, but a content-filter refusal, a limit refusal or a Bedrock 401/403 is not retried; refusals show a fixed refusal message and rejected credentials tell the user to ask the administrator.",
       "evidence": [
         {
-          "resource": "repo://chatbot/runtime/pai.py#L118-L161",
-          "version": "repo-lines-v1:sha256:dae220feafe70a12ab15625ec71f7ab23785c521e343709ad36b001a7c3c889d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZDdkMjg0NTk4OWQ2ZGMzNDkyNGU5ODUxYzkxYjZlM2E0MjgwY2I1Nzk1MzllZTQwZTFmYzVkNzA1YTE2NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzMTQyZmE3YmRkODMzYzZmOTM1MWZmZjNjNDlmZjBkMGQ0YzA5MjY1ZDgwN2VhMTE2Y2ZhYmIzZjZiODQxOTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDAzNzcwYjhmNGMzZjFkN2ZhNThkNDEwZTQ5MDY4MjU3ZGQ0OGFhNDUxMzk0NDcyNjg2MjJhMmVhYWRkYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNzVhNjg3YTM1N2QwZDEzN2U3YmMzYjJjOTM1OTczOGEwMDMyOTBkMDQ1ODFhNzI4ZGNlMjliMmM4ZGZmN2UifQ"
+          "resource": "repo://chatbot/runtime/pai.py#L127-L200",
+          "version": "repo-lines-v1:sha256:71cfae5973b29a72cc6d397b9eeff1ca2a06c4600f05125dbd237382f864c825:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZDdkMjg0NTk4OWQ2ZGMzNDkyNGU5ODUxYzkxYjZlM2E0MjgwY2I1Nzk1MzllZTQwZTFmYzVkNzA1YTE2NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MTIyZDNlYjdmZTA0NDM5YjJmYmJkZDU2MGZmZTc1OWM1OTFiZmNkYzhhYmY2YzNmOWFmMWViYWUyOTMwZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDAzNzcwYjhmNGMzZjFkN2ZhNThkNDEwZTQ5MDY4MjU3ZGQ0OGFhNDUxMzk0NDcyNjg2MjJhMmVhYWRkYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNzVhNjg3YTM1N2QwZDEzN2U3YmMzYjJjOTM1OTczOGEwMDMyOTBkMDQ1ODFhNzI4ZGNlMjliMmM4ZGZmN2UifQ"
         },
         {
           "resource": "repo://tests/test_bedrock_auth.py#L31-L53",
@@ -133,10 +137,24 @@
           "version": "repo-lines-v1:sha256:bd697f0bdf3917c26d92088d0bb77d44109a2ce7188e44381041284e0f43d699:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTJlNWQ5MWU0NTgwM2UzY2JjMzJlODBlYTJjMTYwNGRjZDI0Mzk2MTk5MDNiMzEwYTEwNDM2ZTJlMjdmYmQ2MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODdiMDg0Y2M1NTM2MjVjNmVkZWQzNzFmYzI3NjVmNDkyNDU3MmE2NTA5NzMxNDc4ZGZlZWFlNmRmMWE3Y2JmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTA2ZjI0NDJmMzc4OThhODZlYzI4NjM1NTZmM2Q4YTNlNzRjNDcwZmIwNjYyOGNhNDE0MTg2YTE2ODkzYjFjZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
+    },
+    {
+      "id": "claim_c0b42f1ae7064ca6a6bf9bde5239a3d7",
+      "statement": "A turn is refused before it runs once its Session has started DTCC_AGENT_TURNS_PER_CHAT turns, and runs under a DTCC_AGENT_TURN_SECONDS deadline whose expiry stops it with a timeout message; only the deadline's own expiry is reported that way, and both limits are off when unset.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/runtime/pai.py#L138-L173",
+          "version": "repo-lines-v1:sha256:3886d7f11fdb12f803fc079f372a768a4758ae19e36d599c6a7ac516071e988c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4Y2MzZDUyMzJkNTliYmY2Nzk0ZDAzMmYzM2Q5NWFjNmFhZjNkN2ExZDQ0OWUzZjkwNzUxMGMyNzZjMmRmNjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyYTljZDYwNDU5YTNlMWRiNzk3YzM1Mjg5ZTkzYzMzODlmNzg3YjdjNTU0OGZmYzQzNDQ2MDIyMDM1NjRkZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjZGFjNDJlZWM0YzYxZmQ5ZDgzODg2MTE3NWMwZmE0ZTU0YzY1MWI5NGZiOTAxZmI0NGU2MzY4NTgwMzA2N2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwNGY1NDBiZmVmM2M5Mzg4MTk5ODY1ZWZkYjRlYjY0MTg5YTJhOWRhYmEwY2U2Yzc4MmUyZDQxY2RkZGFmNDcifQ"
+        },
+        {
+          "resource": "repo://tests/test_limits.py#L355-L392",
+          "version": "repo-lines-v1:sha256:3ffbec1dab2a357ddea2e18487389ee82044523b628875a649a47a63aa0acd24:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1Yjg1MmYwOWE1ZTljY2M5MjExYTRjNTBkYWJiYjQwYjhhNjQxNDAxY2E4M2RkYWJkOThhNzAwOWYxMzQ1NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5MWU3MDlmZTJlZTI1ZDUxMTdjNzliNzdkZDVkOGE4MGY1OTM5N2U2NWQ4YTU5OWIyMGQ2NTE3YmI3YTZlMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliMDRjNzk1ZGVmMTU2MzNhNmJiZDkzMDViZGIyMTdmOGJlYWZhNzhjNmFjYmIwZjQwMDc5NDIwZThkMGZhMzAifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

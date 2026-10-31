@@ -4,6 +4,8 @@ title: Disk cache
 description: The persistent pickle and JSON-index cache for the two dataset downloads (buildings and point clouds). It serves a smaller area from a containing download, cropped with Core's own containment test on each building's source_bounds so the result matches a fresh download, starts cold after a Core upgrade, evicts by TTL and size, and is shared across Sessions. Builder results are measured, not cached.
 tags: [cache, disk-cache, datasets, performance, isolation]
 sources:
+  - id: openwiki-source-5362e3b27c4a029e63907699
+    resource: repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md
   - id: openwiki-source-011d18639a7a8582693228a4
     resource: repo://dtcc_agent/builder_calls.py
   - id: openwiki-source-612afbd7ed762fbc6635cafc
@@ -18,15 +20,17 @@ sources:
     resource: repo://tests/test_crop.py
   - id: openwiki-source-116206fc13aadd444daea62c
     resource: repo://tests/test_disk_cache.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Disk cache
 
 `dtcc_agent/disk_cache.py` keeps dataset downloads across processes and Sessions. It stores each object as a pickle under `<cache_dir>/objects/<cache_id>.pkl`, with metadata in `<cache_dir>/index.json`. One process-wide instance, `_disk_cache = DiskCache()`, lives in `server.py`, and is built when the module is imported, so a cache the trust check refuses stops the process there.
+
+ADR-0011 (2026-10-20) keeps these downloads in the agent, behind this cache, rather than as DTCC Engine jobs: through the Engine, point-cloud answers measured 30–38% slower, mostly because the agent answers most pieces of a split request from this cache in about a second.
 
 ## Configuration
 

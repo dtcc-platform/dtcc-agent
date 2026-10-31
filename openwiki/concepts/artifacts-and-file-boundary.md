@@ -30,10 +30,10 @@ sources:
     resource: repo://tests/test_chatbot_app.py
   - id: openwiki-source-f7a9ed42f310602857a88be4
     resource: repo://tests/test_path_refusal.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Artifacts and the file boundary
@@ -60,7 +60,7 @@ Which Session a tool writes for comes from `_Session.id`: the `X-DTCC-Session` h
 
 - `GET /artifacts/{session_id}/{name}` returns 404 unless the session is live in `SessionManager` and `find()` resolves the name. Every response carries `Cache-Control: private, no-store` and `X-Content-Type-Options: nosniff`. PNGs are served inline as `image/png`; anything else is an attachment named after the artifact without its token (`download_name`).
 - Until admission control (T14) the URL is the credential: the live session id plus the random token.
-- After each tool result the runtime calls `artifact_frame` (`chatbot/runtime/__init__.py`; see [Model runtime](../architecture/model-runtime.md)). It accepts the result as JSON text, a list of text parts or already parsed (pydantic-ai hands it over parsed), unwraps an MCP server's structured form (`{"result": "<tool JSON>"}`), checks that the named artifact exists in *this* session's folder, and sends the page an `image` frame or a `file` frame with the URL. The page appends an image to the message or a download link (`chatbot/static/index.html`).
+- After each tool result the runtime calls `artifact_frame` (`chatbot/runtime/__init__.py`; see [Model runtime](../architecture/model-runtime.md)). It accepts the result as JSON text, a list of text parts or already parsed (pydantic-ai hands it over parsed), unwraps an MCP server's structured form (`{"result": "<tool JSON>"}`), checks that the named artifact exists in *this* session's folder, and sends the page an `image` frame or a `file` frame with the URL. The URL is relative to the page, `artifacts/<session>/<name>`, so a download works at the root and under a gateway prefix that the gateway strips, such as `/agent/` (#134). The page appends an image to the message or a download link (`chatbot/static/index.html`).
 - The old `/renders` static mount is gone: it served a fixed folder the renderer never wrote to (#38).
 
 ## Tools that write artifacts

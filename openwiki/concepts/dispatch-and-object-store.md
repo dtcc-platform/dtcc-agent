@@ -20,10 +20,10 @@ sources:
     resource: repo://tests/test_object_store.py
   - id: openwiki-source-2474212d3cebf96cd7d1f586
     resource: repo://tests/test_server.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Dispatch, object references and serialization
@@ -67,7 +67,7 @@ Exceptions from Core are caught and returned as `{"error": "Operation '<name>' f
 
 - **References** are Object references, `obj_` plus 8 hex characters, minted by `refs.new(refs.OBJECT)`. `list()` reports each entry under `object_ref`.
 - **Size** (U4, #13; T11, #66). `_estimate_bytes` walks everything an object reaches, once each: `sys.getsizeof` per Python object, dict keys and values, list, tuple and set items, `__dict__` and `__slots__` attributes, and a numpy array's buffer (a view counts its base). It also follows a dolfinx Function's `.x.array`, which is a property, and skips modules, classes and functions. On real data it tracks the pickled size: 127 Lindholmen buildings count 6.25 MB (4.73 MB pickled, 16 ms to count) where the old estimator, which read only a few named array attributes, said 64 bytes.
-- **Shared budget.** Every Session's store takes the one process-wide `MemoryBudget` (`OBJECT_BUDGET_BYTES`, 2 GiB) and shares its lock. A store first evicts its own least recently used entries past its cap, then the budget evicts the least recently used entry in *any* store until the total is under 2 GiB. Access order is a counter, so there are no ties. An idle Session's memory therefore goes to the Sessions in use.
+- **Shared budget.** Every Session's store takes the one process-wide `MemoryBudget` (`OBJECT_BUDGET_BYTES`, 2 GiB unless `DTCC_MCP_OBJECT_BUDGET_GIB` sets it, #122) and shares its lock. An HTTP Session may hold half of it (`SESSION_OBJECT_BYTES`). A value that isn't a positive number stops the server at import. A store first evicts its own least recently used entries past its cap, then the budget evicts the least recently used entry in *any* store until the total is under the budget. Access order is a counter, so there are no ties. An idle Session's memory therefore goes to the Sessions in use.
 - **Per-store cap.** An HTTP Session's store may hold `SESSION_OBJECT_BYTES` (1 GiB); the local stdio Session's may use the whole budget. A cap never exceeds its budget.
 - **Too large to keep.** `store()` returns `None` and keeps nothing for an object bigger than the store's cap, instead of emptying the Session to make room. Callers add a `not_stored` note via `_kept()`: the dispatcher, cache hits, simulations, and the GeoJSON and spatial tools.
 - **Clearing.** `clear()` drops every entry and returns its bytes to the budget; the server calls it when it drops an idle Session.

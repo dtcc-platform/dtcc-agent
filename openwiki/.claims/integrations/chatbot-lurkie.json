@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cc010ee09279676ae94f0dec6ae86754de4f7483c1fa338a8b3520619b280eb9",
+  "pageVersion": "sha256:d26b5b20eef4c24a30e2924f42dc143205b74a6e67fe1c4e626ccc681149ca89",
   "claims": [
     {
       "id": "claim_2688dfaf9e8a43de803df3ea136b17f6",
       "statement": "The /chat WebSocket first exchanges a session id, admitting a new chat only with the access code when one is configured, then for each user message streams status, the runtime's frames, a provenance frame and done; messages over 10,000 characters are rejected, an idle-expired session is closed with 4408, and a new_chat message clears the conversation history.",
       "evidence": [
         {
-          "resource": "repo://chatbot/app.py#L166-L227",
-          "version": "repo-lines-v1:sha256:60ec5ecdcc096eb75b47359c8433038a5730b5180bd82703d1e27ff545316419:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1Mjk2NTNlNzRhNjRhNGE1NThmMjljMTc3YWFiNTE0ODc1MjQ2NThkMzE4OGU4OTk3YTRkZWVlZmNhZGVkNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiNzczOGI0NDI3ZGEyM2E5NzQ2MDIxOWFjOTE0ZTNmMTM5NWUzMjRlMDQ1NTAxMDUwYzI4MGJhMGI3MWE0ZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0YjgyMTc3MDI1MmU0ZjQ4YTQxNzQ0M2M2ZWU4ZTkyZWVmYTg2Njk3OWEyMzYyYWZhZjc1YjVjNWY3Njg3YzIifQ"
+          "resource": "repo://chatbot/app.py#L172-L233",
+          "version": "repo-lines-v1:sha256:30e16f09a64592d3e81222502cba29e8c85e336c4efd2f8d3feb01d6a1ab33e0:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1Mjk2NTNlNzRhNjRhNGE1NThmMjljMTc3YWFiNTE0ODc1MjQ2NThkMzE4OGU4OTk3YTRkZWVlZmNhZGVkNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhNjVhMmIwYWJlZTVkNTk5YTQ3YzIyZTYxMTA5MDRjYzRiMTVlYWQyYjc2NTRlNDgzMmExOGNhMDE0MDc4OGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiNzczOGI0NDI3ZGEyM2E5NzQ2MDIxOWFjOTE0ZTNmMTM5NWUzMjRlMDQ1NTAxMDUwYzI4MGJhMGI3MWE0ZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5M2JkNjZlMmJiNzFmM2I4YTkyNDA2NGJiZjdiMDdjNTkwM2E3NzNmYTRmOGMzNTQ2MDYwMzg2NjcxZDNhNzMifQ"
         },
         {
           "resource": "repo://tests/test_chatbot_app.py#L347-L360",
@@ -74,21 +74,39 @@
     },
     {
       "id": "claim_6ab0ec0146784883a6635dd24b1dea45",
-      "statement": "The chatbot sends the page an image or file frame for a tool result that names an artifact in the current session's folder, unwrapping an MCP server's {\"result\": ...} form first and building the URL from its own session id.",
+      "statement": "The chatbot sends the page an image or file frame for a tool result that names an artifact in the current session's folder, unwrapping an MCP server's {\"result\": ...} form first and building a page-relative URL from its own session id.",
       "evidence": [
         {
-          "resource": "repo://chatbot/runtime/__init__.py#L38-L61",
-          "version": "repo-lines-v1:sha256:58be364de657ca2ae6007c7780e05534e80b46916488315cc3f554d566d77aa7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNDlhNGE3Y2Y1ODhlNmQzYzA1MzNiMWIyZTk3MTMzYTNhOWUxZTUyYjA2ZjBhYjgyYTg4YjA5N2U1N2Y0ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViOTAxYjNkNmEwMTJjMzkyNTU2ZTUwNTllMzFiMmI4MmRmMjYwNThiODM1NjRhZDkwM2EyYjRmMzU5NmEwOGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5NTI3OWFjMmI1MjI4MTZlOWMzMDdlYjJlMGY3YjcwZmU5YTU0YWQzMTY0ODE1OGMxMjU3MjE2MDlhZTQ2ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://chatbot/runtime/__init__.py#L38-L62",
+          "version": "repo-lines-v1:sha256:c8c3fbce1cc95b98c64b82619d0c16f4eecbcfe8a2d4075fbec8c3ba82667740:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNDlhNGE3Y2Y1ODhlNmQzYzA1MzNiMWIyZTk3MTMzYTNhOWUxZTUyYjA2ZjBhYjgyYTg4YjA5N2U1N2Y0ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViOTAxYjNkNmEwMTJjMzkyNTU2ZTUwNTllMzFiMmI4MmRmMjYwNThiODM1NjRhZDkwM2EyYjRmMzU5NmEwOGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5NTI3OWFjMmI1MjI4MTZlOWMzMDdlYjJlMGY3YjcwZmU5YTU0YWQzMTY0ODE1OGMxMjU3MjE2MDlhZTQ2ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
           "resource": "repo://chatbot/static/index.html",
-          "version": "repo-file-v1:sha256:ade36009641a00d54d00b3d0d5063519d559e8aec662f5ca999ec87e27898220"
+          "version": "repo-file-v1:sha256:7556be167d1d6fd1e2311c102200f096d0d94bfdbab7f2bc1cba713c0735dbf0"
+        }
+      ]
+    },
+    {
+      "id": "claim_721ba4f8779041c5b984e6cd4e3fe111",
+      "statement": "The page uses only page-relative URLs for its websocket, admission check, static icons and artifacts, and adds a missing trailing slash before they resolve, so the app works at the root and under a prefix a gateway strips.",
+      "evidence": [
+        {
+          "resource": "repo://chatbot/runtime/__init__.py#L56-L62",
+          "version": "repo-lines-v1:sha256:96dc855b46d0fc8e0f32b213e0897353cb6eb1a74c3deb69d858cc2485bf38aa:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDEyMTk5NzcxZDkwZmQ3YWM5NTRjNzI5MDVkYTNkMmFlNGQ1NDg1OWMyY2JmNmU4ZjBlNDAxNTJjNTk2ZjQ3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI5MDFiM2Q2YTAxMmMzOTI1NTZlNTA1OWUzMWIyYjgyZGYyNjA1OGI4MzU2NGFkOTAzYTJiNGYzNTk2YTA4YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWJjMDAyOTgyZWRjYzg5NTY1Zjc2N2NhNWMxZGQ4MzhiZGI2NmE3MjJmZmRmYjU1YzY4YjFjMDk2MGZiZDYwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://chatbot/static/index.html#L1-L20",
+          "version": "repo-lines-v1:sha256:8a281e8f49afd758ce9ba60db4140b69055972e446a8be097f930e918f2b6770:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkMGI2ZjVlMzA5ZGY4ZmNlODgxNWY5MDhkZDY4MjFiMDQ5NmNmNDNjZDlmYjRmZjdlYTljMGNlNzQ3NzA4MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhYmI3MTI3ODkxZjkzZWIxOWM2OWMyYTNmZTEyNWVkMzhiYjA4MmY1Y2UwMzY1NzFmODU1YWY1YmU0MGJjZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4NWU0NzAwNDM5NTFlNmVjNWEzZGQzMGIwNTdkNTIxMmRjNDA0NDY1MGM2NGQ3ZGE5YWNkMTczMjI4N2Q2YjAifQ"
+        },
+        {
+          "resource": "repo://chatbot/static/index.html#L436-L443",
+          "version": "repo-lines-v1:sha256:748fa2a264f439276f2a4668c6c72b7aa90337e6dc4c1c185ef8882d540a4d46:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGVmN2M3OGM1MThjNWFkZjU2OTE0Mjg0MzdmZDY4ZDY0MDAwMGU0OTc5ZGI1MzQyOGFmNWVkNzBjMzkzYWQ5ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M0ZjY4MjZlYjZjYjg4YTZiYWFmNDZjMTBkYWUwZGVkNzZiMDFmODQyN2NkNDYyYmFkZTAyYzE3NTZmM2Y5MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzg4OWYxNGE2NmRiZTlmN2Q5NGI2M2Y0N2ZlYzRkY2U3YjVjN2Y0MWFmYWJmZTdkNmI0MzY1Yjg0NzJmY2JlYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzA2MDllYzZmZjBhZWE1ZTc1NDUzY2RkMGFjNzA4ZTIwOTkxMzY1MWRjOThhNzdmOWI3YmQzM2JmMDM0NGU3ZiJ9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }

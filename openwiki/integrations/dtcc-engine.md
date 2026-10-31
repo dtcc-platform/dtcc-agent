@@ -3,10 +3,9 @@ type: integration
 title: DTCC Engine integration
 description: How dtcc-agent runs simulations as DTCC Engine jobs when DTCC_ENGINE_URL is set. It submits, polls with backoff, downloads the result as a .dtccpkg read by Core, maps every Engine answer to a message the model can relay, and replaces the dtcc-sim path and its shared results folder with no fallback.
 tags: [engine, simulations, http, integration, dtcc-twin]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
 sources:
+  - id: openwiki-source-5362e3b27c4a029e63907699
+    resource: repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md
   - id: openwiki-source-f8694fac7020c12d5f38c343
     resource: repo://dtcc_agent/engine.py
   - id: openwiki-source-32c33c58f635fb0708a0e8c6
@@ -15,7 +14,10 @@ sources:
     resource: repo://dtcc_agent/runtime.py
   - id: openwiki-source-0e41257659137c7a2c27de1c
     resource: repo://tests/test_engine.py
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # DTCC Engine integration
@@ -38,14 +40,16 @@ The DTCC Engine (`dtcc-twin` `apps/engine`) is the platform's headless job servi
 
 While the Engine is configured, `runner._remote_services()` returns nothing, so dtcc-sim is neither asked nor merged into the catalogue (see [Operation catalogue](../concepts/operation-catalogue.md)). `runtime.start()` calls `engine.check_config()` first: a URL without a token stops the tool server at startup, and `engine.client()` makes the same check under stdio.
 
-Only `urban_heat_simulation` and `air_quality_field`, the agent's simulation set, are offered through the Engine. Buildings, terrain, meshing, rendering and every other operation still run in the agent; whether Core downloads also move to the Engine is measured in #110.
+Only `urban_heat_simulation` and `air_quality_field`, the agent's simulation set, are offered through the Engine. Buildings, terrain, meshing, rendering and every other operation run in the agent: ADR-0011 (2026-10-20) decided that downloads stay in-process behind the disk cache, because point-cloud answers through the Engine measured 30–38% slower against a 15% limit (#110, `eval/runs/m4-engine-vs-inprocess/`). `DTCC_ENGINE_CORE=1` is an experimental switch kept for that measurement: it sends building and point-cloud downloads to the Engine too, without the disk cache, and needs `DTCC_ENGINE_URL`. A deployment leaves it unset.
+
+**In the planned deployment the agent does not call the Engine directly.** dtcc-infra's design (2026-10-26) limits the Engine's gateway routes to the Twin backend; the agent is to submit jobs through the Twin backend as a signed-in user. Those endpoints (dtcc-infra L1) are not built yet, so the client here, with its bearer token, talks to a local or directly reachable Engine.
 
 ## The job lifecycle
 
 `Engine.run(dataset, parameters)` returns `(model, job_id, package_size)`:
 
 1. **Submit.** `POST /api/v1/jobs` with `{"dataset", "parameters"}`. The Engine always returns a package and refuses a `format` parameter, so any `format` the model passed is dropped. A 202 returns the job id.
-2. **Poll.** `GET /api/v1/jobs/{id}` after 1 s, doubling to every 5 s, until the job is `completed`, it `failed`, or `DTCC_ENGINE_TIMEOUT` passes. A 503 (job state briefly unknown) is waited out.
+2. **Poll.** `GET /api/v1/jobs/{id}` after 1 s, doubling to every 5 s, until the job is `completed`, it `failed`, it was `cancelled`, or `DTCC_ENGINE_TIMEOUT` passes. `cancelled` is terminal (#131): callers share one workspace, so another caller can cancel a job before a worker claims it, and the wait ends at once instead of polling to the timeout. A 503 (job state briefly unknown) is waited out.
 3. **Download.** `GET /api/v1/jobs/{id}/package` is streamed to a temporary file, refused past 2 GiB (`MAX_PACKAGE_BYTES`, since Core asks callers of untrusted packages for a byte budget and no Session could keep more), and read with `dtcc_core.datasets.load_model_package`. The temporary file is deleted afterwards.
 
 The runner wraps the model in a `RemoteSimulationResult` with `task_id` set to the job id, `output_format="dtccpkg"` and `model` set to the package's `VolumeMesh`, so the field statistics path of `run_simulation` and `compare_scenarios` is the same as for dtcc-sim (see [Simulations and task tools](../workflows/simulations.md)). `as_dict()` leaves the model out of the JSON the model sees.
@@ -63,6 +67,7 @@ Every problem becomes an `EngineError` whose message the tool returns as `{"erro
 | 503 on submit with a `job_id` | Not an error: the queue did not confirm the job, which may still run, so it is **polled, never resubmitted** |
 | 503 on submit without one | The job queue is unavailable; try again shortly |
 | `failed` | The job failed, with its error type |
+| `cancelled` | The job was cancelled before it ran; run it again if it is still wanted |
 | 404 while polling | The job is unknown or expired; run it again |
 | Timeout | The job did not finish within the timeout and may still be running, naming the job |
 | Connection error | The Engine at its URL is unreachable |
@@ -73,6 +78,6 @@ Live, against a local Engine built from dtcc-twin `22d0624` with dtcc-sim stoppe
 
 ## Tests
 
-`tests/test_engine.py` runs offline against `httpx.MockTransport`: submit once with backoff and `format` dropped, every error row above, waiting out a 503, the timeout, an unreachable Engine, the startup check, dtcc-sim ignored while the Engine is set, discovery from the Engine, the Engine path chosen even with dtcc-sim configured, a real canonical package written by Core (as the Engine's worker writes one) decoded into `run_simulation`'s statistics, and a rejected token relayed by all four simulation tools.
+`tests/test_engine.py` runs offline against `httpx.MockTransport`: submit once with backoff and `format` dropped, every error row above (a cancelled job ends the wait with no sleep), waiting out a 503, the timeout, an unreachable Engine, the startup check, dtcc-sim ignored while the Engine is set, discovery from the Engine, the Engine path chosen even with dtcc-sim configured, a real canonical package written by Core (as the Engine's worker writes one) decoded into `run_simulation`'s statistics, and a rejected token relayed by all four simulation tools.
 
 See also [Deployment and CI](../operations/deployment-and-ci.md) for the Compose variables.

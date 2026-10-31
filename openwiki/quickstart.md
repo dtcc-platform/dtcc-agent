@@ -22,10 +22,10 @@ sources:
     resource: repo://pyproject.toml
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Quickstart
@@ -49,7 +49,7 @@ docker compose up --build                                                # both,
 python -m eval.measure --url ws://localhost:8050/chat --runs 1           # measure the question set
 ```
 
-The chatbot needs a Bedrock credential (`AWS_BEARER_TOKEN_BEDROCK` or standard AWS credentials) to start. Compose also requires `DTCC_MCP_SECRET` and `DTCC_AGENT_ACCESS_CODE`. To run simulations on a DTCC Engine, set `DTCC_ENGINE_URL` and `DTCC_ENGINE_TOKEN`.
+The chatbot needs a Bedrock credential to start: `AWS_BEARER_TOKEN_BEDROCK`, or anything botocore's credential chain finds (access keys, a profile, or an instance role in AWS). Compose requires `DTCC_MCP_SECRET` and `DTCC_AGENT_ACCESS_CODE`, and passes the Bedrock key only when it is set. To run simulations on a DTCC Engine, set `DTCC_ENGINE_URL` and `DTCC_ENGINE_TOKEN`.
 
 Without `DTCC_MCP_URL`, the chatbot spawns the server over stdio. The HTTP server prints `dtcc-agent: catalogue built: N operations` at startup; if it exits instead, naming a catalogue section, the dtcc-core install is broken. A stdio server builds the catalogue on the first call that needs it, and a broken install shows up as that call's error.
 
@@ -72,7 +72,8 @@ dtcc-core is pinned to a commit in `pyproject.toml`. Do not move the pin by hand
 | Change the chat app, its WebSocket protocol, admission or UI | [Chatbot (Lurkie)](integrations/chatbot-lurkie.md) |
 | Run simulations on the DTCC Engine, or debug an Engine job | [DTCC Engine integration](integrations/dtcc-engine.md) |
 | Trace an answer, measure speed or cost, or compare two versions | [Provenance and evaluation](operations/provenance-and-evaluation.md) |
-| Deploy, run the two-service compose, configure env vars, or change CI | [Deployment and CI](operations/deployment-and-ci.md) |
+| Deploy, run the two-service compose, configure env vars, serve under a gateway prefix, or change CI | [Deployment and CI](operations/deployment-and-ci.md) |
+| Cap model spend, questions per chat, answer time or concurrent model requests | [Turn and spend limits](operations/turn-and-spend-limits.md) |
 | Know what is decided and what is still planned | [Architecture decisions map](decisions/adr-map.md) |
 | Run or extend tests | [Test suite](testing/test-suite.md) |
 

@@ -4,12 +4,16 @@ title: Architecture overview
 description: End-to-end picture of dtcc-agent, from the Lurkie web chatbot through the MCP server and generic dispatch to dtcc-core and dtcc-sim, with a module ownership map and the two deployment modes.
 tags: [architecture, overview, mcp, chatbot, dtcc-core]
 sources:
+  - id: openwiki-source-778a883bcdc0a6ed0b3401f7
+    resource: repo://chatbot/config.py
   - id: openwiki-source-6ed7b95a502f0a6d7126df1d
     resource: repo://chatbot/runtime/pai.py
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-322ab22151ae73c933ac2f97
     resource: repo://docs/adr/0001-agent-is-a-conversational-front-door.md
+  - id: openwiki-source-5362e3b27c4a029e63907699
+    resource: repo://docs/adr/0011-simulations-on-the-engine-downloads-stay-in-process.md
   - id: openwiki-source-7cb0fe42631b753a02cd6ba2
     resource: repo://dtcc_agent/__init__.py
   - id: openwiki-source-32c33c58f635fb0708a0e8c6
@@ -18,10 +22,10 @@ sources:
     resource: repo://dtcc_agent/server.py
   - id: openwiki-source-05ccef8d4cf1698187f20464
     resource: repo://pyproject.toml
-generated: { by: "claude-code", at: "2026-10-13T19:36:58.526Z" }
+generated: { by: "claude-code", at: "2026-10-31T10:29:51.442Z" }
 verified:
   - by: openwiki/0.5.2
-    at: 2026-10-13T19:36:58.526Z
+    at: 2026-10-31T10:29:51.442Z
 ---
 
 # Architecture overview
@@ -34,10 +38,10 @@ The repo ships two Python packages:
 - **`chatbot`** ("Lurkie"): a FastAPI web app that runs the agent loop with pydantic-ai on Amazon Bedrock against that MCP server, and streams the conversation over a WebSocket.
 
 ```
-browser (chatbot/static/index.html)
-   │  WebSocket /chat (access code to open a chat)
+browser (chatbot/static/index.html; relative URLs, so it works at / or under a gateway prefix such as /agent/)
+   │  WebSocket chat (access code to open a chat)
    ▼
-chatbot/app.py ── runtime/pai.py: pydantic-ai agent ── Amazon Bedrock (model from DTCC_AGENT_MODEL)
+chatbot/app.py ── runtime/pai.py: pydantic-ai agent ── limits.py gate ── Amazon Bedrock (model from DTCC_AGENT_MODEL)
    │  MCP: streamable-http + X-DTCC-Session/Subject/Turn + bearer secret (or stdio child)
    │                         ▲ GET /artifacts/<session>/<name> (files tools wrote)
    ▼
@@ -63,6 +67,7 @@ dtcc-core (pinned commit, in process) · DTCC Engine or dtcc-sim (simulations, o
 | Concern | Owner | Page |
 |---|---|---|
 | The agent loop, model, prompt, memory, failures | `chatbot/runtime/pai.py`, `chatbot/config.py`, `chatbot/memory.py` | [Model runtime](model-runtime.md) |
+| Spend, turn, deadline and concurrency limits | `chatbot/limits.py` | [Turn and spend limits](../operations/turn-and-spend-limits.md) |
 | Tool registration, concurrency, transports, startup | `server.py`, `runtime.py` | [MCP server and tool execution](mcp-server-and-tool-execution.md) |
 | Session isolation and admission | `server.py` (`_Session`), `chatbot/sessions.py`, `chatbot/app.py` | [Sessions and isolation](sessions-and-isolation.md) |
 | What operations exist | `registry.py` | [Operation catalogue](../concepts/operation-catalogue.md) |
@@ -81,7 +86,7 @@ The server exposes two kinds of tools side by side:
 - **Hardcoded, task-shaped tools** such as `geocode`, `get_buildings`, `run_simulation` and `compare_scenarios`. They compose several steps and return summaries.
 - **Generic dispatch tools** (`list_operations`, `describe_operation`, `run_operation`, and the object tools `list_objects`, `inspect_object`, `export_object`, `spatial_query` and others). These expose the entire dtcc-core catalogue (133 operations). Results are kept server-side and referred to by typed references, so multi-step pipelines never pass geometry through the LLM.
 
-ADR-0007 keeps this generic dispatch in the agent. Since 2026-10-09 the platform direction is that all queuing goes through the DTCC Engine, so ADR-0007 is due to be superseded once M4 measures whether Core downloads should move there (#110, #111).
+ADR-0011 (2026-10-20) supersedes ADR-0007: simulations run on the DTCC Engine, while this generic dispatch, and the building and point-cloud downloads behind the agent's disk cache, stay in the agent. M4's measurement (#110) found point-cloud downloads through the Engine 30–38% slower, above the 15% limit.
 
 ## dtcc-core is a hard dependency
 
@@ -89,7 +94,7 @@ ADR-0007 keeps this generic dispatch in the agent. Since 2026-10-09 the platform
 
 ## Deployment shape and simulation paths
 
-`docker-compose.yml` runs two services from one image (T13): the MCP server over streamable HTTP, bound to `127.0.0.1:8051` and never published (U11), and the chatbot, which shares its network namespace and its `/data` volume. The chat's port 8050 is published on the MCP service, since the two share one namespace. Compose refuses to start without the MCP secret, the access code and a Bedrock key.
+`docker-compose.yml` runs two services from one image (T13): the MCP server over streamable HTTP, bound to `127.0.0.1:8051` and never published (U11), and the chatbot, which shares its network namespace and its `/data` volume. The chat's port 8050 is published on the MCP service, since the two share one namespace. Compose refuses to start without the MCP secret and the access code. The Bedrock key is passed through only when it is set; without it the chat server uses botocore's credential chain, such as an instance role in AWS, and refuses to start when it finds none (#130). `docs/deployment.md` describes what the deployment needs, and a test keeps it in step with Compose.
 
 Simulations run on exactly one of three paths, chosen by configuration with no fallback between them (`runner.py`):
 
@@ -101,4 +106,4 @@ Everything else (buildings, terrain, meshing, rendering) runs in the agent in al
 
 ## History and direction
 
-The rebuild (ADR-0009, `docs/plans/2026-09-19-rebuild-plan.md`) replaced the Claude Agent SDK with pydantic-ai on Bedrock (ADR-0003, M3; the SDK rollback was removed in #105), introduced typed references (ADR-0010) and plans retrieval as a separate MCP server (ADR-0005). M4 (#30) puts the agent on the DTCC Engine and makes it ready for a deployment that the platform team designs. See the [ADR map](../decisions/adr-map.md) for how far each decision has landed.
+The rebuild (ADR-0009, `docs/plans/2026-09-19-rebuild-plan.md`) replaced the Claude Agent SDK with pydantic-ai on Bedrock (ADR-0003, M3; the SDK rollback was removed in #105), introduced typed references (ADR-0010) and plans retrieval as a separate MCP server (ADR-0005). M4 (#30, closed 2026-10-30) put simulations on the DTCC Engine. dtcc-infra's agent design then asked for five changes before an invited beta (its step A2), all merged on 2026-10-31: no `.env` in the image, cancelled Engine jobs, the instance role, serving under `/agent/`, and turn and spend limits. In that deployment the agent reaches the Engine through the Twin backend as a signed-in user, not directly; those endpoints (dtcc-infra L1) are not built yet. See the [ADR map](../decisions/adr-map.md) for how far each decision has landed.

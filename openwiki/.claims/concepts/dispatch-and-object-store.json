@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ca525a0beabf29bf7c151bd17c13393c2df65d8679d1917ea63b918da764cdc3",
+  "pageVersion": "sha256:be2e15ee6cd8b51edbe8e4eb216a59999819ede332bd035cafd877f413c3c589",
   "claims": [
     {
       "id": "claim_016618e477134f7fbc3dd24c31db7db8",
       "statement": "The run_operation MCP tool dispatches into the calling Session's ObjectStore with the shared disk cache, and the dispatcher checks the cache before executing and populates it after success for allowlisted operations.",
       "evidence": [
         {
-          "resource": "repo://dtcc_agent/dispatcher.py#L142-L225",
-          "version": "repo-lines-v1:sha256:c57135622cfde772b8e5d3298de4e2066e58f30ef755117e5bbd6c26b0036711:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkNGM0MzUwYWJmYmRiZjIxZWEwNzhhNTJhYWYxNWM5ZDA1NTc2MWEwOGY1NGNiNTA5NjQzMjY5YzEzNTQyNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiODhlMjlmMzEyMGM2Mjg5ZWJhNWE2ZTAyNTc0YmE4YWI1ZTM5NjRjMmYyMGI5YTVhM2FhMDkzYTBjNGU4NzcifQ"
+          "resource": "repo://dtcc_agent/dispatcher.py#L142-L232",
+          "version": "repo-lines-v1:sha256:bf2f2b9565d3d9a9cf8bc76db1ac2c0306242f6356be0e668544dc9a63842dda:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZTBhZWIyMDgyN2NiMTdiMDk3ZmE2Yzg2ZWE3ZGUzYmE1ZjU0ODUwZmJhODRlNGQ2YzQ0OTUwMWIwOWZmNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkNGM0MzUwYWJmYmRiZjIxZWEwNzhhNTJhYWYxNWM5ZDA1NTc2MWEwOGY1NGNiNTA5NjQzMjY5YzEzNTQyNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiODhlMjlmMzEyMGM2Mjg5ZWJhNWE2ZTAyNTc0YmE4YWI1ZTM5NjRjMmYyMGI5YTVhM2FhMDkzYTBjNGU4NzcifQ"
         }
       ]
     },
@@ -140,15 +140,15 @@
     },
     {
       "id": "claim_84f29f39cccf48fc89c0018ec6a94fa9",
-      "statement": "Every Session's ObjectStore shares one process-wide MemoryBudget of 2 GiB and its lock, with an HTTP Session capped at half of it; past the budget's total the least recently used object in any store is evicted.",
+      "statement": "Every Session's ObjectStore shares one process-wide MemoryBudget, 2 GiB unless DTCC_MCP_OBJECT_BUDGET_GIB sets it, and its lock, with an HTTP Session capped at half of it; past the budget's total the least recently used object in any store is evicted.",
       "evidence": [
         {
           "resource": "repo://dtcc_agent/object_store.py#L75-L107",
           "version": "repo-lines-v1:sha256:498f4bced05010bcae1af022d334c6201f6c58bb8db3e8460d8ad7c15efbb512:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4YmFmYTZlZTJiMjg3Yzk4YzllYjEzMTlkNjZiMDJmMGFiYjUwZmFlNzQ1MGZiYWVlMmI2ZTY3ZWI1YzQ1YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0YTA0MWZmMDI3ZTNkZmIyZjkzNzU0N2FmYzhjZDM4YWVkMWY2ZjgxNjJhNDQxNWQxYjAzMzA5Y2MzMGRkMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MTY5MDM3MTEyODk5ZTI3N2RhODg2YTRkNGE4OWE2YTFiMWVmYTQxNzNiNDZkMjhjMjQ0ZTU2ZTViZjQyYzAifQ"
         },
         {
-          "resource": "repo://dtcc_agent/server.py#L59-L76",
-          "version": "repo-lines-v1:sha256:cae42d35e154fd440385baba361f0c01d212f5e05e18e8e848dbaad7f68c225c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MDg0YTFlY2I0MzdiZWVjOTk5NWNmMDg4Mzg0MDZlNzI4MmIwMmFkMTU4YTZhZDQxNTZlYmVkYjc0OTliOWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2Y2E1NzhkODcxMTZjYmRkZWJhZGY3ODMwZTk5NTE1NWUyZGJlY2QwNmY4MzY0MzYxNzQ0NDUyNTU1OGM4M2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+          "resource": "repo://dtcc_agent/server.py#L61-L92",
+          "version": "repo-lines-v1:sha256:3faa2d4fcf45328da629fb03c194c7db49fd7ec9c005c6f37d13ea7468aa2776:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxYjc3NTE0ZWMwMWY4MmU3MTEzZjdjNDdmYTg4YWQ2NDYzMzkyZTcyMzQ4Yzk2MDk5NTgzNmY2Yzc2ZTk0N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MDg0YTFlY2I0MzdiZWVjOTk5NWNmMDg4Mzg0MDZlNzI4MmIwMmFkMTU4YTZhZDQxNTZlYmVkYjc0OTliOWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5NzQ5NDgzNjk1ZGU2ZDY4NmJmNzllMTg1OWIzYmI1MTNjYTI4NjJiYTQ5YTIzZjViMGQ4Yjc1YWJiNDkxYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
         },
         {
           "resource": "repo://tests/test_object_store.py",
@@ -173,6 +173,6 @@
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-10-13T19:36:58.526Z"
+    "at": "2026-10-31T10:29:51.442Z"
   }
 }
